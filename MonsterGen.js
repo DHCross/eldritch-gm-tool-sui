@@ -5,8 +5,8 @@
 </head>
 <body>
     <h1>Monster Hit Points Calculator</h1>
-    <form id="monsterForm">
-        <!-- Your form elements here -->
+
+    <form onsubmit="event.preventDefault(); calculateThreat(calculateHitPoints)">
         <label for="monsterType">Monster Type:</label>
         <select id="monsterType" name="monsterType">
             <option value="1">Mundane</option>
@@ -16,7 +16,7 @@
         </select>
 
         <label for="monsterSize">Monster Size:</label>
-        <select id="monsterSize" name="monsterSize">
+        <select id="monsterSize" name="monsterSize" value="1">
             <option value="0.5">Minuscule or Tiny</option>
             <option value="1">Small or Medium</option>
             <option value="1.5">Large</option>
@@ -24,8 +24,8 @@
             <option value="2.5">Gargantuan</option>
         </select>
 
-        <label for="meleeMinor">Melee Minor (MV):</label>
-        <select id="meleeMinor" name="meleeMinor">
+        <label for="Primary Attack; Minor">Minor HP (MV):</label>
+        <select id="Tier 1 Threat--Minor" name="minor">
             <option value="4">d4</option>
             <option value="6">d6</option>
             <option value="8">d8</option>
@@ -33,8 +33,9 @@
             <option value="12">d12</option>
         </select>
 
-        <label for="meleeStandard">Melee Standard (MV):</label>
-        <select id="meleeStandard" name="meleeStandard">
+        <label for="Primary Attack; add Standard die">Standard HP (MV):</label>
+        <select id="Tier2AddsStandardDie" name="standard">
+            <option value="0">None</option>
             <option value="4">d4</option>
             <option value="6">d6</option>
             <option value="8">d8</option>
@@ -42,8 +43,9 @@
             <option value="12">d12</option>
         </select>
 
-        <label for="meleeExceptional">Melee Exceptional (MV):</label>
-        <select id="meleeExceptional" name="meleeExceptional">
+        <label for="Primary Attack is Exceptional">Exceptional HP (MV):</label>
+        <select id="Tier3AddExceptionalDie" name="exceptional">
+            <option value="0">None</option>
             <option value="4">d4</option>
             <option value="6">d6</option>
             <option value="8">d8</option>
@@ -51,135 +53,38 @@
             <option value="12">d12</option>
         </select>
 
-        <label for="naturalMinor">Natural Minor (MV):</label>
-        <select id="naturalMinor" name="naturalMinor">
-            <option value="4">d4</option>
-            <option value="6">d6</option>
-            <option value="8">d8</option>
-            <option value="10">d10</option>
-            <option value="12">d12</option>
-        </select>
-
-        <label for="naturalStandard">Natural Standard (MV):</label>
-        <select id="naturalStandard" name="naturalStandard">
-            <option value="4">d4</option>
-            <option value="6">d6</option>
-            <option value="8">d8</option>
-            <option value="10">d10</option>
-            <option value="12">d12</option>
-        </select>
-
-        <label for="naturalExceptional">Natural Exceptional (MV):</label>
-        <select id="naturalExceptional" name="naturalExceptional">
-            <option value="4">
-            <option value="4">d4</option>
-            <option value="6">d6</option>
-            <option value="8">d8</option>
-            <option value="10">d10</option>
-            <option value="12">d12</option>
-        </select>
-
-        <label for="rangedMinor">Ranged Minor (MV):</label>
-        <select id="rangedMinor" name="rangedMinor">
-            <option value="4">d4</option>
-            <option value="6">d6</option>
-            <option value="8">d8</option>
-            <option value="10">d10</option>
-            <option value="12">d12</option>
-        </select>
-
-        <label for="rangedStandard">Ranged Standard (MV):</label>
-        <select id="rangedStandard" name="rangedStandard">
-            <option value="4">d4</option>
-            <option value="6">d6</option>
-            <option value="8">d8</option>
-            <option value="10">d10</option>
-            <option value="12">d12</option>
-        </select>
-
-        <label for="rangedExceptional">Ranged Exceptional (MV):</label>
-        <select id="rangedExceptional" name="rangedExceptional">
-            <option value="4">d4</option>
-            <option value="6">d6</option>
-            <option value="8">d8</option>
-            <option value="10">d10</option>
-            <option value="12">d12</option>
-        </select>
-
-        <label for="arcaneMinor">Arcane/Magic Minor (MV):</label>
-        <select id="arcaneMinor" name="arcaneMinor">
-            <option value="4">d4</option>
-            <option value="6">d6</option>
-            <option value="8">d8</option>
-            <option value="10">d10</option>
-            <option value="12">d12</option>
-        </select>
-
-        <label for="arcaneStandard">Arcane/Magic Standard (MV):</label>
-        <select id="arcaneStandard" name="arcaneStandard">
-            <option value="4">d4</option>
-            <option value="6">d6</option>
-            <option value="8">d8</option>
-            <option value="10">d10</option>
-            <option value="12">d12</option>
-        </select>
-
-        <label for="arcaneExceptional">Arcane/Magic Exceptional (MV):</label>
-        <select id="arcaneExceptional" name="arcaneExceptional">
-            <option value="4">d4</option>
-            <option value="6">d6</option>
-            <option value="8">d8</option>
-            <option value="10">d10</option>
-            <option value="12">d12</option>
-        </select>
-
-        <input type="submit" value="Calculate Threat">
-    </form>
-
-    <div id="output"></div>
-
-    <!-- Your form elements here -->
-        <input type="submit" value="Calculate Hit Points">
+        <button type="submit" id="calculateHitPoints">Calculate Hit Points</button>
     </form>
 
     <div id="output"></div>
 
     <script>
-        document.getElementById('monsterForm').addEventListener('submit', function(event) {
-            // Prevent the form from submitting normally
-            event.preventDefault();
+        function calculateHitPoints(minor, standard, exceptional, creatureSize, creatureNature) {
+            let sizeModifier = parseInt(creatureSize);
+            let natureModifier = parseInt(creatureNature);
 
-            // Get the user's input
-            let meleeMinor = document.getElementById('meleeMinor').value;
-            let meleeStandard = document.getElementById('meleeStandard').value;
-            let meleeExceptional = document.getElementById('meleeExceptional').value;
-            let rangedMinor = document.getElementById('rangedMinor').value;
-            let rangedStandard = document.getElementById('rangedStandard').value;
-            let rangedExceptional = document.getElementById('rangedExceptional').value;
-            let naturalMinor = document.getElementById('naturalMinor').value;
-            let naturalStandard = document.getElementById('naturalStandard').value;
-            let naturalExceptional = document.getElementById('naturalExceptional').value;
-            let arcaneMinor = document.getElementById('arcaneMinor').value;
-            let arcaneStandard = document.getElementById('arcaneStandard').value;
-            let arcaneExceptional = document.getElementById('arcaneExceptional').value;
+            let totalModifier = (sizeModifier + natureModifier) / 2;
+            let finalHitPoints = Math.ceil(
+                Math.max(minor + standard + exceptional, rangedHitPoints, naturalHitPoints, arcaneHitPoints) * totalModifier
+            );
 
-            // Calculate the hit points for each category
-            let meleeHitPoints = parseInt(meleeMinor) + parseInt(meleeStandard) + parseInt(meleeExceptional);
-            let rangedHitPoints = parseInt(rangedMinor) + parseInt(rangedStandard) + parseInt(rangedExceptional);
-            let naturalHitPoints = parseInt(naturalMinor) + parseInt(naturalStandard) + parseInt(naturalExceptional);
-            let arcaneHitPoints = parseInt(arcaneMinor) + parseInt(arcaneStandard) + parseInt(arcaneExceptional);
+            return finalHitPoints;
+        }
 
-            // Get the highest hit points
-            let highestHitPoints = Math.max(meleeHitPoints, rangedHitPoints, naturalHitPoints, arcaneHitPoints);
+        function calculateThreat(calculateHitPoints) {
+            let hitPoints = calculateHitPoints(
+                parseInt(document.getElementById("Tier 1 Threat--Minor").value),
+                parseInt(document.getElementById("Tier2AddsStandardDie").value),
+                parseInt(document.getElementById("Tier3AddExceptionalDie").value),
+                parseFloat(document.getElementById("monsterSize").value),
+                1
+            );
 
-            // Set the output
-            document.getElementById('output').innerHTML = `
+            document.getElementById("output").innerHTML = `
                 <h2>Monster Hit Points</h2>
-                <p>The highest hit points is ${highestHitPoints}.</p>
+                <p>The final hit points, after applying size and nature modifiers, is ${hitPoints}.</p>
             `;
-        });
+        }
     </script>
 </body>
 </html>
-
-

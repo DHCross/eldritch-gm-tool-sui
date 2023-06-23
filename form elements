@@ -1,0 +1,117 @@
+    <!-- Your form elements here -->
+
+        <label for="meleeMinor">Melee Minor (MV):</label>
+        <select id="meleeMinor" name="meleeMinor">
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+        </select>
+
+        <label for="meleeStandard">Melee Standard (MV):</label>
+        <select id="meleeStandard" name="meleeStandard">
+            <option value="0">None</option>
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+        </select>
+
+        <label for="meleeExceptional">Melee Exceptional (MV):</label>
+        <select id="meleeExceptional" name="meleeExceptional">
+            <option value="0">None</option>    
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+        </select>
+
+        <label for="naturalMinor">Natural Minor (MV):</label>
+        <select id="naturalMinor" name="naturalMinor">
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+        </select>
+
+        <label for="naturalStandard">Natural Standard (MV):</label>
+        <select id="naturalStandard" name="naturalStandard">
+            <option value="0">None</option>
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+        </select>
+
+        <label for="naturalExceptional">Natural Exceptional (MV):</label>
+        <select id="naturalExceptional" name="naturalExceptional">
+            <option value="0">None</option>
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+        </select>
+
+        <label for="rangedMinor">Ranged Minor (MV):</label>
+        <select id="rangedMinor" name="rangedMinor">
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+        </select>
+
+        <label for="rangedStandard">Ranged Standard (MV):</label>
+        <select id="rangedStandard" name="rangedStandard">
+            <option value="0">None</option>
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+        </select>
+
+        <label for="rangedExceptional">Ranged Exceptional (MV):</label>
+        <select id="rangedExceptional" name="rangedExceptional">
+         <option value="0">None</option>
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+        </select>
+
+        <label for="arcaneMinor">Arcane/Magic Minor (MV):</label>
+        <select id="arcaneMinor" name="arcaneMinor">
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+        </select>
+
+        <label for="arcaneStandard">Arcane/Magic Standard (MV):</label>
+        <select id="arcaneStandard" name="arcaneStandard">
+            <option value="0">None</option>
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+        </select>
+
+        <label for="arcaneExceptional">Arcane/Magic Exceptional (MV):</label>
+        <select id="arcaneExceptional" name="arcaneExceptional">
+            <option value="0">None</option>
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+        </select>
