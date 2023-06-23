@@ -1,51 +1,11 @@
-Sure! Here is the complete example that includes the user selectable drop downs for the threat category die size choices:
-
-```html
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Monster Threat Calculator</title>
-    <script>
-        function calculateThreat() {
-            // Get the values from the select elements
-            let meleeDamage = document.getElementById('meleeDamage').value;
-            let rangedDamage = document.getElementById('rangedDamage').value;
-            let naturalDamage = document.getElementById('naturalDamage').value;
-            let arcaneDamage = document.getElementById('arcaneDamage').value;
-
-            // Populate the hidden input fields
-            document.getElementById('meleeMinor').value = meleeDamage[0];
-            document.getElementById('meleeStandard').value = meleeDamage[1];
-            document.getElementById('meleeExceptional').value = meleeDamage[2];
-            document.getElementById('rangedMinor').value = rangedDamage[0];
-            document.getElementById('rangedStandard').value = rangedDamage[1];
-            document.getElementById('rangedExceptional').value = rangedDamage[2];
-            document.getElementById('naturalMinor').value = naturalDamage[0];
-            document.getElementById('naturalStandard').value = naturalDamage[1];
-            document.getElementById('naturalExceptional').value = naturalDamage[2];
-            document.getElementById('arcaneMinor').value = arcaneDamage[0];
-            document.getElementById('arcaneStandard').value = arcaneDamage[1];
-            document.getElementById('arcaneExceptional').value = arcaneDamage[2];
-
-            // Calculate the threat for each category
-            let meleeThreat = parseInt(meleeDamage[0]) + parseInt(meleeDamage[1]) + parseInt(meleeDamage[2]);
-            let rangedThreat = parseInt(rangedDamage[0]) + parseInt(rangedDamage[1]) + parseInt(rangedDamage[2]);
-            let naturalThreat = parseInt(naturalDamage[0]) + parseInt(naturalDamage[1]) + parseInt(naturalDamage[2]);
-            let arcaneThreat = parseInt(arcaneDamage[0]) + parseInt(arcaneDamage[1]) + parseInt(arcaneDamage[2]);
-
-            // Get the highest threat
-            let highestThreat = Math.max(meleeThreat, rangedThreat, naturalThreat, arcaneThreat);
-
-            // Set the output
-            document.getElementById('output').innerHTML = `
-                <h2>Monster Threat</h2>
-                <p>The highest threat is ${highestThreat}.</p>
-            `;
-        }
-    </script>
+    <title>Monster Hit Points Calculator</title>
 </head>
 <body>
-    <h1>Monster Threat Calculator</h1>
+    <h1>Monster Hit Points Calculator</h1>
+
     <form onsubmit="event.preventDefault(); calculateThreat()">
         <label for="monsterType">Monster Type:</label>
         <select id="monsterType" name="monsterType">
@@ -57,12 +17,74 @@ Sure! Here is the complete example that includes the user selectable drop downs 
 
         <label for="monsterSize">Monster Size:</label>
         <select id="monsterSize" name="monsterSize">
-            <option value="0.5">Minuscule or Tiny</option>
+            <option value="0">Minuscule or Tiny</option>
             <option value="1">Small or Medium</option>
-            <option value="1.5">Large</option>
-            <option value="2">Huge</option>
-            <option value="2.5">Gargantuan</option>
+            <option value="2">Large</option>
+            <option value="3">Huge</option>
+            <option value="4">Gargantuan</option>
         </select>
 
-        <label for="meleeMinor">Melee Minor (MV):</label>
-        <select id="meleeMinor" name="meleeMinor">
+        <label for="Primary Attack; Minor">Minor HP (MV):</label>
+        <select id="Tier 1 Threat--Minor" name="minor">
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+        </select>
+
+        <label for="Primary Attack; add Standard die">Standard HP (MV):</label>
+        <select id="Tier2AddsStandardDie" name="standard">
+            <option value="0">None</option>
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+        </select>
+
+        <label for="Primary Attack is Exceptional">Exceptional HP (MV):</label>
+        <select id="Tier3AddExceptionalDie" name="exceptional">
+            <option value="0">None</option>
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+        </select>
+
+        <button type="submit" id="calculateHitPoints">Calculate Hit Points</button>
+    </form>
+
+    <div id="output"></div>
+    <script>
+    function calculateHitPoints(ThreatMinor, ThreatStandard, ThreatExceptional, creatureSize, creatureNature) {
+        let sizeModifier = parseFloat(creatureSize);
+        let natureModifier = parseFloat(creatureNature);
+
+        let totalModifier = (sizeModifier + natureModifier) / 2;
+        let totalHitPoints = ThreatMinor + ThreatStandard + ThreatExceptional;
+        let finalHitPoints = Math.ceil(totalHitPoints * totalModifier);
+
+        return finalHitPoints;
+    }
+
+    function calculateThreat() {
+        let hitPoints = calculateHitPoints(
+            parseInt(document.getElementById("Tier 1 Threat--Minor").value),
+            parseInt(document.getElementById("Tier2AddsStandardDie").value),
+            parseInt(document.getElementById("Tier3AddExceptionalDie").value),
+            parseFloat(document.getElementById("monsterSize").value),
+            parseFloat(document.getElementById("monsterType").value)
+        );
+
+        document.getElementById("output").innerHTML = `
+            <h2>Monster Hit Points</h2>
+            <p>The final hit points, after applying size and nature modifiers, is ${hitPoints}.</p>
+        `;
+    }
+</script>
+
+</body>
+</html>
+
