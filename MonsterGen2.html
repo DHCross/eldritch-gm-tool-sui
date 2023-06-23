@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
 <head>
     <title>Monster Hit Points Calculator</title>
@@ -58,7 +57,7 @@
 
     <div id="output"></div>
     <script>
-    function calculateHitPoints(ThreatMinor, ThreatStandard, ThreatExceptional, creatureSize, creatureNature) {
+    function calculateHitPoints(ThreatMinor, ThreatStandard, ThreatExceptional, creatureSize, creatureNature)
         let sizeModifier = parseFloat(creatureSize);
         let natureModifier = parseFloat(creatureNature);
 
@@ -67,9 +66,9 @@
         let finalHitPoints = Math.ceil(totalHitPoints * totalModifier);
 
         return finalHitPoints;
-    }
+    {"}"}
 
-    function calculateThreat() {
+    function calculateThreat() 
         let hitPoints = calculateHitPoints(
             parseInt(document.getElementById("Tier 1 Threat--Minor").value),
             parseInt(document.getElementById("Tier2AddsStandardDie").value),
@@ -82,7 +81,7 @@
             <h2>Monster Hit Points</h2>
             <p>The final hit points, after applying size and nature modifiers, is ${hitPoints}.</p>
         `;
-    }
+    {"}"}
 </script>
 
 </body>
