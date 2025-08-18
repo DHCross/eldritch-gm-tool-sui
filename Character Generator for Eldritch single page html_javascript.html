@@ -172,74 +172,195 @@
         }
 
 
+
         function generateCharacter() {
             const race = document.getElementById('race').value;
             const characterClass = document.getElementById('class').value;
-            const level = parse
-        if (!race || !characterClass || isNaN(level) || level < 1 || level > 5) {
-            alert("Please select a valid race, class, and level (1-5).");
-            return;
-        }
+            const level = parseInt(document.getElementById('level').value);
+            if (!race || !characterClass || isNaN(level) || level < 1 || level > 5) {
+                alert("Please select a valid race, class, and level (1-5).");
+                return;
+            }
 
+            // Start with d4 in Competence, Prowess, Fortitude (per rules)
+            const character = {
+                race: race,
+                class: characterClass,
+                level: level,
+                abilities: {},
+                specialties: {},
+                focuses: {},
+                advantages: [],
+                flaws: [],
+                equipment: []
+            };
 
-        const character = {
-            race: race,
-            class: characterClass,
-            level: level,
-            abilities: {},
-            specialties: {},
-            focuses: {}
-        };
+            // Set base abilities to d4
+            abilities.forEach(ability => {
+                character.abilities[ability] = 'd4';
+            });
 
+            // Apply race minima
+            Object.entries(raceMinima[race] || {}).forEach(([key, value]) => {
+                if (abilities.includes(key)) {
+                    character.abilities[key] = getHighestRank(character.abilities[key], value);
+                } else if (Object.values(specialties).flat().includes(key)) {
+                    // specialty
+                    if (!character.specialties[getParentAbility(key)]) character.specialties[getParentAbility(key)] = {};
+                    character.specialties[getParentAbility(key)][key] = value;
+                } else {
+                    // focus
+                    let parentAbility = getParentAbilityFromFocus(key);
+                    if (!character.focuses[parentAbility]) character.focuses[parentAbility] = {};
+                    character.focuses[parentAbility][key] = value;
+                }
+            });
 
-        // Generate abilities, specialties, and focuses
-        abilities.forEach(ability => {
-            let baseRank = getRandomDieRank();
-            let raceMinimum = raceMinima[character.race][ability] || 'd4';
-            let classMinimum = classMinima[character.class][ability] || 'd4';
-            character.abilities[ability] = getHighestRank(baseRank, getHighestRank(raceMinimum, classMinimum));
+            // Apply class minima
+            Object.entries(classMinima[characterClass] || {}).forEach(([key, value]) => {
+                if (abilities.includes(key)) {
+                    character.abilities[key] = getHighestRank(character.abilities[key], value);
+                } else if (Object.values(specialties).flat().includes(key)) {
+                    if (!character.specialties[getParentAbility(key)]) character.specialties[getParentAbility(key)] = {};
+                    character.specialties[getParentAbility(key)][key] = value;
+                } else {
+                    let parentAbility = getParentAbilityFromFocus(key);
+                    if (!character.focuses[parentAbility]) character.focuses[parentAbility] = {};
+                    character.focuses[parentAbility][key] = value;
+                }
+            });
 
-
-            character.specialties[ability] = {};
-            character.focuses[ability] = {};
-
-
-            specialties[ability].forEach(specialty => {
-                let specialtyRank = getRandomDieRank();
-                let raceMinimum = raceMinima[character.race][specialty] || 'd4';
-                let classMinimum = classMinima[character.class][specialty] || 'd4';
-                character.specialties[ability][specialty] = getHighestRank(specialtyRank, getHighestRank(raceMinimum, classMinimum));
-
-
-                focuses[specialty].forEach(focus => {
-                    let focusBonus = parseInt(getRandomFocusBonus().substring(1));
-                    let raceMinimum = parseInt((raceMinima[character.race][focus] || '+0').substring(1));
-                    let classMinimum = parseInt((classMinima[character.class][focus] || '+0').substring(1));
-                    character.focuses[ability][focus] = '+' + Math.max(focusBonus, raceMinimum, classMinimum);
+            // Fill in specialties and focuses with d4/+0 if not set
+            abilities.forEach(ability => {
+                if (!character.specialties[ability]) character.specialties[ability] = {};
+                specialties[ability].forEach(specialty => {
+                    if (!character.specialties[ability][specialty]) character.specialties[ability][specialty] = 'd4';
+                    if (!character.focuses[ability]) character.focuses[ability] = {};
+                    focuses[specialty].forEach(focus => {
+                        if (!character.focuses[ability][focus]) character.focuses[ability][focus] = '+0';
+                    });
                 });
             });
-        });
 
+            // TODO: Spend 10 CPs to upgrade abilities/specialties/focuses (random or user-driven)
 
-        // Ensure only one Expertise focus is above +0
-        const expertiseFocuses = focuses['Expertise'].map(focus => character.focuses['Competence'][focus]);
-        if (expertiseFocuses.filter(f => f !== '+0').length > 1) {
-            const highestFocus = Math.max(...expertiseFocuses.map(f => parseInt(f.substring(1))));
-            focuses['Expertise'].forEach(focus => {
-                character.focuses['Competence'][focus] = parseInt(character.focuses['Competence'][focus].substring(1)) === highestFocus ? 
-                    '+' + highestFocus : '+0';
-            });
+            // Calculate defense pools using MV (max value) per rules
+            character.defensePools = calculateDefensePoolsMV(character);
+
+            // Add starting equipment and advantages/flaws per race/class
+            character.equipment = getStartingEquipment(race, characterClass);
+            character.advantages = getAdvantages(race, characterClass);
+            character.flaws = getFlaws(race, characterClass);
+
+            character.cp = calculateCP(character); // CP calculation may need update for new logic
+            character.masteryDie = getMasteryDie(character.level);
+            character.usesPerDay = levelInfo.find(info => info.level === character.level).usesPerDay;
+
+            displayCharacter(character);
         }
 
+        // Helper: get parent ability for specialty
+        function getParentAbility(specialty) {
+            for (let ability in specialties) {
+                if (specialties[ability].includes(specialty)) return ability;
+            }
+            return null;
+        }
+        // Helper: get parent ability for focus
+        function getParentAbilityFromFocus(focus) {
+            for (let specialty in focuses) {
+                if (focuses[specialty].includes(focus)) {
+                    return getParentAbility(specialty);
+                }
+            }
+            return null;
+        }
 
-        character.cp = calculateCP(character);
-        character.masteryDie = getMasteryDie(character.level);
-        character.usesPerDay = levelInfo.find(info => info.level === character.level).usesPerDay;
-        character.defensePools = calculateDefensePools(character);
+        // Calculate defense pools using MV (max value)
+        function getDieMV(rank) {
+            switch(rank) {
+                case 'd4': return 4;
+                case 'd6': return 6;
+                case 'd8': return 8;
+                case 'd10': return 10;
+                case 'd12': return 12;
+                default: return 0;
+            }
+        }
 
+        function calculateDefensePoolsMV(character) {
+            // Active: Prowess MV + Agility MV + Melee MV
+            let active = getDieMV(character.abilities['Prowess']) +
+                         getDieMV(character.specialties['Prowess']['Agility']) +
+                         getDieMV(character.specialties['Prowess']['Melee']);
+            // Passive: Fortitude MV + Endurance MV + Strength MV
+            let passive = getDieMV(character.abilities['Fortitude']) +
+                          getDieMV(character.specialties['Fortitude']['Endurance']) +
+                          getDieMV(character.specialties['Fortitude']['Strength']);
+            // Spirit: Competence MV + Willpower MV
+            let spirit = getDieMV(character.abilities['Competence']) +
+                         getDieMV(character.specialties['Fortitude']['Willpower']);
+            return { activeDefense: active, passiveDefense: passive, spiritPoints: spirit };
+        }
 
-        displayCharacter(character);
-    }
+        // Get starting equipment per race/class
+        function getStartingEquipment(race, characterClass) {
+            // Per rules, simplified
+            const raceEq = {
+                Human: ['Ordinary clothes', '5 gold coins', 'Backpack', 'Small dagger', 'Week rations', 'Waterskin', 'Tinderbox', 'Rope', 'Iron spikes', 'Small hammer', 'Traveling staff or pole', 'Lantern/torches'],
+                Elf: ['Ordinary clothes', '5 gold coins', 'Backpack', 'Small dagger', 'Week rations', 'Waterskin', 'Tinderbox', 'Rope', 'Iron spikes', 'Small hammer', 'Traveling staff or pole', 'Lantern/torches'],
+                Dwarf: ['Ordinary clothes', '5 gold coins', 'Backpack', 'Small dagger', 'Week rations', 'Waterskin', 'Tinderbox', 'Rope', 'Iron spikes', 'Small hammer', 'Traveling staff or pole', 'Lantern/torches'],
+                Gnome: ['Ordinary clothes', '5 gold coins', 'Backpack', 'Small dagger', 'Week rations', 'Waterskin', 'Tinderbox', 'Rope', 'Iron spikes', 'Small hammer', 'Traveling staff or pole', 'Lantern/torches'],
+                'Half-Elf': ['Ordinary clothes', '5 gold coins', 'Backpack', 'Small dagger', 'Week rations', 'Waterskin', 'Tinderbox', 'Rope', 'Iron spikes', 'Small hammer', 'Traveling staff or pole', 'Lantern/torches'],
+                'Half-Orc': ['Ordinary clothes', '5 gold coins', 'Backpack', 'Small dagger', 'Week rations', 'Waterskin', 'Tinderbox', 'Rope', 'Iron spikes', 'Small hammer', 'Traveling staff or pole', 'Lantern/torches'],
+                Halfling: ['Ordinary clothes', '5 gold coins', 'Backpack', 'Small dagger', 'Week rations', 'Waterskin', 'Tinderbox', 'Rope', 'Iron spikes', 'Small hammer', 'Traveling staff or pole', 'Lantern/torches']
+            };
+            const classEq = {
+                Adept: ['Book of knowledge (area of expertise)'],
+                Assassin: ['Assassin hood/jacket/cape/robe/tunic'],
+                Barbarian: ['Wool/linen garments', 'Tunic', 'Overcoat/cloak'],
+                Mage: ['Spellbook', 'Staff or focus item'],
+                Mystic: ['Robes/shawl/cloak', 'Armor up to leather'],
+                Rogue: ['Thieves tools', 'Light armor (leather)', 'Weapon'],
+                Theurgist: ['Prayer book', 'Holy relic/symbol', 'Focus item', 'Armor up to chain'],
+                Warrior: ['Weapon of choice', 'Armor up to chain', 'Shield', 'Steed']
+            };
+            return [...(raceEq[race] || []), ...(classEq[characterClass] || [])];
+        }
+
+        // Get advantages per race/class (simplified)
+        function getAdvantages(race, characterClass) {
+            const raceAdv = {
+                Human: ['Fortunate', 'Survival'],
+                Elf: ['Night Vision', 'Gift of Magic', 'Magic Resistance (+1)'],
+                Dwarf: ['Night Vision', 'Strong-willed', 'Sense of Direction'],
+                Gnome: ['Eidetic Memory', 'Low-Light Vision', 'Observant'],
+                'Half-Elf': ['Heightened Senses', 'Low-Light Vision', 'Magic Resistance (+1)'],
+                'Half-Orc': ['Low-light Vision', 'Intimidation', 'Menacing'],
+                Halfling: ['Low Light Vision', 'Read Emotions', 'Resilient']
+            };
+            const classAdv = {
+                Adept: ['Arcanum', 'Gift of Magic', 'Literacy', 'Scholar'],
+                Assassin: ['Expeditious', 'Heightened Senses (hearing)', 'Observant', 'Read Emotions'],
+                Barbarian: ['Animal Affinity', 'Brutishness', 'Menacing', 'Resilient'],
+                Mage: ['Arcanum', 'Gift of Magic', 'Magic Defense', 'Scholar'],
+                Mystic: ['Empathic', 'Gift of Magic', 'Intuitive', 'Magic Resistance (Lesser)', 'Strong-Willed'],
+                Rogue: ['Expeditious', 'Fortunate', 'Streetwise', 'Underworld Contacts'],
+                Theurgist: ['Gift of Magic', 'Magic Defense', 'Religion', 'Strong-Willed'],
+                Warrior: ['Commanding', 'Intimidation', 'Magic Resistance (+1)', 'Tactician']
+            };
+            return [...(raceAdv[race] || []), ...(classAdv[characterClass] || [])];
+        }
+
+        // Get flaws per race/class (simplified)
+        function getFlaws(race, characterClass) {
+            const raceFlaw = {
+                Gnome: ['Restriction: small weapons only'],
+                Halfling: ['Restriction: small weapons only'],
+                'Half-Orc': ['Ugliness']
+            };
+            return [...(raceFlaw[race] || [])];
+        }
 
 
     function calculateCP(character) {
@@ -275,57 +396,49 @@
     }
 
 
-    function displayCharacter(character) {
-        const output = document.getElementById('character-output');
-        output.innerHTML = `
-            <h2>Generated Eldritch RPG 2nd Edition Character</h2>
-            <p><strong>Race:</strong> ${character.race}</p>
-            <p><strong>Class:</strong> ${character.class}</p>
-            <p><strong>Level:</strong> ${character.level}</p>
-            <p><strong>Character Points:</strong> ${character.cp}</p>
-            <p><strong>Mastery Die:</strong> ${character.masteryDie}</p>
-            <p><strong>Uses Per Day:</strong> ${character.usesPerDay}</p>
-            <h3>Abilities, Specialties, and Focuses</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Ability</th>
-                        <th>Rank</th>
-                        <th>Specialties</th>
-                        <th>Rank</th>
-                        <th>Focuses</th>
-                        <th>Bonus</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${abilities.map(ability => `
-                        <tr>
-                            <td rowspan="${Object.keys(character.specialties[ability]).length * 2}">${ability}</td>
-                            <td rowspan="${Object.keys(character.specialties[ability]).length * 2}">${character.abilities[ability]}</td>
-                            ${Object.entries(character.specialties[ability]).map(([specialty, rank], index) => `
-                                ${index !== 0 ? '<tr>' : ''}
-                                <td>${specialty}</td>
-                                <td>${rank}</td>
-                                <td>${focuses[specialty][0]}</td>
-                                <td>${character.focuses[ability][focuses[specialty][0]]}</td>
-                                ${index !== 0 ? '</tr>' : ''}
-                                <tr>
-                                <td></td>
-                                <td></td>
-                                <td>${focuses[specialty][1]}</td>
-                                <td>${character.focuses[ability][focuses[specialty][1]]}</td>
-                                </tr>
-                            `).join('')}
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-            <h3>Defense Pools</h3>
-            <p><strong>Active Defense:</strong> ${character.defensePools.activeDefense}</p>
-            <p><strong>Passive Defense:</strong> ${character.defensePools.passiveDefense}</p>
-            <p><strong>Spirit Points:</strong> ${character.defensePools.spiritPoints}</p>
-        `;
-    }
+
+        function displayCharacter(character) {
+            const output = document.getElementById('character-output');
+            output.innerHTML = `
+                <h2>Generated Eldritch RPG 2nd Edition Character</h2>
+                <p><strong>Race:</strong> ${character.race}</p>
+                <p><strong>Class:</strong> ${character.class}</p>
+                <p><strong>Level:</strong> ${character.level}</p>
+                <p><strong>Character Points:</strong> ${character.cp}</p>
+                <p><strong>Mastery Die:</strong> ${character.masteryDie}</p>
+                <p><strong>Uses Per Day:</strong> ${character.usesPerDay}</p>
+                <h3>Abilities</h3>
+                <ul>
+                    ${abilities.map(ability => `<li><strong>${ability}:</strong> ${character.abilities[ability]}</li>`).join('')}
+                </ul>
+                <h3>Specialties</h3>
+                <ul>
+                    ${abilities.map(ability => specialties[ability].map(specialty => `<li><strong>${specialty} (${ability}):</strong> ${character.specialties[ability][specialty]}</li>`).join('')).join('')}
+                </ul>
+                <h3>Focuses</h3>
+                <ul>
+                    ${abilities.map(ability => specialties[ability].map(specialty => focuses[specialty].map(focus => `<li><strong>${focus} (${specialty}):</strong> ${character.focuses[ability][focus]}</li>`).join('')).join('')).join('')}
+                </ul>
+                <h3>Defense Pools</h3>
+                <ul>
+                    <li><strong>Active Defense:</strong> ${character.defensePools.activeDefense}</li>
+                    <li><strong>Passive Defense:</strong> ${character.defensePools.passiveDefense}</li>
+                    <li><strong>Spirit Points:</strong> ${character.defensePools.spiritPoints}</li>
+                </ul>
+                <h3>Advantages</h3>
+                <ul>
+                    ${character.advantages.map(adv => `<li>${adv}</li>`).join('')}
+                </ul>
+                <h3>Flaws</h3>
+                <ul>
+                    ${character.flaws.length ? character.flaws.map(flaw => `<li>${flaw}</li>`).join('') : '<li>None</li>'}
+                </ul>
+                <h3>Starting Equipment</h3>
+                <ul>
+                    ${character.equipment.map(eq => `<li>${eq}</li>`).join('')}
+                </ul>
+            `;
+        }
 
 
     // Call populateDropdowns when the page loads
