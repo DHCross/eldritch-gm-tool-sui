@@ -1,0 +1,336 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eldritch RPG 2nd Edition Character Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        select, button {
+            font-size: 1em;
+            padding: 5px 10px;
+            margin: 10px 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Eldritch RPG 2nd Edition Character Generator</h1>
+    <div>
+        <label for="race">Race:</label>
+        <select id="race">
+            <option value="">Select a race</option>
+        </select>
+    </div>
+    <div>
+        <label for="class">Class:</label>
+        <select id="class">
+            <option value="">Select a class</option>
+        </select>
+    </div>
+    <div>
+        <label for="level">Level:</label>
+        <select id="level">
+            <option value="">Select a level</option>
+        </select>
+    </div>
+    <button onclick="generateCharacter()">Generate Character</button>
+    <div id="character-output"></div>
+
+
+    <script>
+        const dieRanks = ['d4', 'd6', 'd8', 'd10', 'd12'];
+        const focusBonuses = ['+0', '+1', '+2', '+3', '+4', '+5'];
+
+
+        const abilities = ['Competence', 'Prowess', 'Fortitude'];
+        const specialties = {
+            Competence: ['Adroitness', 'Expertise', 'Perception'],
+            Prowess: ['Agility', 'Melee', 'Precision'],
+            Fortitude: ['Endurance', 'Strength', 'Willpower']
+        };
+        const focuses = {
+            Adroitness: ['Skulduggery', 'Cleverness'],
+            Expertise: ['Wizardry', 'Theurgy'],
+            Perception: ['Alertness', 'Perspicacity'],
+            Agility: ['Speed', 'Reaction'],
+            Melee: ['Threat', 'Finesse'],
+            Precision: ['Ranged Threat', 'Ranged Finesse'],
+            Endurance: ['Vitality', 'Resilience'],
+            Strength: ['Ferocity', 'Might'],
+            Willpower: ['Courage', 'Resistance']
+        };
+
+
+        const races = ['Human', 'Elf', 'Dwarf', 'Gnome', 'Half-Elf', 'Half-Orc', 'Halfling'];
+        const classes = ['Adept', 'Assassin', 'Barbarian', 'Mage', 'Mystic', 'Rogue', 'Theurgist', 'Warrior'];
+        const levels = [1, 2, 3, 4, 5];
+
+
+        const raceMinima = {
+            Human: {},
+            Elf: { Competence: 'd6', Expertise: 'd6', Perception: 'd4', Perspicacity: '+1' },
+            Dwarf: { Fortitude: 'd8', Endurance: 'd4', Prowess: 'd6', Melee: 'd6' },
+            Gnome: { Competence: 'd4', Adroitness: 'd6', Expertise: 'd6', Perception: 'd4', Perspicacity: '+1' },
+            'Half-Elf': { Competence: 'd6', Prowess: 'd6', Agility: 'd4', Fortitude: 'd4', Endurance: 'd4', Willpower: 'd4' },
+            'Half-Orc': { Fortitude: 'd6', Strength: 'd8', Ferocity: '+1', Endurance: 'd6' },
+            Halfling: { Competence: 'd6', Adroitness: 'd6', Cleverness: '+1', Fortitude: 'd6', Willpower: 'd4', Courage: '+1' }
+        };
+
+
+        const classMinima = {
+            Adept: { Competence: 'd6', Expertise: 'd6', Arcanum: '+1' },
+            Assassin: { Competence: 'd4', Adroitness: 'd6', Perception: 'd4', Prowess: 'd4', Agility: 'd4', Vitality: 'd6', Melee: 'd4', Finesse: '+1', 'Ranged Finesse': '+1' },
+            Barbarian: { Competence: 'd4', Intimidation: '+1', Prowess: 'd6', Agility: 'd6', Melee: 'd6', Threat: '+1', Ferocity: '+1', Fortitude: 'd8', Strength: 'd8', Might: '+1' },
+            Mage: { Competence: 'd6', Expertise: 'd6', Arcanum: '+1', Prowess: 'd4', Agility: 'd4', Fortitude: 'd4', Willpower: 'd4' },
+            Mystic: { Competence: 'd6', Expertise: 'd4', Lore: '+1', Prowess: 'd4', Agility: 'd4', Fortitude: 'd8', Willpower: 'd6', Resistance: '+1' },
+            Rogue: { Competence: 'd6', Adroitness: 'd6', Skulduggery: '+1', Prowess: 'd6', Agility: 'd4', Vitality: 'd4', Fortitude: 'd4', Endurance: 'd4' },
+            Theurgist: { Competence: 'd6', Expertise: 'd4', Theurgy: '+1', Prowess: 'd4', Agility: 'd4', Fortitude: 'd6', Willpower: 'd6', Courage: '+1' },
+            Warrior: { Prowess: 'd8', Melee: 'd8', Threat: '+1', Fortitude: 'd6', Endurance: 'd6' }
+        };
+
+
+        const levelInfo = [
+            { level: 1, cpRange: [10, 100], masteryDie: 'd4', usesPerDay: 2 },
+            { level: 2, cpRange: [101, 199], masteryDie: 'd6', usesPerDay: 4 },
+            { level: 3, cpRange: [200, 299], masteryDie: 'd8', usesPerDay: 6 },
+            { level: 4, cpRange: [300, 399], masteryDie: 'd10', usesPerDay: 8 },
+            { level: 5, cpRange: [400, 500], masteryDie: 'd12', usesPerDay: 10 }
+        ];
+
+
+        function populateDropdowns() {
+            const raceSelect = document.getElementById('race');
+            const classSelect = document.getElementById('class');
+            const levelSelect = document.getElementById('level');
+
+
+            races.forEach(race => {
+                const option = document.createElement('option');
+                option.value = race;
+                option.textContent = race;
+                raceSelect.appendChild(option);
+            });
+
+
+            classes.forEach(cls => {
+                const option = document.createElement('option');
+                option.value = cls;
+                option.textContent = cls;
+                classSelect.appendChild(option);
+            });
+
+
+            levels.forEach(level => {
+                const option = document.createElement('option');
+                option.value = level;
+                option.textContent = level;
+                levelSelect.appendChild(option);
+            });
+        }
+
+
+        function getRandomElement(array) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+
+
+        function getRandomDieRank() {
+            return getRandomElement(dieRanks);
+        }
+
+
+        function getRandomFocusBonus() {
+            return getRandomElement(focusBonuses);
+        }
+
+
+        function getHighestRank(rank1, rank2) {
+            return dieRanks.indexOf(rank1) > dieRanks.indexOf(rank2) ? rank1 : rank2;
+        }
+
+
+        function getMasteryDie(level) {
+            return levelInfo.find(info => info.level === level).masteryDie;
+        }
+
+
+        function generateCharacter() {
+            const race = document.getElementById('race').value;
+            const characterClass = document.getElementById('class').value;
+            const level = parse
+        if (!race || !characterClass || isNaN(level) || level < 1 || level > 5) {
+            alert("Please select a valid race, class, and level (1-5).");
+            return;
+        }
+
+
+        const character = {
+            race: race,
+            class: characterClass,
+            level: level,
+            abilities: {},
+            specialties: {},
+            focuses: {}
+        };
+
+
+        // Generate abilities, specialties, and focuses
+        abilities.forEach(ability => {
+            let baseRank = getRandomDieRank();
+            let raceMinimum = raceMinima[character.race][ability] || 'd4';
+            let classMinimum = classMinima[character.class][ability] || 'd4';
+            character.abilities[ability] = getHighestRank(baseRank, getHighestRank(raceMinimum, classMinimum));
+
+
+            character.specialties[ability] = {};
+            character.focuses[ability] = {};
+
+
+            specialties[ability].forEach(specialty => {
+                let specialtyRank = getRandomDieRank();
+                let raceMinimum = raceMinima[character.race][specialty] || 'd4';
+                let classMinimum = classMinima[character.class][specialty] || 'd4';
+                character.specialties[ability][specialty] = getHighestRank(specialtyRank, getHighestRank(raceMinimum, classMinimum));
+
+
+                focuses[specialty].forEach(focus => {
+                    let focusBonus = parseInt(getRandomFocusBonus().substring(1));
+                    let raceMinimum = parseInt((raceMinima[character.race][focus] || '+0').substring(1));
+                    let classMinimum = parseInt((classMinima[character.class][focus] || '+0').substring(1));
+                    character.focuses[ability][focus] = '+' + Math.max(focusBonus, raceMinimum, classMinimum);
+                });
+            });
+        });
+
+
+        // Ensure only one Expertise focus is above +0
+        const expertiseFocuses = focuses['Expertise'].map(focus => character.focuses['Competence'][focus]);
+        if (expertiseFocuses.filter(f => f !== '+0').length > 1) {
+            const highestFocus = Math.max(...expertiseFocuses.map(f => parseInt(f.substring(1))));
+            focuses['Expertise'].forEach(focus => {
+                character.focuses['Competence'][focus] = parseInt(character.focuses['Competence'][focus].substring(1)) === highestFocus ? 
+                    '+' + highestFocus : '+0';
+            });
+        }
+
+
+        character.cp = calculateCP(character);
+        character.masteryDie = getMasteryDie(character.level);
+        character.usesPerDay = levelInfo.find(info => info.level === character.level).usesPerDay;
+        character.defensePools = calculateDefensePools(character);
+
+
+        displayCharacter(character);
+    }
+
+
+    function calculateCP(character) {
+        let cp = 10; // Starting CP
+        abilities.forEach(ability => {
+            cp += dieRanks.indexOf(character.abilities[ability]) * 2;
+            Object.values(character.specialties[ability]).forEach(specialty => {
+                cp += dieRanks.indexOf(specialty) * 2;
+            });
+            Object.values(character.focuses[ability]).forEach(focus => {
+                cp += parseInt(focus.substring(1)) * 4;
+            });
+        });
+        // Add CPs for levels beyond 1
+        cp += (character.level - 1) * 100;
+        return cp;
+    }
+
+
+    function calculateDefensePools(character) {
+        const activeDefense = (dieRanks.indexOf(character.abilities['Prowess']) + 4) +
+                              (dieRanks.indexOf(character.specialties['Prowess']['Agility']) + 4) +
+                              (dieRanks.indexOf(character.specialties['Prowess']['Melee']) + 4);
+        
+        const passiveDefense = (dieRanks.indexOf(character.abilities['Fortitude']) + 4) +
+                               (dieRanks.indexOf(character.specialties['Fortitude']['Endurance']) + 4) +
+                               (dieRanks.indexOf(character.specialties['Fortitude']['Strength']) + 4);
+        
+        const spiritPoints = (dieRanks.indexOf(character.abilities['Competence']) + 4) +
+                             (dieRanks.indexOf(character.specialties['Fortitude']['Willpower']) + 4);
+        
+        return { activeDefense, passiveDefense, spiritPoints };
+    }
+
+
+    function displayCharacter(character) {
+        const output = document.getElementById('character-output');
+        output.innerHTML = `
+            <h2>Generated Eldritch RPG 2nd Edition Character</h2>
+            <p><strong>Race:</strong> ${character.race}</p>
+            <p><strong>Class:</strong> ${character.class}</p>
+            <p><strong>Level:</strong> ${character.level}</p>
+            <p><strong>Character Points:</strong> ${character.cp}</p>
+            <p><strong>Mastery Die:</strong> ${character.masteryDie}</p>
+            <p><strong>Uses Per Day:</strong> ${character.usesPerDay}</p>
+            <h3>Abilities, Specialties, and Focuses</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ability</th>
+                        <th>Rank</th>
+                        <th>Specialties</th>
+                        <th>Rank</th>
+                        <th>Focuses</th>
+                        <th>Bonus</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${abilities.map(ability => `
+                        <tr>
+                            <td rowspan="${Object.keys(character.specialties[ability]).length * 2}">${ability}</td>
+                            <td rowspan="${Object.keys(character.specialties[ability]).length * 2}">${character.abilities[ability]}</td>
+                            ${Object.entries(character.specialties[ability]).map(([specialty, rank], index) => `
+                                ${index !== 0 ? '<tr>' : ''}
+                                <td>${specialty}</td>
+                                <td>${rank}</td>
+                                <td>${focuses[specialty][0]}</td>
+                                <td>${character.focuses[ability][focuses[specialty][0]]}</td>
+                                ${index !== 0 ? '</tr>' : ''}
+                                <tr>
+                                <td></td>
+                                <td></td>
+                                <td>${focuses[specialty][1]}</td>
+                                <td>${character.focuses[ability][focuses[specialty][1]]}</td>
+                                </tr>
+                            `).join('')}
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            <h3>Defense Pools</h3>
+            <p><strong>Active Defense:</strong> ${character.defensePools.activeDefense}</p>
+            <p><strong>Passive Defense:</strong> ${character.defensePools.passiveDefense}</p>
+            <p><strong>Spirit Points:</strong> ${character.defensePools.spiritPoints}</p>
+        `;
+    }
+
+
+    // Call populateDropdowns when the page loads
+    window.onload = populateDropdowns;
+</script>
+</body>
+</html>
+```
