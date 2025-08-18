@@ -145,6 +145,20 @@
         <label><input type="checkbox" name="creatureTypes" value="Exceptional" checked> Exceptional</label>
         <label><input type="checkbox" name="creatureTypes" value="Legendary"> Legendary</label>
     </div>
+    <div class="checkbox-container">
+        <label style="width:100%;">Creature Tropes (pick one or more):</label>
+        <label><input type="checkbox" name="creatureTropes" value="Human" checked> Human</label>
+        <label><input type="checkbox" name="creatureTropes" value="Goblinoid" checked> Goblinoid</label>
+        <label><input type="checkbox" name="creatureTropes" value="Beast" checked> Beast</label>
+        <label><input type="checkbox" name="creatureTropes" value="Undead"> Undead</label>
+        <label><input type="checkbox" name="creatureTropes" value="Construct"> Construct</label>
+        <label><input type="checkbox" name="creatureTropes" value="Elemental"> Elemental</label>
+        <label><input type="checkbox" name="creatureTropes" value="Aberration"> Aberration</label>
+        <label><input type="checkbox" name="creatureTropes" value="Fey"> Fey</label>
+        <label><input type="checkbox" name="creatureTropes" value="Dragon"> Dragon</label>
+        <label><input type="checkbox" name="creatureTropes" value="Ooze"> Ooze</label>
+        <label><input type="checkbox" name="creatureTropes" value="Demon"> Demon/Infernal</label>
+    </div>
 
     <button onclick="generateEncounter()">Generate Encounter</button>
 
@@ -206,6 +220,97 @@
             'Gargantuan': {'Mundane': 2.5, 'Magical': 3, 'Preternatural': 3.5, 'Supernatural': 4}
         };
 
+        // Weighted random helper (expects an object of {key: weight})
+        function weightedRandom(weights) {
+            const entries = Object.entries(weights);
+            const total = entries.reduce((sum, [, w]) => sum + w, 0);
+            let r = Math.random() * total;
+            for (const [key, w] of entries) {
+                if ((r -= w) <= 0) return key;
+            }
+            // Fallback
+            return entries[entries.length - 1][0];
+        }
+
+        // Trope configuration: size and nature tendencies
+        const tropeConfig = {
+            Human: {
+                sizeWeights: { Small: 1, Medium: 8, Large: 1 },
+                natureWeights: { Mundane: 8, Magical: 1, Preternatural: 0.5, Supernatural: 0.25 }
+            },
+            Goblinoid: {
+                sizeWeights: { Small: 2, Medium: 7, Large: 1 },
+                natureWeights: { Mundane: 6, Magical: 1, Preternatural: 0.5, Supernatural: 0.25 }
+            },
+            Beast: {
+                sizeWeights: { Tiny: 1, Small: 3, Medium: 5, Large: 3, Huge: 1 },
+                natureWeights: { Mundane: 9, Magical: 0.5, Preternatural: 0.5, Supernatural: 0.25 }
+            },
+            Undead: {
+                sizeWeights: { Small: 1, Medium: 6, Large: 2, Huge: 1 },
+                natureWeights: { Supernatural: 10 } // forced to Supernatural by weight
+            },
+            Construct: {
+                sizeWeights: { Small: 1, Medium: 5, Large: 3, Huge: 1 },
+                natureWeights: { Magical: 10 }
+            },
+            Elemental: {
+                sizeWeights: { Small: 1, Medium: 4, Large: 3, Huge: 2 },
+                natureWeights: { Preternatural: 8, Supernatural: 2 }
+            },
+            Aberration: {
+                sizeWeights: { Small: 1, Medium: 4, Large: 3, Huge: 2 },
+                natureWeights: { Preternatural: 6, Supernatural: 3, Magical: 1 }
+            },
+            Fey: {
+                sizeWeights: { Tiny: 1, Small: 2, Medium: 6, Large: 1 },
+                natureWeights: { Magical: 7, Preternatural: 2, Supernatural: 1 }
+            },
+            Dragon: {
+                sizeWeights: { Medium: 2, Large: 5, Huge: 3, Gargantuan: 1 },
+                natureWeights: { Preternatural: 6, Supernatural: 3, Magical: 1 }
+            },
+            Ooze: {
+                sizeWeights: { Small: 2, Medium: 5, Large: 3 },
+                natureWeights: { Preternatural: 7, Supernatural: 1, Mundane: 1, Magical: 1 }
+            },
+            Demon: {
+                sizeWeights: { Medium: 4, Large: 4, Huge: 2 },
+                natureWeights: { Supernatural: 9, Preternatural: 1 }
+            }
+        };
+
+        function clampWeightsForNonMedium(sizeWeights, nonMediumPercentage) {
+            // If user lowers nonMediumPercentage, allow Medium; if raises, reduce Medium presence
+            const weights = { ...sizeWeights };
+            if (weights.Medium !== undefined) {
+                const pct = Math.max(0, Math.min(100, nonMediumPercentage));
+                // Scale Medium weight inversely to pct (0% => 100% weight, 100% => 0 weight)
+                const scale = (100 - pct) / 100;
+                weights.Medium = weights.Medium * scale;
+                // If Medium drops to ~0, ensure other sizes remain
+                const sumOthers = Object.entries(weights).filter(([k]) => k !== 'Medium').reduce((s, [, w]) => s + w, 0);
+                if (sumOthers === 0) weights.Medium = 1; // fallback
+            }
+            return weights;
+        }
+
+        function clampWeightsForNonMundane(natureWeights, nonMundanePercentage) {
+            const weights = { ...natureWeights };
+            if (weights.Mundane !== undefined) {
+                const pct = Math.max(0, Math.min(100, nonMundanePercentage));
+                const scale = (100 - pct) / 100;
+                weights.Mundane = weights.Mundane * scale;
+                const sumOthers = Object.entries(weights).filter(([k]) => k !== 'Mundane').reduce((s, [, w]) => s + w, 0);
+                if (sumOthers === 0) weights.Mundane = 1; // fallback
+            }
+            return weights;
+        }
+
+        function getRandomTrope(selectedTropeValues) {
+            return selectedTropeValues[Math.floor(Math.random() * selectedTropeValues.length)];
+        }
+
         // Update slider values on input
         function updateSliderValues() {
             document.getElementById('partySizeValue').textContent = document.getElementById('partySize').value;
@@ -245,24 +350,21 @@
             };
         }
 
-        // Function to randomly select size, considering Non-Medium Size Percentage
-        function getRandomSize(nonMediumPercentage) {
-            const sizes = ['Minuscule', 'Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan'];
-            if (Math.random() * 100 < nonMediumPercentage) {
-                const nonMediumSizes = sizes.filter(size => size !== 'Medium');
-                return getRandomElement(nonMediumSizes);
-            }
-            return 'Medium';
+        // Function to randomly select size for a trope, considering Non-Medium Size Percentage
+        function getRandomSizeForTrope(trope, nonMediumPercentage) {
+            const baseWeights = tropeConfig[trope]?.sizeWeights || { Minuscule: 0.5, Tiny: 1, Small: 2, Medium: 5, Large: 2, Huge: 1, Gargantuan: 0.5 };
+            const adjusted = clampWeightsForNonMedium(baseWeights, nonMediumPercentage);
+            // Remove zero-weight entries and normalize via weightedRandom
+            const cleaned = Object.fromEntries(Object.entries(adjusted).filter(([, w]) => w > 0));
+            return weightedRandom(cleaned);
         }
 
-        // Function to randomly select nature, considering Non-Mundane Nature Percentage
-        function getRandomNature(nonMundanePercentage) {
-            const natures = ['Mundane', 'Magical', 'Preternatural', 'Supernatural'];
-            if (Math.random() * 100 < nonMundanePercentage) {
-                const nonMundaneNatures = natures.filter(nature => nature !== 'Mundane');
-                return getRandomElement(nonMundaneNatures);
-            }
-            return 'Mundane';
+        // Function to randomly select nature for a trope, considering Non-Mundane Nature Percentage
+        function getRandomNatureForTrope(trope, nonMundanePercentage) {
+            const baseWeights = tropeConfig[trope]?.natureWeights || { Mundane: 6, Magical: 2, Preternatural: 1.5, Supernatural: 0.5 };
+            const adjusted = clampWeightsForNonMundane(baseWeights, nonMundanePercentage);
+            const cleaned = Object.fromEntries(Object.entries(adjusted).filter(([, w]) => w > 0));
+            return weightedRandom(cleaned);
         }
 
         // Function to randomly determine creature type, considering Fast/Tough Creature Percentage
@@ -299,12 +401,13 @@
         }
 
         // Function to generate a single monster
-        function generateMonster(maxThreat, selectedTypes, nonMediumPercentage, nonMundanePercentage, specialTypePercentage) {
+        function generateMonster(maxThreat, selectedTypes, selectedTropes, nonMediumPercentage, nonMundanePercentage, specialTypePercentage) {
             const category = getRandomElement(selectedTypes);
             const threatDice = getRandomElement(threatDiceByCategory[category]);
             const threatMV = calculateThreatMV(threatDice);
-            const size = getRandomSize(nonMediumPercentage);
-            const nature = getRandomNature(nonMundanePercentage);
+            const trope = getRandomTrope(selectedTropes);
+            const size = getRandomSizeForTrope(trope, nonMediumPercentage);
+            const nature = getRandomNatureForTrope(trope, nonMundanePercentage);
             const creatureType = getCreatureType(specialTypePercentage);
 
             const baseHP = threatMV;
@@ -366,6 +469,7 @@
             const savingThrow = category === 'Legendary' ? 'd12' : `d${Math.min(12, 4 * ['Minor', 'Standard', 'Exceptional', 'Legendary'].indexOf(category) + 4)}`;
 
             return {
+                trope,
                 category, threatDice, threatMV, size, nature, creatureType,
                 hitPoints, multiplier, activeDefense, passiveDefense,
                 savingThrow: savingThrow,
@@ -384,9 +488,13 @@
             const nonMundanePercentage = parseInt(document.getElementById('nonMundanePercentage').value);
             const specialTypePercentage = parseInt(document.getElementById('specialTypePercentage').value);
             const selectedTypes = Array.from(document.querySelectorAll('input[name="creatureTypes"]:checked')).map(checkbox => checkbox.value);
-
+            const selectedTropes = Array.from(document.querySelectorAll('input[name="creatureTropes"]:checked')).map(cb => cb.value);
             if (selectedTypes.length === 0) {
                 alert("Please select at least one creature type.");
+                return;
+            }
+            if (selectedTropes.length === 0) {
+                alert("Please select at least one creature trope.");
                 return;
             }
 
@@ -403,7 +511,7 @@
 
             while (remainingThreat > 0) {
                 const maxThreat = Math.min(remainingThreat, 36); // Assuming max threat per creature is 36
-                const monster = generateMonster(maxThreat, selectedTypes, nonMediumPercentage, nonMundanePercentage, specialTypePercentage);
+                const monster = generateMonster(maxThreat, selectedTypes, selectedTropes, nonMediumPercentage, nonMundanePercentage, specialTypePercentage);
                 monsters.push(monster);
                 remainingThreat -= monster.threatMV;
 
@@ -413,7 +521,7 @@
 
             monsters.forEach((monster, index) => {
                 output += `Monster ${index + 1}\n`;
-                output += `Type: ${monster.category} | TD: ${monster.threatDice} | `;
+                output += `Trope: ${monster.trope} | Type: ${monster.category} | TD: ${monster.threatDice} | `;
                 output += `HP: ${monster.hitPoints} (${monster.activeDefense}/${monster.passiveDefense}) `;
                 output += `[${monster.size}, ${monster.nature}; ×${monster.multiplier}] ${monster.creatureType}\n`;
                 output += `ST: ${monster.savingThrow} | BP: ${monster.battlePhase}\n\n`;
