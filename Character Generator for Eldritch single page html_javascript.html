@@ -23,6 +23,54 @@
     .fade-in {
       animation: fadeIn 0.5s ease-out forwards;
     }
+    /* Custom message box for alerts */
+    .custom-alert-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s, visibility 0.3s;
+    }
+    .custom-alert-box {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 90%;
+        width: 400px;
+        transform: scale(0.9);
+        transition: transform 0.3s;
+    }
+    .custom-alert-overlay.visible {
+        opacity: 1;
+        visibility: visible;
+    }
+     .custom-alert-overlay.visible .custom-alert-box {
+        transform: scale(1);
+    }
+    .custom-alert-button {
+        margin-top: 1.5rem;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        background-color: #3b82f6;
+        color: white;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color 0.2s;
+    }
+    .custom-alert-button:hover {
+        background-color: #2563eb;
+    }
   </style>
 </head>
 <body class="bg-gray-100 text-gray-800 antialiased">
@@ -75,6 +123,14 @@
     <div id="character-output">
       <!-- Character sheet will be rendered here -->
     </div>
+  </div>
+
+  <!-- Custom Alert Box HTML -->
+  <div id="custom-alert" class="custom-alert-overlay">
+      <div class="custom-alert-box">
+          <p id="custom-alert-message"></p>
+          <button id="custom-alert-close" class="custom-alert-button">OK</button>
+      </div>
   </div>
 
   <script>
@@ -164,6 +220,7 @@
     };
     const costToRankUpDie = { 'd4': 6, 'd6': 8, 'd8': 10, 'd10': 12, 'd12': Infinity };
     const costToRankUpFocus = 4;
+    const cumulativeDieCost = { 'd4': 4, 'd6': 10, 'd8': 18, 'd10': 28, 'd12': 40 };
     
     // --- Spell Data ---
     const spellsByPath = {
@@ -218,6 +275,14 @@
     function getMV(val) { return val.startsWith('d') ? parseInt(val.substring(1)) : (val.startsWith('+') ? parseInt(val.substring(1)) : 0); }
     function dieSteps(dieRank) { return dieRanks.indexOf(dieRank); }
     function parseFocusNumber(val) { return val ? parseInt(val.replace('+', '')) : 0; }
+    
+    // --- Custom Alert Function ---
+    function showAlert(message) {
+        const alertOverlay = document.getElementById('custom-alert');
+        const alertMessage = document.getElementById('custom-alert-message');
+        alertMessage.textContent = message;
+        alertOverlay.classList.add('visible');
+    }
 
     // --- Dropdown Population ---
     function populateDropdowns() {
@@ -253,7 +318,7 @@
       let magicPath = document.getElementById('magic-path').value;
 
       if (!race || !characterClass || isNaN(level)) {
-        alert("Please select a valid race, class, and level.");
+        showAlert("Please select a valid race, class, and level.");
         return;
       }
 
@@ -344,8 +409,21 @@
 
       // 4. Finalize character details
       character.cpBreakdown = calculateCPBreakdown(character);
+
+      // *** NEW: Determine actual level based on final CP value ***
+      let actualLevel = 1;
+      for (let i = levelInfo.length - 1; i >= 0; i--) {
+          const levelData = levelInfo[i];
+          const minCP = parseInt(levelData.cp_range.split(' ')[0]);
+          if (character.cpBreakdown.total >= minCP) {
+              actualLevel = levelData.level;
+              break;
+          }
+      }
+      character.level = actualLevel; // Update character's level to the actual one
+      character.masteryDie = levelInfo[actualLevel - 1].masteryDie;
+
       character.defensePools = calculateDefensePools(character);
-      character.masteryDie = levelInfo[level - 1].masteryDie;
       character.equipment = getStartingEquipment(race, characterClass);
       
       const { advantages, duplicateAdvantage } = getAdvantagesWithBonus(race, characterClass);
@@ -381,6 +459,7 @@
         character.spellcasting.knownSpells = generateSpellList(character);
       }
       
+      // --- Action Calculations ---
       character.actions = {};
       character.actions.meleeAttack = `${character.abilities.Prowess} + ${character.specialties.Prowess.Melee}`;
       if (parseFocusNumber(character.focuses.Prowess.Threat) > 0) character.actions.meleeAttack += ` + Threat ${character.focuses.Prowess.Threat}`;
@@ -402,6 +481,17 @@
 
       character.iconicItem = getIconicItem(character, isMagicalItem);
       
+      if (character.iconicItem.type.includes('Iconic Weapon')) {
+          let threatBonusString = '';
+          if (character.class === 'Rogue') {
+              const skulduggeryBonus = parseFocusNumber(character.focuses.Competence.Skulduggery);
+              if (skulduggeryBonus > 0) {
+                  threatBonusString = ` + (+${skulduggeryBonus} Skulduggery Threat)`;
+              }
+          }
+          character.actions.iconicWeaponAttack = `${character.abilities.Prowess} + ${character.specialties.Prowess.Melee} or ${character.specialties.Prowess.Precision}${threatBonusString} + [${character.masteryDie} Mastery Die]`;
+      }
+      
       window.lastCharacter = character;
       displayCharacter(character);
     }
@@ -413,13 +503,9 @@
         let focusesCP = 0;
         
         abilities.forEach(a => {
-            for (let i = 0; i < dieSteps(character.abilities[a]); i++) {
-                abilitiesCP += costToRankUpDie[dieRanks[i]];
-            }
+            abilitiesCP += cumulativeDieCost[character.abilities[a]] || 0;
             Object.values(character.specialties[a]).forEach(spDie => {
-                for (let i = 0; i < dieSteps(spDie); i++) {
-                    specialtiesCP += costToRankUpDie[dieRanks[i]];
-                }
+                specialtiesCP += cumulativeDieCost[spDie] || 0;
             });
             Object.values(character.focuses[a]).forEach(fxVal => {
                 focusesCP += parseFocusNumber(fxVal) * costToRankUpFocus;
@@ -428,10 +514,9 @@
         
         const baseCP = 10;
         const advantageCP = document.getElementById('magical-item-checkbox').checked ? 4 : 0;
-        const levelCP = (character.level - 1) * 100;
-        const total = (baseCP || 0) + (abilitiesCP || 0) + (specialtiesCP || 0) + (focusesCP || 0) + (advantageCP || 0) + (levelCP || 0);
+        const totalValue = baseCP + abilitiesCP + specialtiesCP + focusesCP + advantageCP;
 
-        return { base: baseCP, abilitiesCP, specialtiesCP, focusesCP, advantageCP, levelCP, total };
+        return { base: baseCP, abilitiesCP, specialtiesCP, focusesCP, advantageCP, total: totalValue };
     }
 
     function calculateDefensePools(character) {
@@ -531,7 +616,6 @@
             Legendary: [...new Set([...(pathSpells.Legendary || [])])]
         };
 
-        // 1. Initial Spell Selection (70% Common, 30% Uncommon)
         for (let i = 0; i < knownSpellsCount; i++) {
             const roll = Math.random() * 100;
             let spell;
@@ -544,7 +628,6 @@
             }
         }
 
-        // 2. Level-based path spell selections
         const addLevelUpSpell = (lvl, rarity, pool) => {
             if (level >= lvl && pool.length > 0) {
                 const spell = pool[Math.floor(Math.random() * pool.length)];
@@ -644,9 +727,29 @@
                 <li><strong>From Specialties:</strong> ${character.cpBreakdown.specialtiesCP}</li>
                 <li><strong>From Focuses:</strong> ${character.cpBreakdown.focusesCP}</li>
                 <li><strong>From Advantages:</strong> ${character.cpBreakdown.advantageCP}</li>
-                <li><strong>Level Bonus:</strong> ${character.cpBreakdown.levelCP}</li>
                 <li><strong>Total CP Value:</strong> ${character.cpBreakdown.total} <span class="text-gray-500 text-xs">(Lvl ${character.level} Range: ${cpRange})</span></li>
               </ul>
+              <p class="text-xs text-gray-500 mt-2 italic">Note: Total CP Value reflects the character's build balance. Advancement in-game is tracked separately via Earned CP, starting from 0.</p>
+            </div>
+            <!-- *** NEW: Added Earned CP Progression Table *** -->
+            <div class="lg:col-span-2">
+                <h3 class="text-lg font-semibold mb-2 text-gray-800">Level Advancement (Earned CP)</h3>
+                <div class="overflow-x-auto relative rounded-lg">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-4 py-2">To Reach Level</th>
+                                <th scope="col" class="px-4 py-2">Total Earned CP Required</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-white border-b"><td class="px-4 py-2 font-medium">Level 2</td><td class="px-4 py-2">100</td></tr>
+                            <tr class="bg-gray-50 border-b"><td class="px-4 py-2 font-medium">Level 3</td><td class="px-4 py-2">200</td></tr>
+                            <tr class="bg-white border-b"><td class="px-4 py-2 font-medium">Level 4</td><td class="px-4 py-2">300</td></tr>
+                            <tr class="bg-gray-50"><td class="px-4 py-2 font-medium">Level 5</td><td class="px-4 py-2">500</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
           </div>
         </div>
@@ -656,7 +759,7 @@
     function exportToMarkdown() {
       const char = window.lastCharacter;
       if (!char) {
-        alert('Generate a character first!');
+        showAlert('Generate a character first!');
         return '';
       }
       let md = `# ${char.race} ${char.class} (Level ${char.level})\n\n`;
@@ -706,7 +809,17 @@
       md += `### Starting Equipment\n${char.equipment.map(eq => `- ${eq}`).join('\n')}\n\n`;
       
       md += `### Character Points Breakdown (Total Value)\n`;
-      md += `- **Base Customization:** ${char.cpBreakdown.base}\n- **From Abilities:** ${char.cpBreakdown.abilitiesCP}\n- **From Specialties:** ${char.cpBreakdown.specialtiesCP}\n- **From Focuses:** ${char.cpBreakdown.focusesCP}\n- **From Advantages:** ${char.cpBreakdown.advantageCP}\n- **Level Bonus:** ${char.cpBreakdown.levelCP}\n- **Total CP Value:** ${char.cpBreakdown.total}\n`;
+      md += `- **Base Customization:** ${char.cpBreakdown.base}\n- **From Abilities:** ${char.cpBreakdown.abilitiesCP}\n- **From Specialties:** ${char.cpBreakdown.specialtiesCP}\n- **From Focuses:** ${char.cpBreakdown.focusesCP}\n- **From Advantages:** ${char.cpBreakdown.advantageCP}\n- **Total CP Value:** ${char.cpBreakdown.total}\n`;
+      md += `\n_Note: Total CP Value reflects the character's build balance. Advancement in-game is tracked separately via Earned CP, starting from 0._\n`;
+      
+      // *** NEW: Added Earned CP Progression Table to Markdown ***
+      md += `\n### Level Advancement (Earned CP)\n`;
+      md += `| To Reach Level | Total Earned CP Required |\n`;
+      md += `| :------------- | :----------------------- |\n`;
+      md += `| Level 2        | 100                      |\n`;
+      md += `| Level 3        | 200                      |\n`;
+      md += `| Level 4        | 300                      |\n`;
+      md += `| Level 5        | 500                      |\n`;
 
       return md;
     }
@@ -738,11 +851,15 @@
       tempElement.select();
       try {
         document.execCommand('copy');
-        alert('Markdown copied to clipboard!');
+        showAlert('Markdown copied to clipboard!');
       } catch (err) {
-        alert('Failed to copy markdown.');
+        showAlert('Failed to copy markdown.');
       }
       document.body.removeChild(tempElement);
+    });
+    
+    document.getElementById('custom-alert-close').addEventListener('click', () => {
+        document.getElementById('custom-alert').classList.remove('visible');
     });
 
     document.getElementById('generate-btn').addEventListener('click', generateCharacter);
