@@ -1,87 +1,76 @@
-# Eldritch GM Tool Suite - Product Requirements Document
+# Eldritch RPG GM Tool Suite - Product Requirements Document
 
 ## Core Purpose & Success
-- **Mission Statement**: Provide Game Masters and players with comprehensive digital tools for running and playing the Eldritch RPG 2nd Edition.
-- **Success Indicators**: GMs can efficiently generate encounters, manage combat, and reference game rules. Players can create and manage characters seamlessly.
+- **Mission Statement**: A comprehensive digital toolkit for Game Masters running Eldritch RPG 2nd Edition campaigns
+- **Success Indicators**: GMs can quickly generate encounters, characters, and manage battles without manual calculations
 - **Experience Qualities**: Professional, mystical, efficient
 
 ## Project Classification & Approach
 - **Complexity Level**: Light Application (multiple features with basic state)
-- **Primary User Activity**: Creating and managing game content (encounters, characters, reference materials)
-
-## Thought Process for Feature Selection
-- **Core Problem Analysis**: GMs need quick access to generators and calculators for running Eldritch RPG games effectively
-- **User Context**: Used during game preparation and live gameplay sessions
-- **Critical Path**: Quick access to tools → Generate/calculate content → Export/copy results
-- **Key Moments**: Character generation, encounter creation, combat management
+- **Primary User Activity**: Acting (generating game content and managing sessions)
 
 ## Essential Features
 
-### Encounter Generator
-- **What it does**: Generates balanced encounters based on party composition and difficulty
-- **Why it matters**: Saves GMs significant preparation time and ensures balanced gameplay
-- **Success criteria**: Produces mathematically sound encounters with appropriate threat values
+### Core Tools
+1. **Encounter Generator** - Creates balanced encounters based on party composition and difficulty
+2. **NPC Generator** - Simplified character creation for non-player characters with iconic items
+3. **Player Character Generator** - Full rules implementation for player character creation
+4. **Battle Calculator** - Initiative tracking and combat management
+5. **Monster HP Calculator** - Quick HP calculation for various monster types
+6. **Spell Reference** - Quick lookup for spell information
 
-### Character Generators
-- **What it does**: Two-tier character generation (quick NPC generation and full player character creation)
-- **Why it matters**: Supports both quick NPC creation and detailed player character building
-- **Success criteria**: Characters follow game rules precisely and can be exported for use
-
-### Player Character Generator (Full Rules)
-- **What it does**: Complete character creation following official player character creation rules with accurate CP tracking and spending
-- **Why it matters**: Allows players to create characters that precisely follow the character point spending system from the rulebook
-- **Success criteria**: Accurate CP calculations, proper racial/class minimums application, correct feat assignment, and comprehensive character sheets with advancement tracking
-
-### Battle Calculator
-- **What it does**: Manages initiative order and tracks combat statistics
-- **Why it matters**: Streamlines combat management during play
-- **Success criteria**: Accurate initiative tracking and easy stat management
-
-### Monster HP Calculator
-- **What it does**: Calculates monster hit points based on size, nature, and threat dice
-- **Why it matters**: Ensures monsters have appropriate durability for encounters
-- **Success criteria**: Accurate HP calculations following game formulas
-
-### Spell Reference
-- **What it does**: Displays spell mechanics tables and reference information
-- **Why it matters**: Quick access to spell rules during gameplay
-- **Success criteria**: Complete and accurate spell system information
+### NPC Generator Specifics
+- Gender selection (including random option)
+- Race and role-based ability generation
+- Level-appropriate scaling
+- Iconic item generation with optional magical properties
+- Simplified rules focused on GM usability
 
 ## Design Direction
 
 ### Visual Tone & Identity
 - **Emotional Response**: Professional confidence with mystical atmosphere
-- **Design Personality**: Clean, modern interface with subtle dark/mystical theming
-- **Visual Metaphors**: Arcane grimoire, mystical knowledge
-- **Simplicity Spectrum**: Clean and functional with atmospheric touches
+- **Design Personality**: Elegant, serious, cutting-edge
+- **Visual Metaphors**: Dark mystical themes with green accents
+- **Simplicity Spectrum**: Minimal interface with rich content
 
 ### Color Strategy
-- **Color Scheme Type**: Monochromatic with mystical accents
-- **Primary Color**: Deep mystical green (oklch(0.35 0.15 150)) - represents arcane knowledge
-- **Secondary Colors**: Dark blues and purples for depth
-- **Accent Color**: Bright mystical green (oklch(0.65 0.25 145)) for highlights and important actions
-- **Color Psychology**: Dark colors create focus and mystical atmosphere, bright accents guide attention
+- **Color Scheme Type**: Custom mystical palette
+- **Primary Color**: Deep mystical green (oklch(0.35 0.15 150))
+- **Secondary Colors**: Dark blues and grays for depth
+- **Accent Color**: Bright green for highlights and actions
+- **Background**: Very dark blue-black for mystical feel
+- **Foreground**: Light gray-white for excellent readability
 
 ### Typography System
-- **Font Pairing Strategy**: Crimson Text for headings (scholarly, readable serif) with Inter for body text (clean, modern sans-serif)
-- **Typographic Hierarchy**: Clear distinction between headings, subheadings, and body text
-- **Font Personality**: Professional and scholarly with excellent readability
-- **Which fonts**: Crimson Text for headings, Inter for body text, JetBrains Mono for code/stats
+- **Heading Font**: Crimson Text (serif) for character and mystique
+- **Body Font**: Inter (sans-serif) for excellent readability
+- **Monospace Font**: JetBrains Mono for code-like elements
+- **Hierarchy**: Clear distinction between headings and body text
 
 ### UI Elements & Component Selection
-- **Component Usage**: Cards for tool sections, tabs for navigation, buttons for actions
-- **Component States**: Clear hover and active states on all interactive elements
-- **Icon Selection**: Phosphor icons for consistent, clean iconography
-- **Spacing System**: Consistent padding using Tailwind's spacing scale
-
-### Accessibility & Readability
-- **Contrast Goal**: WCAG AA compliance with high contrast ratios
-- **Foreground/Background Pairings**: Light text on dark backgrounds with sufficient contrast
+- **Component Usage**: Shadcn components for consistency and modern feel
+- **Cards**: Primary content containers with subtle shadows
+- **Tabs**: Clean navigation between tools
+- **Form Controls**: Modern selects, inputs, and checkboxes
+- **Buttons**: Clear primary/secondary distinction
+- **Icon Integration**: Phosphor icons for visual clarity
 
 ## Implementation Considerations
-- **Scalability Needs**: Modular component structure allows for easy addition of new tools
-- **Testing Focus**: Accurate mathematical calculations and data export functionality
-- **Critical Questions**: How to balance feature richness with performance and usability
+- **Scalability**: Each tool is self-contained for easy maintenance
+- **State Management**: Local state with persistent data where needed
+- **Performance**: Lightweight calculations suitable for browser execution
+- **Cross-platform**: Web-based for universal access
 
-## Reflection
-This tool suite serves the specific needs of the Eldritch RPG community by providing purpose-built digital tools that complement the tabletop experience. The dark, mystical theme reinforces the game's atmosphere while maintaining professional functionality.
+## Technical Architecture
+- React with TypeScript for type safety
+- Tailwind CSS for styling consistency
+- Shadcn components for UI elements
+- Local state management for tool isolation
+- Toast notifications for user feedback
+
+## Key Differentiators
+- **Comprehensive**: Six specialized tools in one application
+- **Game-Specific**: Tailored specifically for Eldritch RPG 2nd Edition
+- **GM-Focused**: Designed for table-side use during sessions
+- **Professional**: Clean, distraction-free interface

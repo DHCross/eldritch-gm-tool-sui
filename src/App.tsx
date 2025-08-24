@@ -2,7 +2,7 @@ import React from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Toaster } from "@/components/ui/sonner"
 import EncounterGenerator from './components/EncounterGenerator'
-import CharacterGenerator from './components/CharacterGenerator'
+import NPCGenerator from './components/NPCGenerator'
 import PlayerCharacterGenerator from './components/PlayerCharacterGenerator'
 import BattleCalculator from './components/BattleCalculator'
 import MonsterHPCalculator from './components/MonsterHPCalculator'
@@ -26,8 +26,8 @@ function App() {
             </TabsTrigger>
             <TabsTrigger value="character" className="flex items-center gap-2">
               <User size={20} />
-              <span className="hidden sm:inline">Character Generator</span>
-              <span className="sm:hidden">Character</span>
+              <span className="hidden sm:inline">NPC Generator</span>
+              <span className="sm:hidden">NPC</span>
             </TabsTrigger>
             <TabsTrigger value="player" className="flex items-center gap-2">
               <UserFocus size={20} />
@@ -56,7 +56,7 @@ function App() {
           </TabsContent>
           
           <TabsContent value="character">
-            <CharacterGenerator />
+            <NPCGenerator />
           </TabsContent>
           
           <TabsContent value="player">
