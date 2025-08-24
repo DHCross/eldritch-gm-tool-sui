@@ -3,10 +3,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Toaster } from "@/components/ui/sonner"
 import EncounterGenerator from './components/EncounterGenerator'
 import CharacterGenerator from './components/CharacterGenerator'
+import PlayerCharacterGenerator from './components/PlayerCharacterGenerator'
 import BattleCalculator from './components/BattleCalculator'
 import MonsterHPCalculator from './components/MonsterHPCalculator'
 import SpellReference from './components/SpellReference'
-import { Dice6, User, Swords, Heart, Sparkles } from "@phosphor-icons/react"
+import { Dice6, User, Swords, Heart, Sparkles, UserFocus } from "@phosphor-icons/react"
 
 function App() {
   return (
@@ -17,7 +18,7 @@ function App() {
         </h1>
         
         <Tabs defaultValue="encounter" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-6">
+          <TabsList className="grid w-full grid-cols-6 mb-6">
             <TabsTrigger value="encounter" className="flex items-center gap-2">
               <Dice6 size={20} />
               <span className="hidden sm:inline">Encounter Generator</span>
@@ -27,6 +28,11 @@ function App() {
               <User size={20} />
               <span className="hidden sm:inline">Character Generator</span>
               <span className="sm:hidden">Character</span>
+            </TabsTrigger>
+            <TabsTrigger value="player" className="flex items-center gap-2">
+              <UserFocus size={20} />
+              <span className="hidden sm:inline">Player Character</span>
+              <span className="sm:hidden">Player</span>
             </TabsTrigger>
             <TabsTrigger value="battle" className="flex items-center gap-2">
               <Swords size={20} />
@@ -51,6 +57,10 @@ function App() {
           
           <TabsContent value="character">
             <CharacterGenerator />
+          </TabsContent>
+          
+          <TabsContent value="player">
+            <PlayerCharacterGenerator />
           </TabsContent>
           
           <TabsContent value="battle">

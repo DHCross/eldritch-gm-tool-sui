@@ -1,130 +1,87 @@
-# Eldritch GM Tool Suite - Enhanced with Official Game Data
+# Eldritch GM Tool Suite - Product Requirements Document
 
 ## Core Purpose & Success
-- **Mission Statement**: A comprehensive digital toolkit for Eldritch RPG Game Masters featuring official game mechanics, tables, and calculations.
-- **Success Indicators**: Accurate implementation of all official game tables, seamless gameplay assistance, and comprehensive rule references.
-- **Experience Qualities**: Mystical, Professional, Comprehensive
+- **Mission Statement**: Provide Game Masters and players with comprehensive digital tools for running and playing the Eldritch RPG 2nd Edition.
+- **Success Indicators**: GMs can efficiently generate encounters, manage combat, and reference game rules. Players can create and manage characters seamlessly.
+- **Experience Qualities**: Professional, mystical, efficient
 
 ## Project Classification & Approach
-- **Complexity Level**: Complex Application (advanced functionality, multiple integrated tools with persistent state)
-- **Primary User Activity**: Acting (GMs actively creating encounters, managing battles, generating characters)
+- **Complexity Level**: Light Application (multiple features with basic state)
+- **Primary User Activity**: Creating and managing game content (encounters, characters, reference materials)
 
 ## Thought Process for Feature Selection
-- **Core Problem Analysis**: GMs need quick access to accurate game mechanics calculations and references during play
-- **User Context**: Active gameplay sessions requiring rapid encounter generation, battle management, and rule lookups
-- **Critical Path**: Generate → Calculate → Reference → Manage → Continue Play
-- **Key Moments**: 
-  1. Pre-session encounter preparation
-  2. Mid-session battle phase management  
-  3. Real-time spell/rule reference lookups
+- **Core Problem Analysis**: GMs need quick access to generators and calculators for running Eldritch RPG games effectively
+- **User Context**: Used during game preparation and live gameplay sessions
+- **Critical Path**: Quick access to tools → Generate/calculate content → Export/copy results
+- **Key Moments**: Character generation, encounter creation, combat management
 
 ## Essential Features
 
-### Enhanced Encounter Generator
-- **Functionality**: Uses official Encounter Difficulty Table for precise threat calculations
-- **Purpose**: Generate balanced encounters based on party size and defense levels
-- **Success Criteria**: Produces encounters matching official difficulty guidelines
+### Encounter Generator
+- **What it does**: Generates balanced encounters based on party composition and difficulty
+- **Why it matters**: Saves GMs significant preparation time and ensures balanced gameplay
+- **Success criteria**: Produces mathematically sound encounters with appropriate threat values
 
-### Comprehensive Battle Calculator  
-- **Functionality**: Tracks initiative phases using official Battle Phase table, manages combatant stats
-- **Purpose**: Streamline combat management with accurate phase calculations
-- **Success Criteria**: Proper initiative ordering and stat tracking throughout battles
+### Character Generators
+- **What it does**: Two-tier character generation (quick NPC generation and full player character creation)
+- **Why it matters**: Supports both quick NPC creation and detailed player character building
+- **Success criteria**: Characters follow game rules precisely and can be exported for use
 
-### Spell Reference System
-- **Functionality**: Complete spell tables including challenge levels, potency, failure consequences
-- **Purpose**: Instant access to spellcasting mechanics during gameplay
-- **Success Criteria**: Quick lookup of spell difficulties and consequences
+### Player Character Generator
+- **What it does**: Full featured character creation following player creation rules with CP tracking
+- **Why it matters**: Allows players to create characters that follow the exact character point spending rules
+- **Success criteria**: Accurate CP calculations, proper minimums application, and comprehensive character sheets
 
-### Accurate Monster HP Calculator
-- **Functionality**: Uses official Hit Point Modifiers table for size/nature combinations
-- **Purpose**: Generate proper monster statistics following official guidelines  
-- **Success Criteria**: Calculations match official HP modifier tables exactly
+### Battle Calculator
+- **What it does**: Manages initiative order and tracks combat statistics
+- **Why it matters**: Streamlines combat management during play
+- **Success criteria**: Accurate initiative tracking and easy stat management
 
-### Character Generator (Enhanced)
-- **Functionality**: Creates characters following official advancement and CP rules
-- **Purpose**: Generate NPCs or example characters with proper stat allocation
-- **Success Criteria**: Character builds follow official creation guidelines
+### Monster HP Calculator
+- **What it does**: Calculates monster hit points based on size, nature, and threat dice
+- **Why it matters**: Ensures monsters have appropriate durability for encounters
+- **Success criteria**: Accurate HP calculations following game formulas
+
+### Spell Reference
+- **What it does**: Displays spell mechanics tables and reference information
+- **Why it matters**: Quick access to spell rules during gameplay
+- **Success criteria**: Complete and accurate spell system information
 
 ## Design Direction
 
 ### Visual Tone & Identity
-- **Emotional Response**: Professional confidence with mystical undertones
-- **Design Personality**: Elegant, mysterious, functional - like ancient grimoires with modern efficiency
-- **Visual Metaphors**: Arcane symbols, eldritch themes, scholarly precision
-- **Simplicity Spectrum**: Rich interface that doesn't overwhelm - information density balanced with clarity
+- **Emotional Response**: Professional confidence with mystical atmosphere
+- **Design Personality**: Clean, modern interface with subtle dark/mystical theming
+- **Visual Metaphors**: Arcane grimoire, mystical knowledge
+- **Simplicity Spectrum**: Clean and functional with atmospheric touches
 
 ### Color Strategy
-- **Color Scheme Type**: Custom mystical palette
+- **Color Scheme Type**: Monochromatic with mystical accents
 - **Primary Color**: Deep mystical green (oklch(0.35 0.15 150)) - represents arcane knowledge
-- **Secondary Colors**: Dark blue-grays for supporting elements
-- **Accent Color**: Bright mystical green (oklch(0.65 0.25 145)) for interactive elements
-- **Color Psychology**: Dark, mysterious tones convey depth and expertise while green accents suggest magical energy
-- **Color Accessibility**: High contrast ratios maintained throughout
-- **Foreground/Background Pairings**: 
-  - White text on dark backgrounds (primary content)
-  - Dark text on accent backgrounds (highlights)
-  - All pairings exceed WCAG AA standards
+- **Secondary Colors**: Dark blues and purples for depth
+- **Accent Color**: Bright mystical green (oklch(0.65 0.25 145)) for highlights and important actions
+- **Color Psychology**: Dark colors create focus and mystical atmosphere, bright accents guide attention
 
 ### Typography System
-- **Font Pairing Strategy**: Serif headings for mystical gravitas, sans-serif body for clarity
-- **Typographic Hierarchy**: Clear distinction between headers, body text, and code/data displays
-- **Font Personality**: Scholarly yet accessible - professional but with character
-- **Readability Focus**: Optimized line spacing and sizing for extended reading sessions
-- **Typography Consistency**: Consistent treatment across all tool interfaces
-- **Which fonts**: Crimson Text (headings), Inter (body), JetBrains Mono (code/data)
-- **Legibility Check**: All fonts tested for clarity at various sizes
-
-### Visual Hierarchy & Layout
-- **Attention Direction**: Tab system guides users through tool selection, cards organize content logically
-- **White Space Philosophy**: Generous spacing prevents information overload
-- **Grid System**: Consistent card-based layout with responsive grid adaptation
-- **Responsive Approach**: Mobile-first design with progressive enhancement
-- **Content Density**: High information density balanced with visual breathing room
-
-### Animations
-- **Purposeful Meaning**: Subtle transitions reinforce tool switching and state changes
-- **Hierarchy of Movement**: Focus on functional feedback over decorative animation
-- **Contextual Appropriateness**: Minimal motion that enhances rather than distracts
+- **Font Pairing Strategy**: Crimson Text for headings (scholarly, readable serif) with Inter for body text (clean, modern sans-serif)
+- **Typographic Hierarchy**: Clear distinction between headings, subheadings, and body text
+- **Font Personality**: Professional and scholarly with excellent readability
+- **Which fonts**: Crimson Text for headings, Inter for body text, JetBrains Mono for code/stats
 
 ### UI Elements & Component Selection
-- **Component Usage**: Shadcn components for consistency - Cards for content organization, Tabs for tool navigation, Forms for data input
-- **Component Customization**: Dark theme with mystical color palette, custom radius values
-- **Component States**: Clear hover/focus states for all interactive elements
-- **Icon Selection**: Phosphor icons for clear tool identification and actions
-- **Component Hierarchy**: Primary tools (tabs), secondary content (cards), tertiary actions (buttons)
-- **Spacing System**: Consistent 4px/8px/16px spacing grid throughout
-- **Mobile Adaptation**: Responsive tab layout, stacked forms on smaller screens
-
-### Visual Consistency Framework
-- **Design System Approach**: Component-based design with shared styling
-- **Style Guide Elements**: Color palette, typography scale, spacing system, component patterns
-- **Visual Rhythm**: Consistent card layouts create predictable interface patterns
-- **Brand Alignment**: Mystical gaming aesthetic with professional functionality
+- **Component Usage**: Cards for tool sections, tabs for navigation, buttons for actions
+- **Component States**: Clear hover and active states on all interactive elements
+- **Icon Selection**: Phosphor icons for consistent, clean iconography
+- **Spacing System**: Consistent padding using Tailwind's spacing scale
 
 ### Accessibility & Readability
-- **Contrast Goal**: WCAG AA compliance maintained throughout interface
-- **Focus Management**: Clear focus indicators and logical tab order
-- **Screen Reader Support**: Proper semantic markup and labels
-
-## Edge Cases & Problem Scenarios
-- **Data Validation**: Form inputs validated before calculations
-- **Error Handling**: Clear error messages guide users to correct inputs  
-- **Performance**: Tables and calculations optimized for real-time use
-- **State Management**: Persistent storage prevents data loss during sessions
+- **Contrast Goal**: WCAG AA compliance with high contrast ratios
+- **Foreground/Background Pairings**: Light text on dark backgrounds with sufficient contrast
 
 ## Implementation Considerations
-- **Official Data Integration**: All game tables imported as structured data for accuracy
-- **Calculation Accuracy**: Math functions implement official formulas exactly
-- **Reference Completeness**: Comprehensive spell and rule tables for gameplay support
-- **User Experience**: Streamlined workflows for common GM tasks
-
-## Enhanced Game Data Integration
-- **Battle Phase System**: Official prowess-to-phase mapping with initiative ranges
-- **Encounter Difficulty**: Complete party size vs. defense level threat score tables  
-- **Spell System**: Full spell challenge, potency, and failure tables
-- **Monster Statistics**: Official hit point modifiers by size and nature
-- **Success Chances**: Statistical tables for ability vs. challenge resolution
-- **Equipment Data**: Comprehensive weapons, armor, and damage type information
+- **Scalability Needs**: Modular component structure allows for easy addition of new tools
+- **Testing Focus**: Accurate mathematical calculations and data export functionality
+- **Critical Questions**: How to balance feature richness with performance and usability
 
 ## Reflection
-This enhanced toolkit directly addresses GM workflow needs by providing instant access to official game mechanics. The integration of complete game tables ensures accuracy while the intuitive interface design enables rapid access during active play. The mystical theming reinforces the game's atmosphere while maintaining professional functionality for serious gameplay management.
+This tool suite serves the specific needs of the Eldritch RPG community by providing purpose-built digital tools that complement the tabletop experience. The dark, mystical theme reinforces the game's atmosphere while maintaining professional functionality.
