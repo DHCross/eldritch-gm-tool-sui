@@ -180,6 +180,146 @@ export default function MonsterGenerator() {
   
   const [result, setResult] = useState<MonsterResult | null>(null)
 
+  // Get available threat dice options based on selected creature type
+  const getAvailableThreatDice = (currentAttackType: string, selectedType: string) => {
+    if (!selectedType) {
+      // If no type selected, show all options
+      return [
+        { value: 'None', label: 'None' },
+        { value: '1d4', label: '1d4 (Minor)', category: 'Minor' },
+        { value: '1d6', label: '1d6 (Minor)', category: 'Minor' },
+        { value: '1d8', label: '1d8 (Minor)', category: 'Minor' },
+        { value: '1d10', label: '1d10 (Minor)', category: 'Minor' },
+        { value: '1d12', label: '1d12 (Minor)', category: 'Minor' },
+        { value: '2d4', label: '2d4 (Standard)', category: 'Standard' },
+        { value: '2d6', label: '2d6 (Standard)', category: 'Standard' },
+        { value: '2d8', label: '2d8 (Standard)', category: 'Standard' },
+        { value: '2d10', label: '2d10 (Standard)', category: 'Standard' },
+        { value: '2d12', label: '2d12 (Standard)', category: 'Standard' },
+        { value: '3d4', label: '3d4 (Exceptional)', category: 'Exceptional' },
+        { value: '3d6', label: '3d6 (Exceptional)', category: 'Exceptional' },
+        { value: '3d8', label: '3d8 (Exceptional)', category: 'Exceptional' },
+        { value: '3d10', label: '3d10 (Exceptional)', category: 'Exceptional' },
+        { value: '3d12', label: '3d12 (Exceptional)', category: 'Exceptional' },
+        { value: '4d10', label: '4d10 (Legendary)', category: 'Legendary' },
+        { value: '4d12', label: '4d12 (Legendary)', category: 'Legendary' },
+        { value: '5d10', label: '5d10 (Legendary)', category: 'Legendary' },
+        { value: '5d12', label: '5d12 (Legendary)', category: 'Legendary' }
+      ]
+    }
+
+    const baseOptions = [{ value: 'None', label: 'None' }]
+    
+    switch (selectedType) {
+      case 'Minor':
+        return [
+          ...baseOptions,
+          { value: '1d4', label: '1d4 (Minor)', category: 'Minor' },
+          { value: '1d6', label: '1d6 (Minor)', category: 'Minor' },
+          { value: '1d8', label: '1d8 (Minor)', category: 'Minor' },
+          { value: '1d10', label: '1d10 (Minor)', category: 'Minor' },
+          { value: '1d12', label: '1d12 (Minor)', category: 'Minor' }
+        ]
+      
+      case 'Standard':
+        return [
+          ...baseOptions,
+          { value: '1d4', label: '1d4 (Minor)', category: 'Minor' },
+          { value: '1d6', label: '1d6 (Minor)', category: 'Minor' },
+          { value: '1d8', label: '1d8 (Minor)', category: 'Minor' },
+          { value: '1d10', label: '1d10 (Minor)', category: 'Minor' },
+          { value: '1d12', label: '1d12 (Minor)', category: 'Minor' },
+          { value: '2d4', label: '2d4 (Standard)', category: 'Standard' },
+          { value: '2d6', label: '2d6 (Standard)', category: 'Standard' },
+          { value: '2d8', label: '2d8 (Standard)', category: 'Standard' },
+          { value: '2d10', label: '2d10 (Standard)', category: 'Standard' },
+          { value: '2d12', label: '2d12 (Standard)', category: 'Standard' }
+        ]
+      
+      case 'Exceptional':
+        return [
+          ...baseOptions,
+          { value: '1d4', label: '1d4 (Minor)', category: 'Minor' },
+          { value: '1d6', label: '1d6 (Minor)', category: 'Minor' },
+          { value: '1d8', label: '1d8 (Minor)', category: 'Minor' },
+          { value: '1d10', label: '1d10 (Minor)', category: 'Minor' },
+          { value: '1d12', label: '1d12 (Minor)', category: 'Minor' },
+          { value: '2d4', label: '2d4 (Standard)', category: 'Standard' },
+          { value: '2d6', label: '2d6 (Standard)', category: 'Standard' },
+          { value: '2d8', label: '2d8 (Standard)', category: 'Standard' },
+          { value: '2d10', label: '2d10 (Standard)', category: 'Standard' },
+          { value: '2d12', label: '2d12 (Standard)', category: 'Standard' },
+          { value: '3d4', label: '3d4 (Exceptional)', category: 'Exceptional' },
+          { value: '3d6', label: '3d6 (Exceptional)', category: 'Exceptional' },
+          { value: '3d8', label: '3d8 (Exceptional)', category: 'Exceptional' },
+          { value: '3d10', label: '3d10 (Exceptional)', category: 'Exceptional' },
+          { value: '3d12', label: '3d12 (Exceptional)', category: 'Exceptional' }
+        ]
+      
+      case 'Legendary':
+        return [
+          ...baseOptions,
+          { value: '1d4', label: '1d4 (Minor)', category: 'Minor' },
+          { value: '1d6', label: '1d6 (Minor)', category: 'Minor' },
+          { value: '1d8', label: '1d8 (Minor)', category: 'Minor' },
+          { value: '1d10', label: '1d10 (Minor)', category: 'Minor' },
+          { value: '1d12', label: '1d12 (Minor)', category: 'Minor' },
+          { value: '2d4', label: '2d4 (Standard)', category: 'Standard' },
+          { value: '2d6', label: '2d6 (Standard)', category: 'Standard' },
+          { value: '2d8', label: '2d8 (Standard)', category: 'Standard' },
+          { value: '2d10', label: '2d10 (Standard)', category: 'Standard' },
+          { value: '2d12', label: '2d12 (Standard)', category: 'Standard' },
+          { value: '3d4', label: '3d4 (Exceptional)', category: 'Exceptional' },
+          { value: '3d6', label: '3d6 (Exceptional)', category: 'Exceptional' },
+          { value: '3d8', label: '3d8 (Exceptional)', category: 'Exceptional' },
+          { value: '3d10', label: '3d10 (Exceptional)', category: 'Exceptional' },
+          { value: '3d12', label: '3d12 (Exceptional)', category: 'Exceptional' },
+          { value: '4d10', label: '4d10 (Legendary)', category: 'Legendary' },
+          { value: '4d12', label: '4d12 (Legendary)', category: 'Legendary' },
+          { value: '5d10', label: '5d10 (Legendary)', category: 'Legendary' },
+          { value: '5d12', label: '5d12 (Legendary)', category: 'Legendary' }
+        ]
+      
+      default:
+        return baseOptions
+    }
+  }
+
+  // Helper to determine if the current attack selection meets threat type requirements
+  const validateThreatTypeRequirements = (selectedType: string) => {
+    if (!selectedType) return true // No validation needed if no type selected
+    
+    const attacks = [meleeAttack, naturalAttack, rangedAttack, arcaneAttack]
+      .filter(attack => attack && attack !== 'None')
+      .map(attack => parseThreatDice(attack!))
+    
+    if (attacks.length === 0) return true // Will be handled by generateMonster
+    
+    const maxDice = Math.max(...attacks.map(a => {
+      const match = a.dice.match(/(\d+)d/)
+      return match ? parseInt(match[1]) : 1
+    }))
+    
+    switch (selectedType) {
+      case 'Minor':
+        return maxDice === 1
+      case 'Standard':
+        return maxDice === 2
+      case 'Exceptional':
+        return maxDice >= 3 && !attacks.some(a => {
+          const match = a.dice.match(/(\d+)d(\d+)/)
+          return match && parseInt(match[1]) >= 4
+        })
+      case 'Legendary':
+        return maxDice >= 3 && attacks.some(a => {
+          const match = a.dice.match(/(\d+)d(\d+)/)
+          return match && (parseInt(match[1]) >= 4 || parseInt(match[2]) >= 12)
+        })
+      default:
+        return true
+    }
+  }
+
   const calculateBattlePhase = (prowessDie: number) => {
     const dieKey = `d${prowessDie}` as keyof typeof BATTLE_PHASES
     return BATTLE_PHASES[dieKey]?.phase || 5
@@ -505,6 +645,14 @@ Saving Throw: ${savingThrow} (${finalType} threat)`
               <Sword className="text-accent" />
               Threat Dice (TD) - Attack Forms
             </CardTitle>
+            {creatureType && (
+              <div className="text-sm text-muted-foreground">
+                {creatureType === 'Minor' && 'Minor threats: Maximum 1 die per attack (1d4 to 1d12)'}
+                {creatureType === 'Standard' && 'Standard threats: Maximum 2 dice per attack, at least one attack must be 2d#'}
+                {creatureType === 'Exceptional' && 'Exceptional threats: Maximum 3 dice per attack, at least one attack must be 3d#'}
+                {creatureType === 'Legendary' && 'Legendary threats: 3+ dice per attack, can use d14, d16, d18, d20'}
+              </div>
+            )}
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -515,26 +663,11 @@ Saving Throw: ${savingThrow} (${finalType} threat)`
                     <SelectValue placeholder="None" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="None">None</SelectItem>
-                    <SelectItem value="1d4">1d4 (Minor)</SelectItem>
-                    <SelectItem value="1d6">1d6 (Minor)</SelectItem>
-                    <SelectItem value="1d8">1d8 (Minor)</SelectItem>
-                    <SelectItem value="1d10">1d10 (Minor)</SelectItem>
-                    <SelectItem value="1d12">1d12 (Minor)</SelectItem>
-                    <SelectItem value="2d4">2d4 (Standard)</SelectItem>
-                    <SelectItem value="2d6">2d6 (Standard)</SelectItem>
-                    <SelectItem value="2d8">2d8 (Standard)</SelectItem>
-                    <SelectItem value="2d10">2d10 (Standard)</SelectItem>
-                    <SelectItem value="2d12">2d12 (Standard)</SelectItem>
-                    <SelectItem value="3d4">3d4 (Exceptional)</SelectItem>
-                    <SelectItem value="3d6">3d6 (Exceptional)</SelectItem>
-                    <SelectItem value="3d8">3d8 (Exceptional)</SelectItem>
-                    <SelectItem value="3d10">3d10 (Exceptional)</SelectItem>
-                    <SelectItem value="3d12">3d12 (Exceptional)</SelectItem>
-                    <SelectItem value="4d10">4d10 (Legendary)</SelectItem>
-                    <SelectItem value="4d12">4d12 (Legendary)</SelectItem>
-                    <SelectItem value="5d10">5d10 (Legendary)</SelectItem>
-                    <SelectItem value="5d12">5d12 (Legendary)</SelectItem>
+                    {getAvailableThreatDice('melee', creatureType).map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -546,26 +679,11 @@ Saving Throw: ${savingThrow} (${finalType} threat)`
                     <SelectValue placeholder="None" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="None">None</SelectItem>
-                    <SelectItem value="1d4">1d4 (Minor)</SelectItem>
-                    <SelectItem value="1d6">1d6 (Minor)</SelectItem>
-                    <SelectItem value="1d8">1d8 (Minor)</SelectItem>
-                    <SelectItem value="1d10">1d10 (Minor)</SelectItem>
-                    <SelectItem value="1d12">1d12 (Minor)</SelectItem>
-                    <SelectItem value="2d4">2d4 (Standard)</SelectItem>
-                    <SelectItem value="2d6">2d6 (Standard)</SelectItem>
-                    <SelectItem value="2d8">2d8 (Standard)</SelectItem>
-                    <SelectItem value="2d10">2d10 (Standard)</SelectItem>
-                    <SelectItem value="2d12">2d12 (Standard)</SelectItem>
-                    <SelectItem value="3d4">3d4 (Exceptional)</SelectItem>
-                    <SelectItem value="3d6">3d6 (Exceptional)</SelectItem>
-                    <SelectItem value="3d8">3d8 (Exceptional)</SelectItem>
-                    <SelectItem value="3d10">3d10 (Exceptional)</SelectItem>
-                    <SelectItem value="3d12">3d12 (Exceptional)</SelectItem>
-                    <SelectItem value="4d10">4d10 (Legendary)</SelectItem>
-                    <SelectItem value="4d12">4d12 (Legendary)</SelectItem>
-                    <SelectItem value="5d10">5d10 (Legendary)</SelectItem>
-                    <SelectItem value="5d12">5d12 (Legendary)</SelectItem>
+                    {getAvailableThreatDice('natural', creatureType).map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -577,26 +695,11 @@ Saving Throw: ${savingThrow} (${finalType} threat)`
                     <SelectValue placeholder="None" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="None">None</SelectItem>
-                    <SelectItem value="1d4">1d4 (Minor)</SelectItem>
-                    <SelectItem value="1d6">1d6 (Minor)</SelectItem>
-                    <SelectItem value="1d8">1d8 (Minor)</SelectItem>
-                    <SelectItem value="1d10">1d10 (Minor)</SelectItem>
-                    <SelectItem value="1d12">1d12 (Minor)</SelectItem>
-                    <SelectItem value="2d4">2d4 (Standard)</SelectItem>
-                    <SelectItem value="2d6">2d6 (Standard)</SelectItem>
-                    <SelectItem value="2d8">2d8 (Standard)</SelectItem>
-                    <SelectItem value="2d10">2d10 (Standard)</SelectItem>
-                    <SelectItem value="2d12">2d12 (Standard)</SelectItem>
-                    <SelectItem value="3d4">3d4 (Exceptional)</SelectItem>
-                    <SelectItem value="3d6">3d6 (Exceptional)</SelectItem>
-                    <SelectItem value="3d8">3d8 (Exceptional)</SelectItem>
-                    <SelectItem value="3d10">3d10 (Exceptional)</SelectItem>
-                    <SelectItem value="3d12">3d12 (Exceptional)</SelectItem>
-                    <SelectItem value="4d10">4d10 (Legendary)</SelectItem>
-                    <SelectItem value="4d12">4d12 (Legendary)</SelectItem>
-                    <SelectItem value="5d10">5d10 (Legendary)</SelectItem>
-                    <SelectItem value="5d12">5d12 (Legendary)</SelectItem>
+                    {getAvailableThreatDice('ranged', creatureType).map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -608,30 +711,28 @@ Saving Throw: ${savingThrow} (${finalType} threat)`
                     <SelectValue placeholder="None" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="None">None</SelectItem>
-                    <SelectItem value="1d4">1d4 (Minor)</SelectItem>
-                    <SelectItem value="1d6">1d6 (Minor)</SelectItem>
-                    <SelectItem value="1d8">1d8 (Minor)</SelectItem>
-                    <SelectItem value="1d10">1d10 (Minor)</SelectItem>
-                    <SelectItem value="1d12">1d12 (Minor)</SelectItem>
-                    <SelectItem value="2d4">2d4 (Standard)</SelectItem>
-                    <SelectItem value="2d6">2d6 (Standard)</SelectItem>
-                    <SelectItem value="2d8">2d8 (Standard)</SelectItem>
-                    <SelectItem value="2d10">2d10 (Standard)</SelectItem>
-                    <SelectItem value="2d12">2d12 (Standard)</SelectItem>
-                    <SelectItem value="3d4">3d4 (Exceptional)</SelectItem>
-                    <SelectItem value="3d6">3d6 (Exceptional)</SelectItem>
-                    <SelectItem value="3d8">3d8 (Exceptional)</SelectItem>
-                    <SelectItem value="3d10">3d10 (Exceptional)</SelectItem>
-                    <SelectItem value="3d12">3d12 (Exceptional)</SelectItem>
-                    <SelectItem value="4d10">4d10 (Legendary)</SelectItem>
-                    <SelectItem value="4d12">4d12 (Legendary)</SelectItem>
-                    <SelectItem value="5d10">5d10 (Legendary)</SelectItem>
-                    <SelectItem value="5d12">5d12 (Legendary)</SelectItem>
+                    {getAvailableThreatDice('arcane', creatureType).map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
+            
+            {creatureType && !validateThreatTypeRequirements(creatureType) && (
+              <div className="bg-destructive/10 border border-destructive/20 rounded p-3">
+                <p className="text-sm text-destructive font-medium">
+                  ⚠️ Current attack selection doesn't meet {creatureType} threat requirements.
+                </p>
+                <p className="text-xs text-destructive/80 mt-1">
+                  {creatureType === 'Standard' && 'At least one attack must use 2 dice (2d4 to 2d12).'}
+                  {creatureType === 'Exceptional' && 'At least one attack must use 3 dice (3d4 to 3d12).'}
+                  {creatureType === 'Legendary' && 'At least one attack must use 3+ dice with high values (4d10+ or 3d12+).'}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 

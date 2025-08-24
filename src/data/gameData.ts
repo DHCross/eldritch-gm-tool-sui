@@ -1,47 +1,47 @@
 // Eldritch RPG game data and tables
 
-export const SPELL_CHALLENGE_TABLE = [
-  { challenge: 'D0', rarity: 'Common', maintenance: 'None' },
-  { challenge: 'D4', rarity: 'Common', maintenance: '-1' },
-  { challenge: 'D6', rarity: 'Uncommon', maintenance: '-2' },
-  { challenge: 'D8', rarity: 'Esoteric', maintenance: '-3' },
-  { challenge: 'D10', rarity: 'Occult', maintenance: '-4' },
-  { challenge: 'D12', rarity: 'Legendary', maintenance: '-5' },
-]
+export const SPELL_CHALLENGE_TABLE = {
+  'Common (D0)': { challenge: 'D0', maintenancePenalty: null },
+  'Common (D4)': { challenge: 'D4', maintenancePenalty: '-1' },
+  'Uncommon': { challenge: 'D6', maintenancePenalty: '-2' },
+  'Esoteric': { challenge: 'D8', maintenancePenalty: '-3' },
+  'Occult': { challenge: 'D10', maintenancePenalty: '-4' },
+  'Legendary': { challenge: 'D12', maintenancePenalty: '-5' },
+}
 
-export const SPELL_POTENCY_TABLE = [
-  { potency: 1, challenge: 'd4', rarity: 'Common', modifier: '±1' },
-  { potency: 2, challenge: 'd6', rarity: 'Uncommon', modifier: '±2' },
-  { potency: 3, challenge: 'd8', rarity: 'Esoteric', modifier: '±3' },
-  { potency: 4, challenge: 'd10', rarity: 'Occult', modifier: '±4' },
-  { potency: 5, challenge: 'd12', rarity: 'Legendary', modifier: '±5' },
-]
+export const SPELL_POTENCY_TABLE = {
+  '1': { challenge: 'd4', rarity: 'Common', modifier: '±1' },
+  '2': { challenge: 'd6', rarity: 'Uncommon', modifier: '±2' },
+  '3': { challenge: 'd8', rarity: 'Esoteric', modifier: '±3' },
+  '4': { challenge: 'd10', rarity: 'Occult', modifier: '±4' },
+  '5': { challenge: 'd12', rarity: 'Legendary', modifier: '±5' },
+}
 
-export const SPELL_FAILURE_TABLE = [
-  { rarity: 'D0 (Auto Harm)', consequence: 'N/A None' },
-  { rarity: 'D4 (Common)', consequence: 'Next Round Spell Fizzles' },
-  { rarity: 'D6 (Uncommon)', consequence: '2 rounds -1 spirit point' },
-  { rarity: 'D8 (Esoteric)', consequence: '3 rounds -3 spirit points' },
-  { rarity: 'D10 (Occult)', consequence: '4 rounds -4 spirit points' },
-  { rarity: 'D12 (Legendary)', consequence: '5 rounds -5 spirit points' },
-]
+export const SPELL_FAILURE_TABLE = {
+  'D0 (Auto Harm)': { reattemptConsequence: 'N/A None' },
+  'D4 (Common)': { reattemptConsequence: 'Next Round Spell Fizzles' },
+  'D6 (Uncommon)': { reattemptConsequence: '2 rounds', spiritLoss: 1, rounds: 2 },
+  'D8 (Esoteric)': { reattemptConsequence: '3 rounds', spiritLoss: 3, rounds: 3 },
+  'D10 (Occult)': { reattemptConsequence: '4 rounds', spiritLoss: 4, rounds: 4 },
+  'D12 (Legendary)': { reattemptConsequence: '5 rounds', spiritLoss: 5, rounds: 5 },
+}
 
-export const RARITY_UNLOCK_TABLE = [
-  { rank: 'Weak (1-3)', rarity: 'd4 (Common)' },
-  { rank: 'Average (4+)', rarity: 'd6 (Uncommon)' },
-  { rank: 'Respectable (12+)', rarity: 'd8 (Esoteric)' },
-  { rank: 'Skilled (16+)', rarity: 'd10 (Occult)' },
-  { rank: 'Great (20+)', rarity: 'd12 (Legendary)' },
-  { rank: 'Phenomenal (24+)', rarity: 'd12+ (Legendary+)' },
-]
+export const RARITY_UNLOCK_TABLE = {
+  'Weak (1-3)': 'd4 (Common)',
+  'Average (4+)': 'd6 (Uncommon)',
+  'Respectable (12+)': 'd8 (Esoteric)',
+  'Skilled (16+)': 'd10 (Occult)',
+  'Great (20+)': 'd12 (Legendary)',
+  'Phenomenal (24+)': 'd12+ (Legendary+)',
+}
 
-export const CHALLENGE_DIFFICULTIES = [
-  { challenge: 'Easy', base: 'd4', disadvantage: '2d4' },
-  { challenge: 'Moderate', base: 'd6', disadvantage: '2d6' },
-  { challenge: 'Difficult', base: 'd8', disadvantage: '2d8' },
-  { challenge: 'Demanding', base: 'd10', disadvantage: '2d10' },
-  { challenge: 'Formidable', base: 'd12', disadvantage: '2d12' },
-]
+export const CHALLENGE_DIFFICULTIES = {
+  'Easy': { base: 'd4', withDisadvantage: '2d4' },
+  'Moderate': { base: 'd6', withDisadvantage: '2d6' },
+  'Difficult': { base: 'd8', withDisadvantage: '2d8' },
+  'Demanding': { base: 'd10', withDisadvantage: '2d10' },
+  'Formidable': { base: 'd12', withDisadvantage: '2d12' },
+}
 
 export const SUCCESS_CHANCE_TABLE = [
   {
