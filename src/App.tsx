@@ -21,14 +21,14 @@ function App() {
           <TabsList className="grid w-full grid-cols-2 mb-8 h-16 bg-card border-2 border-primary/20">
             <TabsTrigger 
               value="gm" 
-              className="flex items-center justify-center gap-3 text-lg px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
+              className="horizontal-tab text-lg px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
             >
               <Crown size={24} />
               <span className="font-medium">Game Master Tools</span>
             </TabsTrigger>
             <TabsTrigger 
               value="player" 
-              className="flex items-center justify-center gap-3 text-lg px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
+              className="horizontal-tab text-lg px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
             >
               <UserFocus size={24} />
               <span className="font-medium">Player Tools</span>
@@ -40,31 +40,39 @@ function App() {
               <TabsList className="grid w-full grid-cols-4 mb-6 h-16 bg-card/50">
                 <TabsTrigger 
                   value="encounter" 
-                  className="flex flex-col items-center justify-center gap-1 px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+                  className="px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
                 >
-                  <Dice6 size={20} />
-                  <span className="text-sm font-medium leading-tight">Encounter</span>
+                  <div className="flex flex-col items-center justify-center gap-1">
+                    <Dice6 size={20} />
+                    <span className="text-sm font-medium leading-tight">Encounter</span>
+                  </div>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="npc" 
-                  className="flex flex-col items-center justify-center gap-1 px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+                  className="px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
                 >
-                  <User size={20} />
-                  <span className="text-sm font-medium leading-tight">NPC</span>
+                  <div className="flex flex-col items-center justify-center gap-1">
+                    <User size={20} />
+                    <span className="text-sm font-medium leading-tight">NPC</span>
+                  </div>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="battle" 
-                  className="flex flex-col items-center justify-center gap-1 px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+                  className="px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
                 >
-                  <Swords size={20} />
-                  <span className="text-sm font-medium leading-tight">Battle</span>
+                  <div className="flex flex-col items-center justify-center gap-1">
+                    <Swords size={20} />
+                    <span className="text-sm font-medium leading-tight">Battle</span>
+                  </div>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="monster" 
-                  className="flex flex-col items-center justify-center gap-1 px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+                  className="px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
                 >
-                  <Heart size={20} />
-                  <span className="text-sm font-medium leading-tight">Monster</span>
+                  <div className="flex flex-col items-center justify-center gap-1">
+                    <Heart size={20} />
+                    <span className="text-sm font-medium leading-tight">Monster</span>
+                  </div>
                 </TabsTrigger>
               </TabsList>
 
@@ -91,17 +99,21 @@ function App() {
               <TabsList className="grid w-full grid-cols-2 mb-6 h-16 bg-card/50">
                 <TabsTrigger 
                   value="character" 
-                  className="flex flex-col items-center justify-center gap-1 px-4 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+                  className="px-4 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
                 >
-                  <UserFocus size={24} />
-                  <span className="text-sm font-medium">Character</span>
+                  <div className="flex flex-col items-center justify-center gap-1">
+                    <UserFocus size={24} />
+                    <span className="text-sm font-medium">Character</span>
+                  </div>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="spells" 
-                  className="flex flex-col items-center justify-center gap-1 px-4 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+                  className="px-4 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
                 >
-                  <Sparkles size={24} />
-                  <span className="text-sm font-medium">Spells</span>
+                  <div className="flex flex-col items-center justify-center gap-1">
+                    <Sparkles size={24} />
+                    <span className="text-sm font-medium">Spells</span>
+                  </div>
                 </TabsTrigger>
               </TabsList>
 
