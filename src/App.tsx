@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Toaster } from "@/components/ui/sonner"
 import EncounterGenerator from './components/EncounterGenerator'
