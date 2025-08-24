@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Heart, Calculator, Sparkles, Eye, Sword, Shield, Zap } from "@phosphor-icons/react"
@@ -20,7 +19,6 @@ interface MonsterResult {
   // Basic info
   name: string
   type: string // Minor, Standard, Exceptional, Legendary
-  trope?: string
   size: string
   nature: string
   creatureVariant: string // Normal, Fast, Tough
@@ -50,58 +48,7 @@ interface MonsterResult {
   notes?: string
 }
 
-const creatureTropes = [
-  { 
-    name: 'Goblinoid', 
-    description: 'Cunning and covetous creatures with bestial ferocity and reptilian traits',
-    examples: 'Goblins, orcs, hobgoblins - societies built around treasure accumulation'
-  },
-  { 
-    name: 'Alfar', 
-    description: 'Magical humanoids with a spark of Meterea\'s dream-stuff',
-    examples: 'Elves (arcane lore), dwarves (craftsmanship), gnomes (inventive trickery), halflings (nimble grace)'
-  },
-  { 
-    name: 'Drakkin', 
-    description: 'Humanoids with draconic power, warrior-scholars or guardians of draconic lore',
-    examples: 'Dragon-blooded humans with scales, breath weapons, and ancient knowledge'
-  },
-  { 
-    name: 'Beast', 
-    description: 'Natural animals and creatures of the wild',
-    examples: 'Wolves, bears, great cats, birds of prey, marine creatures'
-  },
-  { 
-    name: 'Undead', 
-    description: 'Preternatural beings born of nightmare storms and psychic echoes',
-    examples: 'Skeletons, zombies, vampires, liches, specters, wraiths'
-  },
-  { 
-    name: 'Fiend', 
-    description: 'Supernatural manifestations of evil and chaos',
-    examples: 'Demons, devils, bound spirits of malice and corruption'
-  },
-  { 
-    name: 'Celestial', 
-    description: 'Supernatural beings of divine or angelic nature',
-    examples: 'Angels, archons, divine messengers and guardians'
-  },
-  { 
-    name: 'Elemental', 
-    description: 'Beings of pure elemental force and energy',
-    examples: 'Fire elementals, water spirits, earth golems, air djinn'
-  },
-  { 
-    name: 'Construct', 
-    description: 'Artificial beings created through magic or technology',
-    examples: 'Golems, animated armor, clockwork creatures, magical automatons'
-  },
-  { 
-    name: 'Aberration', 
-    description: 'Alien and unnatural creatures that defy understanding',
-    examples: 'Mind flayers, beholders, creatures from beyond the veil of reality'
-  }
-]
+
 
 // Threat dice combinations by category and tier
 const threatDiceCombinations = {
@@ -135,29 +82,23 @@ const threatDiceCombinations = {
   ]
 }
 
-// Armor types for damage reduction
+// Armor types for damage reduction - includes both natural and worn armor
 const armorTypes = [
   { name: 'None', dr: 'None' },
-  { name: 'Natural Hide', dr: '1d4' },
-  { name: 'Tough Scales', dr: '1d6' },
-  { name: 'Armored Plates', dr: '1d8' },
-  { name: 'Stone Skin', dr: '1d10' },
-  { name: 'Magical Protection', dr: '1d12' }
+  { name: 'Hide (Natural)', dr: '1d4' },
+  { name: 'Leather Armor', dr: '1d6' },
+  { name: 'Chainmail', dr: '1d8' },
+  { name: 'Plate Armor', dr: '1d10' },
+  { name: 'Magical Protection', dr: '1d12' },
+  { name: 'Tough Scales (Natural)', dr: '1d6' },
+  { name: 'Armored Plates (Natural)', dr: '1d8' },
+  { name: 'Stone Skin (Natural)', dr: '1d10' },
+  { name: 'Studded Leather', dr: '1d6+1' },
+  { name: 'Brigandine', dr: '1d8+1' },
+  { name: 'Full Plate', dr: '1d10+2' }
 ]
 
-// Common equipment by creature type
-const equipmentByTrope = {
-  Goblinoid: ['Crude weapons', 'Leather armor', 'Stolen trinkets', 'Rusty shield'],
-  Alfar: ['Fine weapons', 'Elegant armor', 'Magical focuses', 'Ancestral items'],
-  Drakkin: ['Draconic weapons', 'Scale mail', 'Ancient relics', 'Breath weapon'],
-  Beast: ['Natural weapons', 'Natural armor'],
-  Undead: ['Burial shrouds', 'Ancient weapons', 'Spectral equipment'],
-  Fiend: ['Infernal weapons', 'Hellish armor', 'Cursed items'],
-  Celestial: ['Blessed weapons', 'Divine armor', 'Holy symbols'],
-  Elemental: ['Elemental manifestations', 'Energy weapons'],
-  Construct: ['Built-in weapons', 'Integrated armor', 'Mechanical components'],
-  Aberration: ['Alien appendages', 'Psychic emanations', 'Unnatural abilities']
-}
+
 
 export default function MonsterGenerator() {
   // Basic creature info
@@ -166,8 +107,6 @@ export default function MonsterGenerator() {
   const [monsterSize, setMonsterSize] = useState('')
   const [creatureType, setCreatureType] = useState('')
   const [fastTough, setFastTough] = useState('normal')
-  const [includeTrope, setIncludeTrope] = useState(false)
-  const [selectedTrope, setSelectedTrope] = useState('')
   
   // Combat stats
   const [meleeAttack, setMeleeAttack] = useState('')
@@ -311,6 +250,7 @@ export default function MonsterGenerator() {
         return maxDice === 2 && diceNumbers.includes(2)
       case 'Exceptional':
         // At least one attack must be 3 dice, none can be more than 3 dice
+        // But other attacks can be lower (1d# or 2d#)
         return maxDice === 3 && diceNumbers.includes(3)
       case 'Legendary':
         // Must have at least 3 dice AND either 4+ dice OR high die values
@@ -468,14 +408,6 @@ export default function MonsterGenerator() {
     const typeIndex = ['Minor', 'Standard', 'Exceptional', 'Legendary'].indexOf(finalType)
     const savingThrow = `d${4 * (typeIndex + 1)}`
 
-    // Get trope information
-    const tropeInfo = includeTrope && selectedTrope ? 
-      creatureTropes.find(t => t.name === selectedTrope) : undefined
-
-    // Generate equipment if trope is selected
-    const equipment = tropeInfo ? 
-      equipmentByTrope[tropeInfo.name as keyof typeof equipmentByTrope] || [] : []
-
     // Parse extra attacks
     const extraAttacksList = extraAttacks ? 
       extraAttacks.split(',').map(attack => attack.trim()).filter(Boolean) : []
@@ -495,7 +427,6 @@ Saving Throw: ${savingThrow} (${finalType} threat)`
     setResult({
       name: creatureName || 'Unnamed Creature',
       type: finalType,
-      trope: tropeInfo?.name,
       size: monsterSize,
       nature: monsterNature,
       creatureVariant,
@@ -508,7 +439,6 @@ Saving Throw: ${savingThrow} (${finalType} threat)`
       maxThreatMV,
       damageReduction: damageReduction || undefined,
       extraAttacks: extraAttacksList.length > 0 ? extraAttacksList : undefined,
-      equipment: equipment.length > 0 ? equipment : undefined,
       hpCalculation,
       hpMultiplier: multiplier,
       notes: notes || undefined
@@ -601,49 +531,6 @@ Saving Throw: ${savingThrow} (${finalType} threat)`
           </div>
         </div>
 
-        {/* Creature Trope Selection */}
-        <div className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="include-trope"
-              checked={includeTrope}
-              onCheckedChange={(checked) => setIncludeTrope(checked as boolean)}
-            />
-            <Label htmlFor="include-trope" className="text-sm">
-              Include creature trope/category
-            </Label>
-          </div>
-
-          {includeTrope && (
-            <div>
-              <Label htmlFor="creature-trope">Select Creature Trope</Label>
-              <Select value={selectedTrope} onValueChange={setSelectedTrope}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a creature trope" />
-                </SelectTrigger>
-                <SelectContent>
-                  {creatureTropes.map((trope) => (
-                    <SelectItem key={trope.name} value={trope.name}>
-                      {trope.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedTrope && (
-                <div className="mt-2 p-3 bg-muted/20 rounded border">
-                  <p className="text-sm font-medium">{selectedTrope}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {creatureTropes.find(t => t.name === selectedTrope)?.description}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    <strong>Examples:</strong> {creatureTropes.find(t => t.name === selectedTrope)?.examples}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
         {/* Threat Dice (Combat Abilities) */}
         <Card className="bg-muted/10">
           <CardHeader className="pb-3">
@@ -655,7 +542,7 @@ Saving Throw: ${savingThrow} (${finalType} threat)`
               <div className="text-sm text-muted-foreground">
                 {creatureType === 'Minor' && 'Minor threats: All attacks use exactly 1 die (1d4 to 1d12)'}
                 {creatureType === 'Standard' && 'Standard threats: At least one attack must be 2d#, others can be 1d# or 2d#'}
-                {creatureType === 'Exceptional' && 'Exceptional threats: At least one attack must be 3d#, others can be 1d#, 2d#, or 3d#'}
+                {creatureType === 'Exceptional' && 'Exceptional threats: At least one attack must be 3d#, others can be lower (1d#, 2d#, or 3d#)'}
                 {creatureType === 'Legendary' && 'Legendary threats: At least one attack must be 4d# or high 3d# (3d12+), can use d14-d20'}
               </div>
             )}
@@ -735,7 +622,7 @@ Saving Throw: ${savingThrow} (${finalType} threat)`
                 <p className="text-xs text-destructive/80 mt-1">
                   {creatureType === 'Minor' && 'All attacks must use exactly 1 die (1d4 to 1d12).'}
                   {creatureType === 'Standard' && 'At least one attack must use exactly 2 dice (2d4 to 2d12), others can be 1d# or 2d#.'}
-                  {creatureType === 'Exceptional' && 'At least one attack must use exactly 3 dice (3d4 to 3d12), others can be 1d#, 2d#, or 3d#.'}
+                  {creatureType === 'Exceptional' && 'At least one attack must use exactly 3 dice (3d4 to 3d12), others can be lower (1d#, 2d#, or 3d#).'}
                   {creatureType === 'Legendary' && 'At least one attack must use 4+ dice (4d10+) or high 3-dice combinations (3d12+).'}
                 </p>
               </div>
@@ -814,7 +701,6 @@ Saving Throw: ${savingThrow} (${finalType} threat)`
                   </h3>
                   <p className="text-lg text-muted-foreground">
                     {result.creatureVariant} {result.size} {result.nature} {result.type}
-                    {result.trope && ` (${result.trope})`}
                   </p>
                 </div>
 
@@ -918,20 +804,18 @@ Saving Throw: ${savingThrow} (${finalType} threat)`
                 )}
 
                 {/* Equipment */}
-                {result.equipment && result.equipment.length > 0 && (
+                {result.notes && (
                   <Card className="bg-background/50">
                     <CardHeader className="pb-3">
-                      <CardTitle className="text-md flex items-center gap-2">
-                        <Zap className="text-accent" size={16} />
-                        Equipment & Gear
-                      </CardTitle>
+                      <CardTitle className="text-md">Equipment & Special Items</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ul className="list-disc list-inside text-sm space-y-1">
-                        {result.equipment.map((item, index) => (
-                          <li key={index}>{item}</li>
-                        ))}
-                      </ul>
+                      <div className="text-sm">
+                        <Label htmlFor="equipment-notes">Add equipment in Notes section</Label>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Use the Notes field below to describe any equipment, weapons, or special items this creature carries.
+                        </p>
+                      </div>
                     </CardContent>
                   </Card>
                 )}
@@ -944,7 +828,7 @@ Saving Throw: ${savingThrow} (${finalType} threat)`
                   <CardContent>
                     <div className="font-mono text-sm whitespace-pre-line bg-muted/20 p-4 rounded border">
 {`${result.name}
-TY: ${result.type} ${result.size} ${result.nature} ${result.creatureVariant}${result.trope ? ` (${result.trope})` : ''}
+TY: ${result.type} ${result.size} ${result.nature} ${result.creatureVariant}
 TD: ${Object.entries(result.threatDice).map(([type, dice]) => `${type.charAt(0).toUpperCase() + type.slice(1)} ${dice}`).join(', ')}
 HP: ${result.hitPoints} (${result.activeDefense}A/${result.passiveDefense}P) [${result.size}, ${result.nature}; ×${result.hpMultiplier}]
 ST: ${result.savingThrow} | BP: ${result.battlePhase}${result.damageReduction && result.damageReduction !== 'None' ? `
@@ -954,28 +838,6 @@ Notes: ${result.notes}` : ''}`}
                     </div>
                   </CardContent>
                 </Card>
-
-                {/* Trope Information */}
-                {result.trope && (
-                  <Card className="bg-accent/10 border-accent/20">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-md flex items-center gap-2">
-                        <Sparkles className="text-accent" size={16} />
-                        {result.trope} Lore
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2 text-sm">
-                        <p>
-                          <strong>Description:</strong> {creatureTropes.find(t => t.name === result.trope)?.description}
-                        </p>
-                        <p>
-                          <strong>Examples:</strong> {creatureTropes.find(t => t.name === result.trope)?.examples}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
 
                 {/* Calculation Breakdown */}
                 <Card className="bg-muted/10">
