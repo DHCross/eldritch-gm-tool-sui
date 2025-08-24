@@ -103,8 +103,8 @@ const armorTypes = [
 export default function MonsterGenerator() {
   // Basic creature info
   const [creatureName, setCreatureName] = useState('')
-  const [monsterNature, setMonsterNature] = useState('')
-  const [monsterSize, setMonsterSize] = useState('')
+  const [monsterNature, setMonsterNature] = useState('Mundane')
+  const [monsterSize, setMonsterSize] = useState('Medium')
   const [creatureType, setCreatureType] = useState('')
   const [fastTough, setFastTough] = useState('normal')
   
