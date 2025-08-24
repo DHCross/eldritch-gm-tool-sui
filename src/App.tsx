@@ -5,7 +5,8 @@ import EncounterGenerator from './components/EncounterGenerator'
 import CharacterGenerator from './components/CharacterGenerator'
 import BattleCalculator from './components/BattleCalculator'
 import MonsterHPCalculator from './components/MonsterHPCalculator'
-import { Dice6, User, Swords, Heart } from "@phosphor-icons/react"
+import SpellReference from './components/SpellReference'
+import { Dice6, User, Swords, Heart, Sparkles } from "@phosphor-icons/react"
 
 function App() {
   return (
@@ -16,7 +17,7 @@ function App() {
         </h1>
         
         <Tabs defaultValue="encounter" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsList className="grid w-full grid-cols-5 mb-6">
             <TabsTrigger value="encounter" className="flex items-center gap-2">
               <Dice6 size={20} />
               <span className="hidden sm:inline">Encounter Generator</span>
@@ -37,6 +38,11 @@ function App() {
               <span className="hidden sm:inline">Monster HP</span>
               <span className="sm:hidden">Monster</span>
             </TabsTrigger>
+            <TabsTrigger value="spells" className="flex items-center gap-2">
+              <Sparkles size={20} />
+              <span className="hidden sm:inline">Spell Reference</span>
+              <span className="sm:hidden">Spells</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="encounter">
@@ -53,6 +59,10 @@ function App() {
           
           <TabsContent value="monster">
             <MonsterHPCalculator />
+          </TabsContent>
+          
+          <TabsContent value="spells">
+            <SpellReference />
           </TabsContent>
         </Tabs>
       </div>

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Heart, Calculator } from "@phosphor-icons/react"
+import { HIT_POINT_MODIFIERS } from '@/data/gameData'
 
 interface MonsterHPResult {
   finalHitPoints: number
@@ -21,18 +22,20 @@ export default function MonsterHPCalculator() {
   const [result, setResult] = useState<MonsterHPResult | null>(null)
 
   const natureValues = {
-    '1': 'Mundane',
-    '2': 'Magical', 
-    '3': 'Preternatural',
-    '4': 'Supernatural'
+    'Mundane': 'Mundane',
+    'Magical': 'Magical', 
+    'Preternatural': 'Preternatural',
+    'Supernatural': 'Supernatural'
   }
 
   const sizeValues = {
-    '0': 'Minuscule or Tiny',
-    '1': 'Small or Medium',
-    '2': 'Large',
-    '3': 'Huge',
-    '4': 'Gargantuan'
+    'Minuscule': 'Minuscule',
+    'Tiny': 'Tiny',
+    'Small': 'Small',
+    'Medium': 'Medium',
+    'Large': 'Large',
+    'Huge': 'Huge',
+    'Gargantuan': 'Gargantuan'
   }
 
   const calculateMonsterHP = () => {
@@ -41,20 +44,18 @@ export default function MonsterHPCalculator() {
       return
     }
 
-    const nature = parseFloat(monsterNature)
-    const size = parseFloat(monsterSize)
     const tier1 = parseInt(threatTier1)
     const tier2 = parseInt(threatTier2)
     const tier3 = parseInt(threatTier3)
-
-    // Calculate total modifier: (size + nature) / 2
-    const totalModifier = (size + nature) / 2
     
-    // Calculate total hit points from threat dice
+    // Calculate total hit points from threat dice (MV)
     const totalHitPoints = tier1 + tier2 + tier3
     
-    // Apply modifier and round up
-    const finalHitPoints = Math.ceil(totalHitPoints * totalModifier)
+    // Get multiplier from hit point modifiers table
+    const multiplier = HIT_POINT_MODIFIERS[monsterSize as keyof typeof HIT_POINT_MODIFIERS]?.[monsterNature as keyof typeof HIT_POINT_MODIFIERS['Medium']] || 1
+    
+    // Apply modifier and round
+    const finalHitPoints = Math.round(totalHitPoints * multiplier)
     
     // Determine threat level
     let threatLevel = "a Minor"
@@ -65,9 +66,9 @@ export default function MonsterHPCalculator() {
     }
 
     // Create calculation breakdown
-    const calculation = `Base HP: ${totalHitPoints} (${tier1}${tier2 > 0 ? ` + ${tier2}` : ''}${tier3 > 0 ? ` + ${tier3}` : ''})
-Modifier: ${totalModifier} ((${size} size + ${nature} nature) ÷ 2)
-Final HP: ${totalHitPoints} × ${totalModifier} = ${finalHitPoints}`
+    const calculation = `Base HP (MV): ${totalHitPoints} (${tier1}${tier2 > 0 ? ` + ${tier2}` : ''}${tier3 > 0 ? ` + ${tier3}` : ''})
+Size/Nature Multiplier: ×${multiplier} (${monsterSize} ${monsterNature})
+Final HP: ${totalHitPoints} × ${multiplier} = ${finalHitPoints}`
 
     setResult({
       finalHitPoints,
@@ -95,10 +96,10 @@ Final HP: ${totalHitPoints} × ${totalModifier} = ${finalHitPoints}`
                   <SelectValue placeholder="Select Nature" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">Mundane</SelectItem>
-                  <SelectItem value="2">Magical</SelectItem>
-                  <SelectItem value="3">Preternatural</SelectItem>
-                  <SelectItem value="4">Supernatural</SelectItem>
+                  <SelectItem value="Mundane">Mundane</SelectItem>
+                  <SelectItem value="Magical">Magical</SelectItem>
+                  <SelectItem value="Preternatural">Preternatural</SelectItem>
+                  <SelectItem value="Supernatural">Supernatural</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -110,11 +111,13 @@ Final HP: ${totalHitPoints} × ${totalModifier} = ${finalHitPoints}`
                   <SelectValue placeholder="Select Size" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="0">Minuscule or Tiny</SelectItem>
-                  <SelectItem value="1">Small or Medium</SelectItem>
-                  <SelectItem value="2">Large</SelectItem>
-                  <SelectItem value="3">Huge</SelectItem>
-                  <SelectItem value="4">Gargantuan</SelectItem>
+                  <SelectItem value="Minuscule">Minuscule</SelectItem>
+                  <SelectItem value="Tiny">Tiny</SelectItem>
+                  <SelectItem value="Small">Small</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="Large">Large</SelectItem>
+                  <SelectItem value="Huge">Huge</SelectItem>
+                  <SelectItem value="Gargantuan">Gargantuan</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -205,10 +208,10 @@ Final HP: ${totalHitPoints} × ${totalModifier} = ${finalHitPoints}`
                   <h4 className="font-semibold mb-2">Monster Details:</h4>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="font-medium">Nature:</span> {natureValues[monsterNature as keyof typeof natureValues]}
+                      <span className="font-medium">Nature:</span> {monsterNature}
                     </div>
                     <div>
-                      <span className="font-medium">Size:</span> {sizeValues[monsterSize as keyof typeof sizeValues]}
+                      <span className="font-medium">Size:</span> {monsterSize}
                     </div>
                     <div>
                       <span className="font-medium">Threat Dice:</span> 
@@ -232,10 +235,10 @@ Final HP: ${totalHitPoints} × ${totalModifier} = ${finalHitPoints}`
           </CardHeader>
           <CardContent className="text-sm space-y-2">
             <p><strong>Monster Value (MV):</strong> Sum of all threat dice maximum values</p>
-            <p><strong>Size Modifier:</strong> 0 (Tiny) to 4 (Gargantuan)</p>
-            <p><strong>Nature Modifier:</strong> 1 (Mundane) to 4 (Supernatural)</p>
-            <p><strong>Final HP:</strong> MV × ((Size + Nature) ÷ 2), rounded up</p>
+            <p><strong>Size & Nature:</strong> Each combination has specific multipliers from official table</p>
+            <p><strong>Final HP:</strong> MV × Size/Nature Multiplier (see Hit Point Modifiers table)</p>
             <p><strong>Threat Level:</strong> Determined by highest tier with dice assigned</p>
+            <p><strong>Examples:</strong> Medium Mundane (×1), Large Magical (×2), Huge Supernatural (×3.5)</p>
           </CardContent>
         </Card>
       </CardContent>

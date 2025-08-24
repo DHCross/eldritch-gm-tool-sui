@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Sparkles } from "@phosphor-icons/react"
+import { ENCOUNTER_DIFFICULTY_TABLE, HIT_POINT_MODIFIERS, BATTLE_PHASES } from '@/data/gameData'
 
 interface Monster {
   id: number
@@ -22,14 +23,13 @@ interface Monster {
 }
 
 const difficultyLevels = ['Easy', 'Moderate', 'Difficult', 'Demanding', 'Formidable', 'Deadly']
-const defenseLevels = ['Practitioner', 'Competent', 'Proficient', 'Advanced', 'Elite']
-
-const encounterDifficultyTable = {
-  1: { Practitioner: [7,10,12,14,16,18], Competent: [14,20,24,28,32,36], Proficient: [21,29,36,42,48,55], Advanced: [28,39,48,56,64,73], Elite: [35,49,60,70,80,110] },
-  2: { Practitioner: [14,20,24,28,32,36], Competent: [28,39,48,56,64,73], Proficient: [42,59,72,84,96,108], Advanced: [56,77,96,112,128,144], Elite: [70,95,120,140,160,190] },
-  3: { Practitioner: [21,30,36,42,48,54], Competent: [42,59,72,84,96,108], Proficient: [63,84,108,126,144,162], Advanced: [84,111,144,168,192,216], Elite: [105,140,180,210,240,270] },
-  4: { Practitioner: [28,42,50,56,64,72], Competent: [56,77,96,112,128,144], Proficient: [84,111,144,168,192,216], Advanced: [112,147,180,224,256,288], Elite: [140,185,228,280,320,360] }
-}
+const defenseLevels = [
+  'Practitioner (8-14)',
+  'Competent (15-28)', 
+  'Proficient (29-42)',
+  'Advanced (43-56)',
+  'Elite (57-72)'
+]
 
 const threatDiceByCategory = {
   Minor: ['1d4','1d6','1d8','1d10','1d12'],
@@ -38,15 +38,7 @@ const threatDiceByCategory = {
   Legendary: ['3d12','3d14','3d16','3d18','3d20']
 }
 
-const hpMultipliers = {
-  'Minuscule': {'Mundane': 0.5, 'Magical': 1, 'Preternatural': 1.5, 'Supernatural': 2},
-  'Tiny': {'Mundane': 0.5, 'Magical': 1, 'Preternatural': 1.5, 'Supernatural': 2},
-  'Small': {'Mundane': 1, 'Magical': 1.5, 'Preternatural': 2, 'Supernatural': 2.5},
-  'Medium': {'Mundane': 1, 'Magical': 1.5, 'Preternatural': 2, 'Supernatural': 2.5},
-  'Large': {'Mundane': 1.5, 'Magical': 2, 'Preternatural': 2.5, 'Supernatural': 3},
-  'Huge': {'Mundane': 2, 'Magical': 2.5, 'Preternatural': 3, 'Supernatural': 3.5},
-  'Gargantuan': {'Mundane': 2.5, 'Magical': 3, 'Preternatural': 3.5, 'Supernatural': 4}
-}
+const hpMultipliers = HIT_POINT_MODIFIERS
 
 export default function EncounterGenerator() {
   const [partySize, setPartySize] = useState([4])
@@ -65,11 +57,8 @@ export default function EncounterGenerator() {
   }
 
   const calculateBattlePhase = (prowessDie: number) => {
-    if (prowessDie >= 12) return 1
-    if (prowessDie >= 10) return 2
-    if (prowessDie >= 8) return 3
-    if (prowessDie >= 6) return 4
-    return 5
+    const dieKey = `d${prowessDie}` as keyof typeof BATTLE_PHASES
+    return BATTLE_PHASES[dieKey]?.phase || 5
   }
 
   const generateMonsterForEncounter = (maxThreat: number) => {
@@ -144,8 +133,8 @@ export default function EncounterGenerator() {
       return
     }
 
-    const defenseKey = defenseLevels[defenseLevel[0] - 1] as keyof typeof encounterDifficultyTable[1]
-    const threatScore = encounterDifficultyTable[partySize[0] as keyof typeof encounterDifficultyTable]?.[defenseKey]?.[difficulty[0] - 1]
+    const defenseKey = defenseLevels[defenseLevel[0] - 1] as keyof typeof ENCOUNTER_DIFFICULTY_TABLE[1]
+    const threatScore = ENCOUNTER_DIFFICULTY_TABLE[partySize[0] as keyof typeof ENCOUNTER_DIFFICULTY_TABLE]?.[defenseKey]?.[difficulty[0] - 1]
     
     if (!threatScore) return
 

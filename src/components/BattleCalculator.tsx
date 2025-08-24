@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useKV } from '@github/spark/hooks'
 import { Swords, Plus, Trash } from "@phosphor-icons/react"
 import { toast } from 'sonner'
+import { BATTLE_PHASES } from '@/data/gameData'
 
 interface Combatant {
   id: string
@@ -14,6 +15,7 @@ interface Combatant {
   type: 'pa' | 'npc' | 'qsb'
   prowess: number
   battlePhase: number
+  initiativeRange: string
   adp: number
   pdp: number
   maxAdp: number
@@ -37,11 +39,8 @@ export default function BattleCalculator() {
   })
 
   const calculateBattlePhase = (prowessDie: number) => {
-    if (prowessDie >= 12) return 1
-    if (prowessDie >= 10) return 2
-    if (prowessDie >= 8) return 3
-    if (prowessDie >= 6) return 4
-    return 5
+    const dieKey = `d${prowessDie}` as keyof typeof BATTLE_PHASES
+    return BATTLE_PHASES[dieKey] || { phase: 5, initiativeRange: '1-4' }
   }
 
   const addCombatant = () => {
@@ -50,12 +49,14 @@ export default function BattleCalculator() {
       return
     }
 
+    const battlePhaseData = calculateBattlePhase(newCombatant.prowess)
     const combatant: Combatant = {
       id: `${Date.now()}-${Math.random()}`,
       name: newCombatant.name,
       type: newCombatant.type,
       prowess: newCombatant.prowess,
-      battlePhase: calculateBattlePhase(newCombatant.prowess),
+      battlePhase: battlePhaseData.phase,
+      initiativeRange: battlePhaseData.initiativeRange,
       adp: newCombatant.adp,
       pdp: newCombatant.pdp,
       maxAdp: newCombatant.adp,
@@ -269,7 +270,7 @@ export default function BattleCalculator() {
                       <div>
                         <h4 className="font-semibold">{combatant.name}</h4>
                         <p className="text-sm text-muted-foreground">
-                          d{combatant.prowess} (Phase {combatant.battlePhase})
+                          d{combatant.prowess} (Phase {combatant.battlePhase}, Init: {combatant.initiativeRange})
                           {combatant.type === 'pa' && combatant.spiritPoints !== undefined && (
                             <span> | SP: {combatant.spiritPoints}</span>
                           )}
@@ -326,7 +327,7 @@ export default function BattleCalculator() {
                       <div>
                         <h4 className="font-semibold text-muted-foreground">{combatant.name}</h4>
                         <p className="text-sm text-muted-foreground">
-                          d{combatant.prowess} (Phase {combatant.battlePhase})
+                          d{combatant.prowess} (Phase {combatant.battlePhase}, Init: {combatant.initiativeRange})
                         </p>
                       </div>
                       <div className="flex gap-2">
