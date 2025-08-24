@@ -130,13 +130,13 @@ const raceFlaws = {
 }
 
 const startingEquipment = {
-  common: ['Set of ordinary clothes', 'Purse of 5 gold coins', 'Backpack', 'Small dagger', 'Week's rations', 'Waterskin', 'Tinderbox', '50\' rope', 'Iron spikes', 'Small hammer', '6\' traveling staff or 10\' pole', 'Hooded lantern and 2 oil flasks or d4+1 torches'],
+  common: ['Set of ordinary clothes', 'Purse of 5 gold coins', 'Backpack', 'Small dagger', "Week's rations", 'Waterskin', 'Tinderbox', "50' rope", 'Iron spikes', 'Small hammer', "6' traveling staff or 10' pole", 'Hooded lantern and 2 oil flasks or d4+1 torches'],
   Adept: ['Book of knowledge (area of expertise)'],
   Assassin: ['Assassin hood, jacket, cape, robe, or tunic'],
   Barbarian: ['Garments of woven wool or linen', 'Tunic', 'Overcoat or cloak'],
   Mage: ['Spellbook', 'Staff or focus item'],
   Mystic: ['Robes or shawl', 'Cloak', 'Armor up to leather'],
-  Rogue: ['Set of thieves\' tools', 'Light armor (up to leather)', 'One weapon'],
+  Rogue: ["Set of thieves' tools", 'Light armor (up to leather)', 'One weapon'],
   Theurgist: ['Prayer book', 'Holy relic or symbol', 'Focus item', 'Armor up to chain'],
   Warrior: ['One weapon of choice', 'Armor up to chain', 'Small to large shield', 'Steed']
 }
