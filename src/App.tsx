@@ -19,11 +19,11 @@ function App() {
         
         <Tabs defaultValue="gm" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="gm" className="flex items-center justify-center gap-2 text-lg py-3">
+            <TabsTrigger value="gm" className="flex items-center justify-center gap-2 text-lg py-4 h-14">
               <Crown size={24} />
               Game Master Tools
             </TabsTrigger>
-            <TabsTrigger value="player" className="flex items-center justify-center gap-2 text-lg py-3">
+            <TabsTrigger value="player" className="flex items-center justify-center gap-2 text-lg py-4 h-14">
               <UserFocus size={24} />
               Player Tools
             </TabsTrigger>
@@ -32,22 +32,22 @@ function App() {
           <TabsContent value="gm" className="space-y-6">
             <Tabs defaultValue="encounter" className="w-full">
               <TabsList className="grid w-full grid-cols-4 mb-6">
-                <TabsTrigger value="encounter" className="flex items-center gap-2">
+                <TabsTrigger value="encounter" className="flex items-center justify-center gap-2 py-3 h-12">
                   <Dice6 size={18} />
                   <span className="hidden sm:inline">Encounter Generator</span>
                   <span className="sm:hidden">Encounter</span>
                 </TabsTrigger>
-                <TabsTrigger value="npc" className="flex items-center gap-2">
+                <TabsTrigger value="npc" className="flex items-center justify-center gap-2 py-3 h-12">
                   <User size={18} />
                   <span className="hidden sm:inline">NPC Generator</span>
                   <span className="sm:hidden">NPC</span>
                 </TabsTrigger>
-                <TabsTrigger value="battle" className="flex items-center gap-2">
+                <TabsTrigger value="battle" className="flex items-center justify-center gap-2 py-3 h-12">
                   <Swords size={18} />
                   <span className="hidden sm:inline">Battle Calculator</span>
                   <span className="sm:hidden">Battle</span>
                 </TabsTrigger>
-                <TabsTrigger value="monster" className="flex items-center gap-2">
+                <TabsTrigger value="monster" className="flex items-center justify-center gap-2 py-3 h-12">
                   <Heart size={18} />
                   <span className="hidden sm:inline">Monster HP</span>
                   <span className="sm:hidden">Monster</span>
@@ -75,12 +75,12 @@ function App() {
           <TabsContent value="player" className="space-y-6">
             <Tabs defaultValue="character" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="character" className="flex items-center gap-2">
+                <TabsTrigger value="character" className="flex items-center justify-center gap-2 py-3 h-12">
                   <UserFocus size={18} />
                   <span className="hidden sm:inline">Character Generator</span>
                   <span className="sm:hidden">Character</span>
                 </TabsTrigger>
-                <TabsTrigger value="spells" className="flex items-center gap-2">
+                <TabsTrigger value="spells" className="flex items-center justify-center gap-2 py-3 h-12">
                   <Sparkles size={18} />
                   <span className="hidden sm:inline">Spell Reference</span>
                   <span className="sm:hidden">Spells</span>
