@@ -5,7 +5,7 @@ import EncounterGenerator from './components/EncounterGenerator'
 import NPCGenerator from './components/NPCGenerator'
 import PlayerCharacterGenerator from './components/PlayerCharacterGenerator'
 import BattleCalculator from './components/BattleCalculator'
-import MonsterHPCalculator from './components/MonsterHPCalculator'
+import MonsterGenerator from './components/MonsterGenerator'
 import SpellReference from './components/SpellReference'
 import { Crown, UserFocus, Dice6, User, Swords, Heart, Sparkles } from "@phosphor-icons/react"
 
@@ -37,34 +37,34 @@ function App() {
 
           <TabsContent value="gm" className="space-y-6">
             <Tabs defaultValue="encounter" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-6 h-16 bg-card/50">
+              <TabsList className="grid w-full grid-cols-4 mb-6 h-14 bg-card/50">
                 <TabsTrigger 
                   value="encounter" 
-                  className="flex flex-col items-center justify-center gap-1 px-2 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+                  className="flex flex-col items-center justify-center gap-1 px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
                 >
-                  <Dice6 size={20} />
-                  <span className="text-xs font-medium">Encounter</span>
+                  <Dice6 size={18} />
+                  <span className="text-xs font-medium leading-tight">Encounter</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="npc" 
-                  className="flex flex-col items-center justify-center gap-1 px-2 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+                  className="flex flex-col items-center justify-center gap-1 px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
                 >
-                  <User size={20} />
-                  <span className="text-xs font-medium">NPC</span>
+                  <User size={18} />
+                  <span className="text-xs font-medium leading-tight">NPC</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="battle" 
-                  className="flex flex-col items-center justify-center gap-1 px-2 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+                  className="flex flex-col items-center justify-center gap-1 px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
                 >
-                  <Swords size={20} />
-                  <span className="text-xs font-medium">Battle</span>
+                  <Swords size={18} />
+                  <span className="text-xs font-medium leading-tight">Battle</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="monster" 
-                  className="flex flex-col items-center justify-center gap-1 px-2 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+                  className="flex flex-col items-center justify-center gap-1 px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
                 >
-                  <Heart size={20} />
-                  <span className="text-xs font-medium">Monster HP</span>
+                  <Heart size={18} />
+                  <span className="text-xs font-medium leading-tight">Monster</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -81,7 +81,7 @@ function App() {
               </TabsContent>
               
               <TabsContent value="monster">
-                <MonsterHPCalculator />
+                <MonsterGenerator />
               </TabsContent>
             </Tabs>
           </TabsContent>

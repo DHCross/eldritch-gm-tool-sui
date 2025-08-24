@@ -154,10 +154,10 @@ export const HIT_POINT_MODIFIERS = {
   'Gargantuan': {'Mundane': 2.5, 'Magical': 3, 'Preternatural': 3.5, 'Supernatural': 4}
 }
 
-export const BATTLE_PHASES = [
-  { prowess: 'd12', phase: 1, initiative: '12+' },
-  { prowess: 'd10', phase: 2, initiative: '9-11' },
-  { prowess: 'd8', phase: 3, initiative: '7-8' },
-  { prowess: 'd6', phase: 4, initiative: '5-6' },
-  { prowess: 'd4', phase: 5, initiative: '1-4' },
-]
+export const BATTLE_PHASES = {
+  'd12': { phase: 1, initiative: '12+' },
+  'd10': { phase: 2, initiative: '9-11' },
+  'd8': { phase: 3, initiative: '7-8' },
+  'd6': { phase: 4, initiative: '5-6' },
+  'd4': { phase: 5, initiative: '1-4' },
+}

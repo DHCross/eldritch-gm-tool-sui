@@ -20,6 +20,7 @@ interface Monster {
   passiveDefense: number
   savingThrow: string
   battlePhase: number
+  trope?: string
 }
 
 const difficultyLevels = ['Easy', 'Moderate', 'Difficult', 'Demanding', 'Formidable', 'Deadly']
@@ -38,6 +39,15 @@ const threatDiceByCategory = {
   Legendary: ['3d12','3d14','3d16','3d18','3d20']
 }
 
+const creatureNatures = [
+  'Mundane', 'Magical', 'Preternatural', 'Supernatural'
+]
+
+const creatureTropes = [
+  'Goblinoid', 'Alfar', 'Drakkin', 'Beast', 'Undead', 'Fiend', 
+  'Celestial', 'Elemental', 'Construct', 'Aberration'
+]
+
 const hpMultipliers = HIT_POINT_MODIFIERS
 
 export default function EncounterGenerator() {
@@ -48,6 +58,7 @@ export default function EncounterGenerator() {
   const [nonMundanePercentage, setNonMundanePercentage] = useState([20])
   const [specialTypePercentage, setSpecialTypePercentage] = useState([30])
   const [selectedTypes, setSelectedTypes] = useState(['Minor', 'Standard', 'Exceptional'])
+  const [includeTropes, setIncludeTropes] = useState(false)
   const [monsters, setMonsters] = useState<Monster[]>([])
   const [encounterDetails, setEncounterDetails] = useState('')
 
@@ -111,6 +122,9 @@ export default function EncounterGenerator() {
     const battlePhase = calculateBattlePhase(die)
     const savingThrow = `d${4 * (['Minor', 'Standard', 'Exceptional', 'Legendary'].indexOf(category) + 1)}`
     
+    // Add random trope if requested
+    const trope = includeTropes ? creatureTropes[Math.floor(Math.random() * creatureTropes.length)] : undefined
+    
     return {
       id: Date.now() + Math.random(),
       category,
@@ -123,7 +137,8 @@ export default function EncounterGenerator() {
       activeDefense,
       passiveDefense,
       savingThrow,
-      battlePhase
+      battlePhase,
+      trope
     }
   }
 
@@ -267,6 +282,17 @@ Difficulty: ${difficultyLevels[difficulty[0] - 1]} | Total Threat Score: ${threa
           </div>
         </div>
 
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="include-tropes"
+            checked={includeTropes}
+            onCheckedChange={(checked) => setIncludeTropes(checked as boolean)}
+          />
+          <Label htmlFor="include-tropes" className="text-sm">
+            Include random creature tropes (Goblinoid, Alfar, Drakkin, etc.)
+          </Label>
+        </div>
+
         <Button onClick={generateEncounter} className="w-full">
           Generate Encounter
         </Button>
@@ -287,8 +313,13 @@ Difficulty: ${difficultyLevels[difficulty[0] - 1]} | Total Threat Score: ${threa
                   <Card key={monster.id} className="bg-muted/20">
                     <CardContent className="pt-4">
                       <div className="font-mono text-sm">
-                        <div className="font-semibold mb-2">
-                          Monster {index + 1}: {monster.creatureType} {monster.size} {monster.nature} {monster.category}
+                        <div className="font-semibold mb-2 flex items-center justify-between">
+                          <span>Monster {index + 1}: {monster.creatureType} {monster.size} {monster.nature} {monster.category}</span>
+                          {monster.trope && (
+                            <span className="text-xs bg-accent/20 text-accent px-2 py-1 rounded-full">
+                              {monster.trope}
+                            </span>
+                          )}
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
                           <div>TD: {monster.threatDice} (MV: {monster.threatMV})</div>
@@ -304,6 +335,31 @@ Difficulty: ${difficultyLevels[difficulty[0] - 1]} | Total Threat Score: ${threa
             </CardContent>
           </Card>
         )}
+
+        <Card className="bg-muted/10">
+          <CardHeader>
+            <CardTitle className="text-lg">Creature Natures & Tropes</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm space-y-3">
+            <div>
+              <h4 className="font-semibold mb-2">Natures:</h4>
+              <ul className="space-y-1">
+                <li><strong>Mundane:</strong> Ordinary denizens lacking innate arcane spark</li>
+                <li><strong>Magical:</strong> Beings who draw on ambient Meterea and primal forces</li>
+                <li><strong>Preternatural:</strong> Born of nightmare storms and raw dream-stuff</li>
+                <li><strong>Supernatural:</strong> Meterea's refined manifestations like gods, titans, and dragons</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">Common Tropes:</h4>
+              <ul className="space-y-1">
+                <li><strong>Goblinoid:</strong> Cunning creatures with bestial ferocity and reptilian traits</li>
+                <li><strong>Alfar:</strong> Magical humanoids including elves, dwarves, gnomes, and halflings</li>
+                <li><strong>Drakkin:</strong> Humanoids with draconic power, warrior-scholars or guardians</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
       </CardContent>
     </Card>
   )
