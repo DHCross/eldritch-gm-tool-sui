@@ -295,26 +295,32 @@ export default function MonsterGenerator() {
     
     if (attacks.length === 0) return true // Will be handled by generateMonster
     
-    const maxDice = Math.max(...attacks.map(a => {
+    const diceNumbers = attacks.map(a => {
       const match = a.dice.match(/(\d+)d/)
       return match ? parseInt(match[1]) : 1
-    }))
+    })
+    
+    const maxDice = Math.max(...diceNumbers)
     
     switch (selectedType) {
       case 'Minor':
+        // All attacks must be 1 die
         return maxDice === 1
       case 'Standard':
-        return maxDice === 2
+        // At least one attack must be 2 dice, none can be more than 2 dice
+        return maxDice === 2 && diceNumbers.includes(2)
       case 'Exceptional':
-        return maxDice >= 3 && !attacks.some(a => {
-          const match = a.dice.match(/(\d+)d(\d+)/)
-          return match && parseInt(match[1]) >= 4
-        })
+        // At least one attack must be 3 dice, none can be more than 3 dice
+        return maxDice === 3 && diceNumbers.includes(3)
       case 'Legendary':
-        return maxDice >= 3 && attacks.some(a => {
-          const match = a.dice.match(/(\d+)d(\d+)/)
-          return match && (parseInt(match[1]) >= 4 || parseInt(match[2]) >= 12)
-        })
+        // Must have at least 3 dice AND either 4+ dice OR high die values
+        return maxDice >= 3 && (
+          maxDice >= 4 || 
+          attacks.some(a => {
+            const match = a.dice.match(/(\d+)d(\d+)/)
+            return match && parseInt(match[1]) >= 3 && parseInt(match[2]) >= 12
+          })
+        )
       default:
         return true
     }
@@ -647,10 +653,10 @@ Saving Throw: ${savingThrow} (${finalType} threat)`
             </CardTitle>
             {creatureType && (
               <div className="text-sm text-muted-foreground">
-                {creatureType === 'Minor' && 'Minor threats: Maximum 1 die per attack (1d4 to 1d12)'}
-                {creatureType === 'Standard' && 'Standard threats: Maximum 2 dice per attack, at least one attack must be 2d#'}
-                {creatureType === 'Exceptional' && 'Exceptional threats: Maximum 3 dice per attack, at least one attack must be 3d#'}
-                {creatureType === 'Legendary' && 'Legendary threats: 3+ dice per attack, can use d14, d16, d18, d20'}
+                {creatureType === 'Minor' && 'Minor threats: All attacks use exactly 1 die (1d4 to 1d12)'}
+                {creatureType === 'Standard' && 'Standard threats: At least one attack must be 2d#, others can be 1d# or 2d#'}
+                {creatureType === 'Exceptional' && 'Exceptional threats: At least one attack must be 3d#, others can be 1d#, 2d#, or 3d#'}
+                {creatureType === 'Legendary' && 'Legendary threats: At least one attack must be 4d# or high 3d# (3d12+), can use d14-d20'}
               </div>
             )}
           </CardHeader>
@@ -727,9 +733,10 @@ Saving Throw: ${savingThrow} (${finalType} threat)`
                   ⚠️ Current attack selection doesn't meet {creatureType} threat requirements.
                 </p>
                 <p className="text-xs text-destructive/80 mt-1">
-                  {creatureType === 'Standard' && 'At least one attack must use 2 dice (2d4 to 2d12).'}
-                  {creatureType === 'Exceptional' && 'At least one attack must use 3 dice (3d4 to 3d12).'}
-                  {creatureType === 'Legendary' && 'At least one attack must use 3+ dice with high values (4d10+ or 3d12+).'}
+                  {creatureType === 'Minor' && 'All attacks must use exactly 1 die (1d4 to 1d12).'}
+                  {creatureType === 'Standard' && 'At least one attack must use exactly 2 dice (2d4 to 2d12), others can be 1d# or 2d#.'}
+                  {creatureType === 'Exceptional' && 'At least one attack must use exactly 3 dice (3d4 to 3d12), others can be 1d#, 2d#, or 3d#.'}
+                  {creatureType === 'Legendary' && 'At least one attack must use 4+ dice (4d10+) or high 3-dice combinations (3d12+).'}
                 </p>
               </div>
             )}
