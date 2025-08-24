@@ -39,7 +39,7 @@ export default function MonsterGenerator() {
   const [threatTier1, setThreatTier1] = useState('')
   const [threatTier2, setThreatTier2] = useState('0')
   const [threatTier3, setThreatTier3] = useState('0')
-  const [fastTough, setFastTough] = useState('')
+  const [fastTough, setFastTough] = useState('normal')
   const [includeTrope, setIncludeTrope] = useState(false)
   const [result, setResult] = useState<MonsterResult | null>(null)
 
@@ -91,6 +91,7 @@ export default function MonsterGenerator() {
       passiveDefense = Math.round(finalHitPoints * 0.75)
       activeDefense = finalHitPoints - passiveDefense
     } else {
+      // Default for 'normal' or empty
       activeDefense = Math.round(finalHitPoints / 2)
       passiveDefense = finalHitPoints - activeDefense
     }
@@ -182,7 +183,7 @@ Saving Throw: ${savingThrow} (${threatLevel} threat)`
                   <SelectValue placeholder="Select Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Normal (50/50 split)</SelectItem>
+                  <SelectItem value="normal">Normal (50/50 split)</SelectItem>
                   <SelectItem value="fast">Fast (75% Active Defense)</SelectItem>
                   <SelectItem value="tough">Tough (75% Passive Defense)</SelectItem>
                 </SelectContent>

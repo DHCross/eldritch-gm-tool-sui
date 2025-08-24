@@ -37,34 +37,34 @@ function App() {
 
           <TabsContent value="gm" className="space-y-6">
             <Tabs defaultValue="encounter" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-6 h-14 bg-card/50">
+              <TabsList className="grid w-full grid-cols-4 mb-6 h-16 bg-card/50">
                 <TabsTrigger 
                   value="encounter" 
                   className="flex flex-col items-center justify-center gap-1 px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
                 >
-                  <Dice6 size={18} />
-                  <span className="text-xs font-medium leading-tight">Encounter</span>
+                  <Dice6 size={20} />
+                  <span className="text-sm font-medium leading-tight">Encounter</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="npc" 
                   className="flex flex-col items-center justify-center gap-1 px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
                 >
-                  <User size={18} />
-                  <span className="text-xs font-medium leading-tight">NPC</span>
+                  <User size={20} />
+                  <span className="text-sm font-medium leading-tight">NPC</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="battle" 
                   className="flex flex-col items-center justify-center gap-1 px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
                 >
-                  <Swords size={18} />
-                  <span className="text-xs font-medium leading-tight">Battle</span>
+                  <Swords size={20} />
+                  <span className="text-sm font-medium leading-tight">Battle</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="monster" 
                   className="flex flex-col items-center justify-center gap-1 px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
                 >
-                  <Heart size={18} />
-                  <span className="text-xs font-medium leading-tight">Monster</span>
+                  <Heart size={20} />
+                  <span className="text-sm font-medium leading-tight">Monster</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -93,14 +93,14 @@ function App() {
                   value="character" 
                   className="flex flex-col items-center justify-center gap-1 px-4 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
                 >
-                  <UserFocus size={20} />
+                  <UserFocus size={24} />
                   <span className="text-sm font-medium">Character</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="spells" 
                   className="flex flex-col items-center justify-center gap-1 px-4 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
                 >
-                  <Sparkles size={20} />
+                  <Sparkles size={24} />
                   <span className="text-sm font-medium">Spells</span>
                 </TabsTrigger>
               </TabsList>
