@@ -1,45 +1,23 @@
-import { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 import { Download, Copy } from "@phosphor-icons/react"
 import { toast } from "sonner"
 
-interface CharacterData {
-  race: string
-  class: string
-  level: number
-  abilities: Record<string, string>
-  specialties: Record<string, Record<string, string>>
-  focuses: Record<string, Record<string, string>>
-  masteryDie: string
-  advantages: string[]
-  flaws: string[]
-  classFeats: string[]
-  equipment: string[]
-  actions: Record<string, string>
-  pools: { active: number; passive: number; spirit: number }
-}
-
-interface SpentTotals {
-  abilities: number
-  specialties: number
-  focuses: number
-  advantages: number
-  total: number
-}
-
-// Game data constants
+// Data definitions
 const dieRanks = ['d4', 'd6', 'd8', 'd10', 'd12']
 const abilities = ['Competence', 'Prowess', 'Fortitude']
-const specs = {
+const specialties = {
   Competence: ['Adroitness', 'Expertise', 'Perception'],
   Prowess: ['Agility', 'Melee', 'Precision'],
   Fortitude: ['Endurance', 'Strength', 'Willpower']
 }
-const foci = {
+const focuses = {
   Adroitness: ['Skulduggery', 'Cleverness'],
   Expertise: ['Wizardry', 'Theurgy'],
   Perception: ['Alertness', 'Perspicacity'],
@@ -55,7 +33,6 @@ const races = ['Human', 'Elf', 'Dwarf', 'Gnome', 'Half-Elf', 'Half-Orc', 'Halfli
 const classes = ['Adept', 'Assassin', 'Barbarian', 'Mage', 'Mystic', 'Rogue', 'Theurgist', 'Warrior']
 const levels = [1, 2, 3, 4, 5]
 const casterClasses = ['Adept', 'Mage', 'Mystic', 'Theurgist']
-
 const magicPathsByClass = {
   Adept: ['Thaumaturgy', 'Elementalism', 'Sorcery'],
   Mage: ['Thaumaturgy', 'Elementalism', 'Sorcery'],
@@ -71,6 +48,7 @@ const levelInfo = [
   { level: 5, masteryDie: 'd12' }
 ]
 
+// Racial and class minimums
 const raceMinima = {
   Drakkin: { Competence: 'd6', Prowess: 'd6', Fortitude: 'd6', Endurance: 'd6', Strength: 'd4' },
   Dwarf: { Fortitude: 'd8', Endurance: 'd4', Prowess: 'd6', Melee: 'd6' },
@@ -116,10 +94,10 @@ const classFeats = {
   Adept: ['Guile', 'Lore', 'Ritual Magic', 'Quick-witted'],
   Assassin: ['Death Strike', 'Lethal Exploit', 'Ranged Ambush', 'Shadow Walk'],
   Barbarian: ['Berserk', 'Brawl', 'Feat of Strength', 'Grapple'],
-  Mage: ['Arcane Finesse', 'Dweomers', 'Intangible Threat', 'Path Mastery (Thaumaturgy, Elementalism, or Sorcery)'],
-  Mystic: ['Iron Mind', 'Path Mastery (Mysticism)', 'Premonition', 'Psychic Powers'],
+  Mage: ['Arcane Finesse', 'Dweomers', 'Intangible Threat', 'Path Mastery'],
+  Mystic: ['Iron Mind', 'Path Mastery', 'Premonition', 'Psychic Powers'],
   Rogue: ['Backstab', 'Evasion', 'Roguish Charm', 'Stealth'],
-  Theurgist: ['Divine Healing', 'Path Mastery (Druidry or Hieraticism)', 'Spiritual Smite', 'Supernatural Intervention'],
+  Theurgist: ['Divine Healing', 'Path Mastery', 'Spiritual Smite', 'Supernatural Intervention'],
   Warrior: ['Battle Savvy', 'Maneuvers', 'Stunning Reversal', 'Sunder Foe']
 }
 
@@ -130,119 +108,178 @@ const raceFlaws = {
 }
 
 const startingEquipment = {
-  common: ['Set of ordinary clothes', 'Purse of 5 gold coins', 'Backpack', 'Small dagger', "Week's rations", 'Waterskin', 'Tinderbox', "50' rope", 'Iron spikes', 'Small hammer', "6' traveling staff or 10' pole", 'Hooded lantern and 2 oil flasks or d4+1 torches'],
+  common: [
+    'Set of ordinary clothes',
+    'Purse of 5 gold coins',
+    'Backpack',
+    'Small dagger',
+    'Week\'s rations',
+    'Waterskin',
+    'Tinderbox',
+    '50\' rope',
+    'Iron spikes',
+    'Small hammer',
+    '6\' traveling staff or 10\' pole',
+    'Hooded lantern and 2 oil flasks or d4+1 torches'
+  ],
   Adept: ['Book of knowledge (area of expertise)'],
   Assassin: ['Assassin hood, jacket, cape, robe, or tunic'],
   Barbarian: ['Garments of woven wool or linen', 'Tunic', 'Overcoat or cloak'],
   Mage: ['Spellbook', 'Staff or focus item'],
   Mystic: ['Robes or shawl', 'Cloak', 'Armor up to leather'],
-  Rogue: ["Set of thieves' tools", 'Light armor (up to leather)', 'One weapon'],
+  Rogue: ['Set of thieves\' tools', 'Light armor (up to leather)', 'One weapon'],
   Theurgist: ['Prayer book', 'Holy relic or symbol', 'Focus item', 'Armor up to chain'],
   Warrior: ['One weapon of choice', 'Armor up to chain', 'Small to large shield', 'Steed']
 }
 
+// Spells by path
+const spellsByPath = {
+  Universal: {
+    Common: ['Eldritch Bolt', 'Dispel Effect', 'Identify Magic', 'Eldritch Defense']
+  },
+  Elementalism: {
+    Common: ['Ball of Light', 'Fire Strike', 'Water Breathing', 'Breeze', 'Heat', 'Freeze'],
+    Uncommon: ['Arcane Maelstrom', 'Fire Whip', 'Stone Shape', 'Water Elemental', 'Windwalk']
+  },
+  Sorcery: {
+    Common: ['Arcane Lock', 'Minor Illusion', 'Shadow Step', 'Teleport Object'],
+    Uncommon: ['Enfeeblement', 'Illusory Disguise', 'Summon Monster', 'Phantom Blade']
+  },
+  Thaumaturgy: {
+    Common: ['Banish', 'Claw Growth', 'Mend', 'Conjure Weapon', 'Lighten', 'Sharpen Blade'],
+    Uncommon: ['Invisibility', 'Mana Burst', 'Create Illusion', 'Phantom Steed', 'Strengthen Creature']
+  },
+  Mysticism: {
+    Common: ['Confusion', 'Detect Magic', 'Soothing Balm', 'Silence', 'Phase Shift'],
+    Uncommon: ['Mind Shield', 'Mind Blade', 'See Aura', 'Object Read', 'Sixth Sense']
+  },
+  Druidry: {
+    Common: ['Entangling Roots', 'Plant Growth', 'Summon Animal', 'Commune with Plants', 'Eyes of the Eagle'],
+    Uncommon: ['Animate Flora', 'Bramble Wall', 'Control Animal', 'Shapeshift', 'Wild Growth']
+  },
+  Hieraticism: {
+    Common: ['Heal', 'Aura of Restoration', 'Repel Undead', 'Blessing of Renewal', 'Word of Cleansing'],
+    Uncommon: ['Blessing of Health', 'Dispel Magic', 'Consecrate Ground', 'Banish Undead', 'Soul Transfer']
+  }
+}
+
 const stepCost = { 'd4': 6, 'd6': 8, 'd8': 10, 'd10': 12, 'd12': Infinity }
 const focusStepCost = 4
-
-// Class upgrade order for spending CP
-const classUpgradeOrder = {
-  Warrior: ['Prowess', 'Melee', 'Strength', 'Fortitude', 'Precision', 'Endurance', 'Threat', 'Might', 'Ranged Threat'],
-  Barbarian: ['Prowess', 'Melee', 'Strength', 'Fortitude', 'Endurance', 'Ferocity', 'Might', 'Vitality'],
-  Rogue: ['Prowess', 'Agility', 'Competence', 'Adroitness', 'Perception', 'Skulduggery', 'Cleverness', 'Speed'],
-  Assassin: ['Prowess', 'Agility', 'Melee', 'Competence', 'Adroitness', 'Finesse', 'Speed', 'Perception'],
-  Mage: ['Competence', 'Expertise', 'Wizardry', 'Fortitude', 'Willpower', 'Resistance', 'Perception'],
-  Mystic: ['Fortitude', 'Willpower', 'Competence', 'Expertise', 'Endurance', 'Prowess', 'Melee', 'Resilience', 'Vitality'],
-  Adept: ['Competence', 'Expertise', 'Adroitness', 'Perception', 'Cleverness', 'Wizardry', 'Perspicacity'],
-  Theurgist: ['Competence', 'Expertise', 'Theurgy', 'Fortitude', 'Willpower', 'Endurance', 'Courage']
-}
 
 // Helper functions
 const idx = (r: string) => dieRanks.indexOf(r)
 const mv = (r: string) => r && r.startsWith('d') ? parseInt(r.slice(1), 10) : 0
 const fnum = (v: string) => v ? parseInt(String(v).replace('+', ''), 10) : 0
 
-function PlayerCharacterGenerator() {
+interface Character {
+  race: string
+  class: string
+  level: number
+  abilities: Record<string, string>
+  specialties: Record<string, Record<string, string>>
+  focuses: Record<string, Record<string, string>>
+  masteryDie: string
+  advantages: string[]
+  flaws: string[]
+  classFeats: string[]
+  equipment: string[]
+  pools: { active: number; passive: number; spirit: number }
+  actions: Record<string, string>
+  spells?: Array<{ name: string; rarity: string; path: string }>
+  magicPath?: string
+}
+
+export default function PlayerCharacterGenerator() {
   const [race, setRace] = useState('')
   const [characterClass, setCharacterClass] = useState('')
-  const [level, setLevel] = useState<number | null>(null)
+  const [level, setLevel] = useState<number>(1)
   const [magicPath, setMagicPath] = useState('')
   const [iconicArcane, setIconicArcane] = useState(false)
-  const [character, setCharacter] = useState<CharacterData | null>(null)
-  const [spentTotals, setSpentTotals] = useState<SpentTotals | null>(null)
-  const [baseCharacter, setBaseCharacter] = useState<CharacterData | null>(null)
+  const [character, setCharacter] = useState<Character | null>(null)
 
-  const showMagicPath = magicPathsByClass[characterClass as keyof typeof magicPathsByClass] && characterClass !== 'Adept' && characterClass !== 'Mystic'
+  // Show magic path selector for applicable classes
+  const showMagicPath = characterClass && magicPathsByClass[characterClass as keyof typeof magicPathsByClass] && 
+                       characterClass !== 'Adept' && characterClass !== 'Mystic'
 
-  function getAdvantages(race: string, klass: string): string[] {
-    const raceAdv = allAdvantages[race as keyof typeof allAdvantages] || []
-    const classAdv = allAdvantages[klass as keyof typeof allAdvantages] || []
-    return [...new Set([...raceAdv, ...classAdv])]
-  }
-
-  function getEquipment(klass: string): string[] {
-    return [...startingEquipment.common, ...(startingEquipment[klass as keyof typeof startingEquipment] || [])]
-  }
-
-  function applyMinima(ch: CharacterData, minima: Record<string, any>) {
-    for (const [k, v] of Object.entries(minima || {})) {
-      if (abilities.includes(k)) {
-        if (idx(v) > idx(ch.abilities[k])) ch.abilities[k] = v
+  function applyMinima(ch: Character, minima: Record<string, string>) {
+    for (const [key, val] of Object.entries(minima || {})) {
+      if (abilities.includes(key)) {
+        if (idx(val) > idx(ch.abilities[key])) ch.abilities[key] = val
       } else {
-        const parentA = Object.keys(specs).find(a => specs[a as keyof typeof specs].includes(k))
-        const parentS = Object.keys(foci).find(s => foci[s as keyof typeof foci].includes(k))
+        const parentA = Object.keys(specialties).find(a => (specialties as any)[a].includes(key))
+        const parentS = Object.keys(focuses).find(s => (focuses as any)[s].includes(key))
         if (parentA) {
-          if (idx(v) > idx(ch.specialties[parentA][k])) ch.specialties[parentA][k] = v
+          if (idx(val) > idx(ch.specialties[parentA][key])) ch.specialties[parentA][key] = val
         } else if (parentS) {
-          const pa = Object.keys(specs).find(a => specs[a as keyof typeof specs].includes(parentS))
-          if (pa && fnum(v) > fnum(ch.focuses[pa][k])) ch.focuses[pa][k] = `+${fnum(v)}`
+          const pa = Object.keys(specialties).find(a => (specialties as any)[a].includes(parentS))
+          if (pa && fnum(val) > fnum(ch.focuses[pa][key])) ch.focuses[pa][key] = `+${fnum(val)}`
         }
       }
     }
   }
 
-  function spendCP(ch: CharacterData, cpBudget: { value: number }) {
-    const upgradeOrder = classUpgradeOrder[ch.class as keyof typeof classUpgradeOrder] || []
+  function spendCP(ch: Character, cpBudget: { value: number }) {
+    // Simplified upgrade logic - prioritize class-relevant abilities
+    const upgradeOrder: Record<string, string[]> = {
+      Warrior: ['Prowess', 'Melee', 'Strength', 'Fortitude', 'Threat', 'Might'],
+      Barbarian: ['Prowess', 'Melee', 'Strength', 'Fortitude', 'Ferocity', 'Might'],
+      Rogue: ['Prowess', 'Agility', 'Competence', 'Adroitness', 'Skulduggery', 'Speed'],
+      Assassin: ['Prowess', 'Agility', 'Melee', 'Adroitness', 'Finesse', 'Speed'],
+      Mage: ['Competence', 'Expertise', 'Wizardry', 'Fortitude', 'Willpower', 'Resistance'],
+      Mystic: ['Fortitude', 'Willpower', 'Competence', 'Expertise', 'Endurance', 'Resilience'],
+      Adept: ['Competence', 'Expertise', 'Adroitness', 'Wizardry', 'Cleverness', 'Perspicacity'],
+      Theurgist: ['Competence', 'Expertise', 'Theurgy', 'Fortitude', 'Willpower', 'Endurance']
+    }
+
+    const order = upgradeOrder[ch.class as keyof typeof upgradeOrder] || []
     let safety = 0
-    
+
     while (cpBudget.value > 0 && safety < 1000) {
       safety++
       let upgraded = false
-      
-      for (const key of upgradeOrder) {
+
+      for (const key of order) {
         if (cpBudget.value <= 0) break
-        
-        // Try to upgrade die ranks first
-        if (abilities.includes(key) || Object.values(specs).flat().includes(key)) {
-          const isAbility = abilities.includes(key)
-          const parentAbility = isAbility ? key : Object.keys(specs).find(a => specs[a as keyof typeof specs].includes(key))
-          const currentRank = isAbility ? ch.abilities[key] : ch.specialties[parentAbility!][key]
-          
-          if (currentRank !== 'd12') {
+
+        // Try upgrading abilities
+        if (abilities.includes(key)) {
+          const currentRank = ch.abilities[key]
+          const cost = stepCost[currentRank as keyof typeof stepCost]
+          if (currentRank !== 'd12' && cpBudget.value >= cost) {
+            ch.abilities[key] = dieRanks[idx(currentRank) + 1]
+            cpBudget.value -= cost
+            upgraded = true
+            break
+          }
+        }
+        // Try upgrading specialties
+        else if (Object.values(specialties).flat().includes(key)) {
+          const parentAbility = Object.keys(specialties).find(a => (specialties as any)[a].includes(key))
+          if (parentAbility) {
+            const currentRank = ch.specialties[parentAbility][key]
             const cost = stepCost[currentRank as keyof typeof stepCost]
-            if (cpBudget.value >= cost) {
-              const newRank = dieRanks[idx(currentRank) + 1]
-              if (isAbility) {
-                ch.abilities[key] = newRank
-              } else {
-                ch.specialties[parentAbility!][key] = newRank
-              }
+            if (currentRank !== 'd12' && cpBudget.value >= cost) {
+              ch.specialties[parentAbility][key] = dieRanks[idx(currentRank) + 1]
               cpBudget.value -= cost
               upgraded = true
               break
             }
           }
         }
-        // Then try to upgrade focuses
-        else if (Object.values(foci).flat().includes(key)) {
-          const parentSpecialty = Object.keys(foci).find(s => foci[s as keyof typeof foci].includes(key))
-          const parentAbility = Object.keys(specs).find(a => specs[a as keyof typeof specs].includes(parentSpecialty!))
-          const currentFocus = fnum(ch.focuses[parentAbility!][key])
-          
-          if (currentFocus < 5 && cpBudget.value >= focusStepCost) {
-            ch.focuses[parentAbility!][key] = `+${currentFocus + 1}`
-            cpBudget.value -= focusStepCost
-            upgraded = true
-            break
+        // Try upgrading focuses
+        else {
+          const parentSpecialty = Object.keys(focuses).find(s => (focuses as any)[s].includes(key))
+          if (parentSpecialty) {
+            const parentAbility = Object.keys(specialties).find(a => (specialties as any)[a].includes(parentSpecialty))
+            if (parentAbility) {
+              const currentVal = fnum(ch.focuses[parentAbility][key])
+              if (currentVal < 5 && cpBudget.value >= focusStepCost) {
+                ch.focuses[parentAbility][key] = `+${currentVal + 1}`
+                cpBudget.value -= focusStepCost
+                upgraded = true
+                break
+              }
+            }
           }
         }
       }
@@ -250,163 +287,172 @@ function PlayerCharacterGenerator() {
     }
   }
 
-  function computePools(ch: CharacterData) {
-    const AD = mv(ch.abilities.Prowess) + mv(ch.specialties.Prowess.Agility) + mv(ch.specialties.Prowess.Melee)
-    const PD = mv(ch.abilities.Fortitude) + mv(ch.specialties.Fortitude.Endurance) + mv(ch.specialties.Fortitude.Strength)
-    const SP = mv(ch.abilities.Competence) + mv(ch.specialties.Fortitude.Willpower)
-    return { active: AD, passive: PD, spirit: SP }
-  }
+  function generateSpells(ch: Character): Array<{ name: string; rarity: string; path: string }> {
+    if (!casterClasses.includes(ch.class)) return []
 
-  function calculateCPSpent(finalChar: CharacterData, baseChar: CharacterData, iconic: boolean): SpentTotals {
-    const spent = { abilities: 0, specialties: 0, focuses: 0, advantages: 0, total: 0 }
-    spent.advantages = iconic ? 4 : 0
+    const compSteps = idx(ch.abilities.Competence)
+    const expSteps = idx(ch.specialties.Competence.Expertise)
+    let spellCount = 2 * (compSteps + expSteps)
+    
+    if (ch.class === 'Adept') {
+      spellCount = Math.floor(spellCount / 2)
+    }
 
-    for (const ab of abilities) {
-      // Calculate cost for ability upgrades
-      const baseRankIndex = idx(baseChar.abilities[ab])
-      const finalRankIndex = idx(finalChar.abilities[ab])
-      for (let i = baseRankIndex; i < finalRankIndex; i++) {
-        spent.abilities += stepCost[dieRanks[i] as keyof typeof stepCost]
-      }
+    const spells: Array<{ name: string; rarity: string; path: string }> = []
+    
+    // Add universal spells first
+    spellsByPath.Universal.Common.forEach(spell => {
+      spells.push({ name: spell, rarity: 'Common', path: 'Universal' })
+    })
 
-      // Calculate cost for specialty upgrades
-      for (const sp of specs[ab as keyof typeof specs]) {
-        const baseSpecIndex = idx(baseChar.specialties[ab][sp])
-        const finalSpecIndex = idx(finalChar.specialties[ab][sp])
-        for (let i = baseSpecIndex; i < finalSpecIndex; i++) {
-          spent.specialties += stepCost[dieRanks[i] as keyof typeof stepCost]
-        }
-      }
+    // Determine available paths
+    let availablePaths: string[] = []
+    if (ch.class === 'Adept') {
+      availablePaths = ['Thaumaturgy', 'Elementalism', 'Sorcery']
+    } else if (ch.class === 'Mystic') {
+      availablePaths = ['Mysticism']
+    } else if (ch.magicPath) {
+      availablePaths = [ch.magicPath]
+    }
 
-      // Calculate cost for focus upgrades
-      for (const fx of Object.values(foci).flat()) {
-        if (finalChar.focuses[ab] && finalChar.focuses[ab][fx] !== undefined) {
-          const baseFocusValue = fnum(baseChar.focuses[ab][fx])
-          const finalFocusValue = fnum(finalChar.focuses[ab][fx])
-          spent.focuses += (finalFocusValue - baseFocusValue) * focusStepCost
+    // Add path-specific spells
+    const remainingSpells = Math.max(0, spellCount - spells.length)
+    for (let i = 0; i < remainingSpells; i++) {
+      const path = availablePaths[Math.floor(Math.random() * availablePaths.length)]
+      const pathSpells = spellsByPath[path as keyof typeof spellsByPath]
+      
+      if (pathSpells) {
+        const isCommon = Math.random() < 0.7
+        const raritySpells = isCommon ? pathSpells.Common : pathSpells.Uncommon
+        
+        if (raritySpells && raritySpells.length > 0) {
+          const spell = raritySpells[Math.floor(Math.random() * raritySpells.length)]
+          spells.push({ 
+            name: spell, 
+            rarity: isCommon ? 'Common' : 'Uncommon', 
+            path 
+          })
         }
       }
     }
 
-    spent.total = spent.abilities + spent.specialties + spent.focuses + spent.advantages
-    return spent
+    return spells
   }
 
   function generateCharacter() {
     if (!race || !characterClass || !level) {
-      toast.error('Please select a valid race, class, and level.')
+      toast.error('Please select race, class, and level')
       return
     }
 
-    // Check if magic path is required but not selected
     if (showMagicPath && !magicPath) {
-      toast.error('Please select a magic path for this class.')
+      toast.error('Please select a magic path for this class')
       return
     }
 
-    // Initialize character
-    const ch: CharacterData = {
+    const ch: Character = {
       race,
       class: characterClass,
       level,
       abilities: {},
       specialties: {},
       focuses: {},
-      masteryDie: '',
+      masteryDie: levelInfo[level - 1].masteryDie,
       advantages: [],
       flaws: [],
       classFeats: [],
       equipment: [],
-      actions: {},
-      pools: { active: 0, passive: 0, spirit: 0 }
+      pools: { active: 0, passive: 0, spirit: 0 },
+      actions: {}
     }
 
-    // Initialize all abilities, specialties, and focuses to d4/+0
+    // Initialize abilities, specialties, and focuses
     for (const a of abilities) {
       ch.abilities[a] = 'd4'
       ch.specialties[a] = {}
       ch.focuses[a] = {}
-      for (const s of specs[a as keyof typeof specs]) {
+      for (const s of (specialties as any)[a]) {
         ch.specialties[a][s] = 'd4'
-        for (const fx of foci[s as keyof typeof foci]) {
+        for (const fx of (focuses as any)[s]) {
           ch.focuses[a][fx] = '+0'
         }
       }
     }
 
-    // Create base character with only free minimums
-    const baseChar = JSON.parse(JSON.stringify(ch))
-    applyMinima(baseChar, raceMinima[race as keyof typeof raceMinima])
-    applyMinima(baseChar, classMinima[characterClass as keyof typeof classMinima])
-    
-    // Copy base to final character to start spending
-    Object.assign(ch, JSON.parse(JSON.stringify(baseChar)))
+    // Apply racial and class minimums
+    applyMinima(ch, (raceMinima as any)[race] || {})
+    applyMinima(ch, (classMinima as any)[characterClass] || {})
 
+    // Spend CP budget
     const cpBudget = { value: 10 + (level - 1) * 100 }
     if (iconicArcane) {
       if (cpBudget.value >= 4) {
         cpBudget.value -= 4
       } else {
-        toast.error('Not enough CP for Iconic Arcane Inheritance.')
+        toast.error('Not enough CP for Iconic Arcane Inheritance')
         return
       }
     }
 
     spendCP(ch, cpBudget)
 
-    ch.masteryDie = levelInfo[level - 1].masteryDie
-    ch.advantages = getAdvantages(race, characterClass)
-    ch.flaws = raceFlaws[race as keyof typeof raceFlaws] || []
-    
-    // Handle class feats with Path Mastery specialization
-    let feats = [...(classFeats[characterClass as keyof typeof classFeats] || [])]
-    if (characterClass === 'Mage' && magicPath) {
-      const pathMasteryIndex = feats.findIndex(f => f.includes('Path Mastery'))
-      if (pathMasteryIndex !== -1) {
-        feats[pathMasteryIndex] = `Path Mastery (${magicPath})`
-      }
-    } else if (characterClass === 'Theurgist' && magicPath) {
-      const pathMasteryIndex = feats.findIndex(f => f.includes('Path Mastery'))
-      if (pathMasteryIndex !== -1) {
-        feats[pathMasteryIndex] = `Path Mastery (${magicPath})`
-      }
+    // Calculate pools
+    ch.pools = {
+      active: mv(ch.abilities.Prowess) + mv(ch.specialties.Prowess.Agility) + mv(ch.specialties.Prowess.Melee),
+      passive: mv(ch.abilities.Fortitude) + mv(ch.specialties.Fortitude.Endurance) + mv(ch.specialties.Fortitude.Strength),
+      spirit: mv(ch.abilities.Competence) + mv(ch.specialties.Fortitude.Willpower)
     }
-    ch.classFeats = feats
-    
-    ch.equipment = getEquipment(characterClass)
 
-    // Setup actions
-    const w = fnum(ch.focuses.Competence.Wizardry)
-    const t = fnum(ch.focuses.Competence.Theurgy)
+    // Set up advantages, flaws, feats, equipment
+    ch.advantages = [...((allAdvantages as any)[race] || []), ...((allAdvantages as any)[characterClass] || [])]
+    if (iconicArcane) ch.advantages.push('Iconic Arcane Inheritance')
+    ch.flaws = (raceFlaws as any)[race] || []
+    ch.classFeats = (classFeats as any)[characterClass] || []
+    ch.equipment = [...startingEquipment.common, ...((startingEquipment as any)[characterClass] || [])]
+
+    // Calculate actions
+    const wiz = fnum(ch.focuses.Competence.Wizardry)
+    const theurgy = fnum(ch.focuses.Competence.Theurgy)
     
     ch.actions = {
-      meleeAttack: `${ch.abilities.Prowess} + ${ch.specialties.Prowess.Melee}` + (fnum(ch.focuses.Prowess.Threat) ? ` + Threat +${fnum(ch.focuses.Prowess.Threat)}` : ''),
-      rangedAttack: `${ch.abilities.Prowess} + ${ch.specialties.Prowess.Precision}` + (fnum(ch.focuses.Prowess['Ranged Threat']) ? ` + Ranged Threat +${fnum(ch.focuses.Prowess['Ranged Threat'])}` : ''),
-      perceptionCheck: `${ch.abilities.Competence} + ${ch.specialties.Competence.Perception}` + (fnum(ch.focuses.Competence.Perspicacity) ? ` + Perspicacity +${fnum(ch.focuses.Competence.Perspicacity)}` : ''),
-      magicAttack: casterClasses.includes(characterClass) ? `${ch.abilities.Competence} + ${ch.specialties.Competence.Expertise} + ${(w ? `Wizardry +${w}` : t ? `Theurgy +${t}` : '(path focus 0)')}` : '—'
+      meleeAttack: `${ch.abilities.Prowess} + ${ch.specialties.Prowess.Melee}${fnum(ch.focuses.Prowess.Threat) ? ` + Threat +${fnum(ch.focuses.Prowess.Threat)}` : ''}`,
+      rangedAttack: `${ch.abilities.Prowess} + ${ch.specialties.Prowess.Precision}${fnum(ch.focuses.Prowess['Ranged Threat']) ? ` + Ranged Threat +${fnum(ch.focuses.Prowess['Ranged Threat'])}` : ''}`,
+      perceptionCheck: `${ch.abilities.Competence} + ${ch.specialties.Competence.Perception}${fnum(ch.focuses.Competence.Perspicacity) ? ` + Perspicacity +${fnum(ch.focuses.Competence.Perspicacity)}` : ''}`,
     }
 
-    ch.pools = computePools(ch)
-    const spent = calculateCPSpent(ch, baseChar, iconicArcane)
-    
+    if (casterClasses.includes(characterClass)) {
+      ch.actions.magicAttack = `${ch.abilities.Competence} + ${ch.specialties.Competence.Expertise}${wiz ? ` + Wizardry +${wiz}` : theurgy ? ` + Theurgy +${theurgy}` : ''}`
+      ch.magicPath = magicPath || (characterClass === 'Mystic' ? 'Mysticism' : 'Arcanum')
+      ch.spells = generateSpells(ch)
+    }
+
+    // Update Path Mastery feat for applicable classes
+    if ((characterClass === 'Mage' || characterClass === 'Theurgist' || characterClass === 'Mystic') && magicPath) {
+      const pathMasteryIndex = ch.classFeats.indexOf('Path Mastery')
+      if (pathMasteryIndex !== -1) {
+        ch.classFeats[pathMasteryIndex] = `Path Mastery (${magicPath})`
+      }
+    }
+
     setCharacter(ch)
-    setSpentTotals(spent)
-    setBaseCharacter(baseChar)
     toast.success('Character generated successfully!')
   }
 
-  function getFullMarkdown(): string {
-    if (!character || !spentTotals) return ''
+  function exportMarkdown() {
+    if (!character) {
+      toast.error('Generate a character first!')
+      return
+    }
 
     let md = `# ${character.race} ${character.class} (Level ${character.level})\n\n`
     md += `### Core Stats\n`
     md += `- **SP:** ${character.pools.spirit} | **Active DP:** ${character.pools.active} | **Passive DP:** ${character.pools.passive}\n`
     md += `- **Mastery Die:** ${character.masteryDie}\n\n`
+    
     md += `### Abilities\n`
-
     for (const a of abilities) {
-      const sp = specs[a as keyof typeof specs].map(s => {
-        const fl = foci[s as keyof typeof foci].map(fx => {
+      const sp = (specialties as any)[a].map((s: string) => {
+        const fl = (focuses as any)[s].map((fx: string) => {
           const v = fnum(character.focuses[a][fx])
           return v ? `${fx} +${v}` : null
         }).filter(Boolean).join(', ')
@@ -414,300 +460,328 @@ function PlayerCharacterGenerator() {
       }).join(', ')
       md += `**${a} ${character.abilities[a]}** → ${sp}.\n`
     }
-
+    
     md += `\n### Actions\n`
-    md += `- **Melee Attack:** ${character.actions.meleeAttack}\n`
-    md += `- **Ranged Attack:** ${character.actions.rangedAttack}\n`
-    md += `- **Perception Check:** ${character.actions.perceptionCheck}\n`
-    if (casterClasses.includes(character.class)) {
-      md += `- **Magic Attack:** ${character.actions.magicAttack}\n`
-    }
-
+    Object.entries(character.actions).forEach(([name, value]) => {
+      const displayName = name.replace(/([A-Z])/g, ' $1').trim()
+      md += `- **${displayName.charAt(0).toUpperCase() + displayName.slice(1)}:** ${value}\n`
+    })
+    
     md += `\n### Advantages & Flaws\n`
     md += `**Advantages:**\n${character.advantages.map(a => `- ${a}`).join('\n')}\n\n`
     md += `**Flaws:**\n${character.flaws.length ? character.flaws.map(f => `- ${f}`).join('\n') : '- None'}\n\n`
     
     md += `### Class Feats\n${character.classFeats.map(f => `- ${f}`).join('\n')}\n\n`
-    md += `### Equipment\n${character.equipment.map(e => `- ${e}`).join('\n')}\n\n`
 
-    md += `### Character Points Spent\n`
-    md += `- **Spent on Abilities:** ${spentTotals.abilities}\n`
-    md += `- **Spent on Specialties:** ${spentTotals.specialties}\n`
-    md += `- **Spent on Focuses:** ${spentTotals.focuses}\n`
-    md += `- **Spent on Advantages:** ${spentTotals.advantages}\n`
-    md += `- **Total CP Spent:** ${spentTotals.total}\n`
-    md += `\n_Note: This shows CPs spent from the customization budget. Free racial/class minimums cost 0 CP._\n`
-
-    md += `\n### Level Advancement (Earned CP)\n`
-    md += `| To Reach Level | Total Earned CP Required |\n`
-    md += `| :------------- | :----------------------- |\n`
-    md += `| Level 2        | 100                      |\n`
-    md += `| Level 3        | 200                      |\n`
-    md += `| Level 4        | 300                      |\n`
-    md += `| Level 5        | 500                      |\n`
-
-    return md
-  }
-
-  function exportMarkdown() {
-    const md = getFullMarkdown()
-    if (!md) {
-      toast.error('Generate a character first!')
-      return
+    if (character.spells && character.spells.length > 0) {
+      md += `### Spellcasting\n`
+      md += `- **Magic Path:** ${character.magicPath}\n`
+      md += `**Known Spells:**\n`
+      character.spells.forEach(spell => {
+        md += `- ${spell.name} (${spell.rarity}, ${spell.path})\n`
+      })
+      md += '\n'
     }
 
+    md += `### Equipment\n${character.equipment.map(e => `- ${e}`).join('\n')}\n`
+
+    // Download file
     const blob = new Blob([md], { type: 'text/markdown' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${character?.race}_${character?.class}_L${character?.level}.md`
+    a.download = `${character.race}_${character.class}_L${character.level}.md`
     document.body.appendChild(a)
     a.click()
-    a.remove()
+    document.body.removeChild(a)
     URL.revokeObjectURL(url)
-    toast.success('Markdown file downloaded!')
+    toast.success('Character exported to markdown!')
   }
 
-  async function copyMarkdown() {
-    const md = getFullMarkdown()
-    if (!md) {
+  function copyMarkdown() {
+    if (!character) {
       toast.error('Generate a character first!')
       return
     }
 
-    try {
-      await navigator.clipboard.writeText(md)
-      toast.success('Markdown copied to clipboard!')
-    } catch (err) {
-      toast.error('Failed to copy markdown.')
+    // Same markdown generation as above
+    let md = `# ${character.race} ${character.class} (Level ${character.level})\n\n`
+    md += `### Core Stats\n`
+    md += `- **SP:** ${character.pools.spirit} | **Active DP:** ${character.pools.active} | **Passive DP:** ${character.pools.passive}\n`
+    md += `- **Mastery Die:** ${character.masteryDie}\n\n`
+    
+    md += `### Abilities\n`
+    for (const a of abilities) {
+      const sp = (specialties as any)[a].map((s: string) => {
+        const fl = (focuses as any)[s].map((fx: string) => {
+          const v = fnum(character.focuses[a][fx])
+          return v ? `${fx} +${v}` : null
+        }).filter(Boolean).join(', ')
+        return `${s} **${character.specialties[a][s]}**${fl ? ` (${fl})` : ''}`
+      }).join(', ')
+      md += `**${a} ${character.abilities[a]}** → ${sp}.\n`
     }
+    
+    md += `\n### Actions\n`
+    Object.entries(character.actions).forEach(([name, value]) => {
+      const displayName = name.replace(/([A-Z])/g, ' $1').trim()
+      md += `- **${displayName.charAt(0).toUpperCase() + displayName.slice(1)}:** ${value}\n`
+    })
+    
+    md += `\n### Advantages & Flaws\n`
+    md += `**Advantages:**\n${character.advantages.map(a => `- ${a}`).join('\n')}\n\n`
+    md += `**Flaws:**\n${character.flaws.length ? character.flaws.map(f => `- ${f}`).join('\n') : '- None'}\n\n`
+    
+    md += `### Class Feats\n${character.classFeats.map(f => `- ${f}`).join('\n')}\n\n`
+
+    if (character.spells && character.spells.length > 0) {
+      md += `### Spellcasting\n`
+      md += `- **Magic Path:** ${character.magicPath}\n`
+      md += `**Known Spells:**\n`
+      character.spells.forEach(spell => {
+        md += `- ${spell.name} (${spell.rarity}, ${spell.path})\n`
+      })
+      md += '\n'
+    }
+
+    md += `### Equipment\n${character.equipment.map(e => `- ${e}`).join('\n')}\n`
+
+    navigator.clipboard.writeText(md).then(() => {
+      toast.success('Character copied to clipboard!')
+    }).catch(() => {
+      toast.error('Failed to copy to clipboard')
+    })
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Player Character Generator (Full Rules)</CardTitle>
-          <Alert>
-            <AlertDescription>
-              This generator follows the complete player character creation rules from Eldritch RPG 2nd Edition. 
-              Characters are built with racial and class minimums plus a customization budget based on level.
-            </AlertDescription>
-          </Alert>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div>
-              <label className="block text-sm font-medium mb-2">Race</label>
-              <Select value={race} onValueChange={setRace}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Race" />
-                </SelectTrigger>
-                <SelectContent>
-                  {races.map(r => (
-                    <SelectItem key={r} value={r}>{r}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Class</label>
-              <Select value={characterClass} onValueChange={setCharacterClass}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Class" />
-                </SelectTrigger>
-                <SelectContent>
-                  {classes.map(c => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Level</label>
-              <Select value={level?.toString() || ''} onValueChange={(value) => setLevel(parseInt(value))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Level" />
-                </SelectTrigger>
-                <SelectContent>
-                  {levels.map(l => (
-                    <SelectItem key={l} value={l.toString()}>{l}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {showMagicPath && (
-              <div>
-                <label className="block text-sm font-medium mb-2">Magic Path</label>
-                <Select value={magicPath} onValueChange={setMagicPath}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Path" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {magicPathsByClass[characterClass as keyof typeof magicPathsByClass]?.map(p => (
-                      <SelectItem key={p} value={p}>{p}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+    <Card>
+      <CardHeader>
+        <CardTitle>Player Character Generator</CardTitle>
+        <CardDescription>
+          Create detailed player characters with full spell selection for Eldritch RPG
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Generation Controls */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="race">Race</Label>
+            <Select value={race} onValueChange={setRace}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select race" />
+              </SelectTrigger>
+              <SelectContent>
+                {races.map(r => (
+                  <SelectItem key={r} value={r}>{r}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="iconic-arcane" 
-                checked={iconicArcane} 
-                onCheckedChange={setIconicArcane}
-              />
-              <label htmlFor="iconic-arcane" className="text-sm">
-                Iconic Arcane Inheritance (Costs 4 CP)
-              </label>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={generateCharacter}>
-                Generate Character
-              </Button>
-              <Button variant="outline" onClick={exportMarkdown}>
-                <Download className="w-4 h-4 mr-2" />
-                Export Markdown
-              </Button>
-              <Button variant="outline" onClick={copyMarkdown}>
-                <Copy className="w-4 h-4 mr-2" />
-                Copy Markdown
-              </Button>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="class">Class</Label>
+            <Select value={characterClass} onValueChange={setCharacterClass}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select class" />
+              </SelectTrigger>
+              <SelectContent>
+                {classes.map(c => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </CardContent>
-      </Card>
 
-      {character && spentTotals && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{character.race} {character.class} — Level {character.level}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-muted rounded-lg p-3 text-center">
+          <div className="space-y-2">
+            <Label htmlFor="level">Level</Label>
+            <Select value={level.toString()} onValueChange={(val) => setLevel(parseInt(val))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select level" />
+              </SelectTrigger>
+              <SelectContent>
+                {levels.map(l => (
+                  <SelectItem key={l} value={l.toString()}>Level {l}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {showMagicPath && (
+            <div className="space-y-2">
+              <Label htmlFor="magic-path">Magic Path</Label>
+              <Select value={magicPath} onValueChange={setMagicPath}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select path" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(magicPathsByClass[characterClass as keyof typeof magicPathsByClass] || []).map(path => (
+                    <SelectItem key={path} value={path}>{path}</SelectItem>
+                  ))}
+                </SelectContent>
+              </SelectContent>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox 
+            id="iconic-arcane" 
+            checked={iconicArcane}
+            onCheckedChange={(checked) => setIconicArcane(checked as boolean)}
+          />
+          <Label htmlFor="iconic-arcane">Iconic Arcane Inheritance (Costs 4 CP)</Label>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={generateCharacter} className="flex-1 min-w-[150px]">
+            Generate Character
+          </Button>
+          <Button variant="outline" onClick={exportMarkdown} disabled={!character}>
+            <Download className="w-4 h-4 mr-2" />
+            Export Markdown
+          </Button>
+          <Button variant="outline" onClick={copyMarkdown} disabled={!character}>
+            <Copy className="w-4 h-4 mr-2" />
+            Copy Markdown
+          </Button>
+        </div>
+
+        {/* Character Display */}
+        {character && (
+          <div className="space-y-4 border-t pt-6">
+            <div className="text-center">
+              <h3 className="text-2xl font-bold">
+                {character.race} {character.class} — Level {character.level}
+              </h3>
+            </div>
+
+            {/* Core Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div className="bg-secondary/50 rounded-lg p-3">
                 <div className="text-xs text-muted-foreground">Spirit Points</div>
                 <div className="text-xl font-bold">{character.pools.spirit}</div>
               </div>
-              <div className="bg-muted rounded-lg p-3 text-center">
+              <div className="bg-secondary/50 rounded-lg p-3">
                 <div className="text-xs text-muted-foreground">Active DP</div>
                 <div className="text-xl font-bold">{character.pools.active}</div>
               </div>
-              <div className="bg-muted rounded-lg p-3 text-center">
+              <div className="bg-secondary/50 rounded-lg p-3">
                 <div className="text-xs text-muted-foreground">Passive DP</div>
                 <div className="text-xl font-bold">{character.pools.passive}</div>
               </div>
-              <div className="bg-muted rounded-lg p-3 text-center">
+              <div className="bg-secondary/50 rounded-lg p-3">
                 <div className="text-xs text-muted-foreground">Mastery Die</div>
                 <div className="text-xl font-bold">{character.masteryDie}</div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Abilities */}
               <div>
-                <h3 className="font-semibold mb-2">Abilities</h3>
-                <div className="text-sm space-y-1">
-                  {abilities.map(ab => {
-                    const specialtyList = specs[ab as keyof typeof specs].map(s => {
-                      const focusList = foci[s as keyof typeof foci].map(fx => {
-                        const v = fnum(character.focuses[ab][fx])
+                <h4 className="font-semibold mb-2">Abilities</h4>
+                <div className="space-y-1 text-sm">
+                  {abilities.map(a => {
+                    const sp = (specialties as any)[a].map((s: string) => {
+                      const fl = (focuses as any)[s].map((fx: string) => {
+                        const v = fnum(character.focuses[a][fx])
                         return v ? `${fx} +${v}` : null
                       }).filter(Boolean).join(', ')
-                      return `${s} **${character.specialties[ab][s]}**${focusList ? ` (${focusList})` : ''}`
+                      return `${s} ${character.specialties[a][s]}${fl ? ` (${fl})` : ''}`
                     }).join(', ')
-                    
                     return (
-                      <div key={ab} className="mb-2">
-                        <span className="font-semibold">{ab} <strong>{character.abilities[ab]}</strong></span> → {specialtyList}.
+                      <div key={a}>
+                        <strong>{a} {character.abilities[a]}</strong> → {sp}
                       </div>
                     )
                   })}
                 </div>
               </div>
 
+              {/* Actions */}
               <div>
-                <h3 className="font-semibold mb-2">Actions</h3>
-                <ul className="text-sm space-y-1">
-                  <li><strong>Melee Attack:</strong> {character.actions.meleeAttack}</li>
-                  <li><strong>Ranged Attack:</strong> {character.actions.rangedAttack}</li>
-                  <li><strong>Perception Check:</strong> {character.actions.perceptionCheck}</li>
-                  {casterClasses.includes(character.class) && (
-                    <li><strong>Magic Attack:</strong> {character.actions.magicAttack}</li>
-                  )}
+                <h4 className="font-semibold mb-2">Actions</h4>
+                <ul className="space-y-1 text-sm">
+                  {Object.entries(character.actions).map(([name, value]) => {
+                    const displayName = name.replace(/([A-Z])/g, ' $1').trim()
+                    return (
+                      <li key={name}>
+                        <strong>{displayName.charAt(0).toUpperCase() + displayName.slice(1)}:</strong> {value}
+                      </li>
+                    )
+                  })}
                 </ul>
               </div>
 
+              {/* Advantages & Flaws */}
               <div>
-                <h3 className="font-semibold mb-2">Advantages & Flaws</h3>
-                <div className="text-sm">
-                  <p className="font-medium">Advantages:</p>
-                  <ul className="list-disc list-inside ml-4 mb-2">
-                    {character.advantages.map((a, i) => <li key={i}>{a}</li>)}
-                  </ul>
-                  <p className="font-medium">Flaws:</p>
-                  <ul className="list-disc list-inside ml-4">
-                    {character.flaws.length ? character.flaws.map((f, i) => <li key={i}>{f}</li>) : <li>None</li>}
-                  </ul>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-semibold mb-2">Class Feats</h3>
-                <ul className="text-sm list-disc list-inside">
-                  {character.classFeats.map((f, i) => <li key={i}>{f}</li>)}
-                </ul>
-              </div>
-
-              <div className="lg:col-span-2">
-                <h3 className="font-semibold mb-2">Equipment</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-                  {character.equipment.map((e, i) => (
-                    <div key={i} className="text-sm">• {e}</div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-semibold mb-2">Character Points Spent</h3>
-                <ul className="text-sm space-y-1">
-                  <li><strong>Spent on Abilities:</strong> {spentTotals.abilities}</li>
-                  <li><strong>Spent on Specialties:</strong> {spentTotals.specialties}</li>
-                  <li><strong>Spent on Focuses:</strong> {spentTotals.focuses}</li>
-                  <li><strong>Spent on Advantages:</strong> {spentTotals.advantages}</li>
-                  <li><strong>Total CP Spent:</strong> {spentTotals.total}</li>
-                </ul>
-                <Alert className="mt-2">
-                  <AlertDescription className="text-xs">
-                    This shows CPs spent from the customization budget. Free racial/class minimums cost 0 CP.
-                  </AlertDescription>
-                </Alert>
-              </div>
-
-              <div>
-                <h3 className="font-semibold mb-2">Level Advancement (Earned CP)</h3>
-                <div className="text-sm border rounded-md">
-                  <div className="bg-muted px-3 py-2 font-medium border-b">Required Earned CP</div>
-                  <div className="divide-y">
-                    <div className="px-3 py-1 flex justify-between"><span>Level 2</span><span>100</span></div>
-                    <div className="px-3 py-1 flex justify-between"><span>Level 3</span><span>200</span></div>
-                    <div className="px-3 py-1 flex justify-between"><span>Level 4</span><span>300</span></div>
-                    <div className="px-3 py-1 flex justify-between"><span>Level 5</span><span>500</span></div>
+                <h4 className="font-semibold mb-2">Advantages & Flaws</h4>
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <strong>Advantages:</strong>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {character.advantages.map((adv, idx) => (
+                        <Badge key={idx} variant="secondary" className="text-xs">{adv}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <strong>Flaws:</strong>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {character.flaws.length > 0 ? character.flaws.map((flaw, idx) => (
+                        <Badge key={idx} variant="destructive" className="text-xs">{flaw}</Badge>
+                      )) : <span className="text-muted-foreground">None</span>}
+                    </div>
                   </div>
                 </div>
               </div>
+
+              {/* Class Feats */}
+              <div>
+                <h4 className="font-semibold mb-2">Class Feats</h4>
+                <ul className="space-y-1 text-sm">
+                  {character.classFeats.map((feat, idx) => (
+                    <li key={idx}>• {feat}</li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Spells (if applicable) */}
+              {character.spells && character.spells.length > 0 && (
+                <div className="lg:col-span-2">
+                  <h4 className="font-semibold mb-2">Spellcasting</h4>
+                  <div className="space-y-2">
+                    <p className="text-sm"><strong>Magic Path:</strong> {character.magicPath}</p>
+                    <div>
+                      <strong className="text-sm">Known Spells:</strong>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {character.spells.map((spell, idx) => (
+                          <Badge 
+                            key={idx} 
+                            variant={spell.rarity === 'Common' ? 'outline' : 'default'} 
+                            className="text-xs"
+                          >
+                            {spell.name} ({spell.rarity})
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Equipment */}
+              <div className="lg:col-span-2">
+                <h4 className="font-semibold mb-2">Equipment</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-1 text-sm">
+                  {character.equipment.map((item, idx) => (
+                    <div key={idx}>• {item}</div>
+                  ))}
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
-
-export default PlayerCharacterGenerator

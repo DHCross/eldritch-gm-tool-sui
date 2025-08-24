@@ -1,55 +1,18 @@
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import React, { useState } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { User } from "@phosphor-icons/react"
-import { toast } from 'sonner'
+import { Badge } from "@/components/ui/badge"
+import { toast } from "sonner"
 
-interface NPCCharacter {
-  gender: string
-  race: string
-  role: string
-  level: number
-  abilities: Record<string, string>
-  specialties: Record<string, Record<string, string>>
-  focuses: Record<string, Record<string, string>>
-  defensePools: {
-    activeDefense: number
-    passiveDefense: number
-  }
-  spiritPoints: number
-  masteryDie: string
-  armor: string
-  actions: Record<string, string>
-  iconicItem: {
-    type: string
-    properties: string
-    details?: string
-    potency?: string
-    rarity?: string
-    energyPoints?: number
-    activationCost?: number
-  }
-}
-
-// Data Definitions
 const genders = ["Male", "Female"]
 const races = ["Human", "Elf", "Dwarf", "Gnome", "Half-Elf", "Half-Orc", "Halfling", "Drakkin"]
-const roles = ["Warrior", "Rogue", "Assassin", "Adept", "Mage", "Mystic", "Theurgist", "Barbarian"]
+const roles = ["Warrior", "Rogue", "Adept", "Mage", "Mystic", "Theurgist", "Barbarian", "Assassin"]
 const levels = [1, 2, 3, 4, 5]
 const abilities = ["Competence", "Prowess", "Fortitude"]
 const dieRanks = ["d4", "d6", "d8", "d10", "d12"]
-
-const dieValues = {
-  "d4": 4,
-  "d6": 6,
-  "d8": 8,
-  "d10": 10,
-  "d12": 12
-}
 
 const specialties = {
   Competence: ["Adroitness", "Expertise", "Perception"],
@@ -69,244 +32,89 @@ const focuses = {
   Willpower: ["Courage", "Resistance"]
 }
 
-const rarities = ["Common", "Uncommon", "Esoteric", "Occult", "Legendary"]
-const potencyLevels = ["d4", "d6", "d8", "d10", "d12"]
-
-// Energy Points based on Rarity
-const energyPointsByRarity = {
-  "Common": 8,
-  "Uncommon": 12,
-  "Esoteric": 16,
-  "Occult": 20,
-  "Legendary": 30
-}
-
-// Minimum Die-Ranks for Races
+// Minimum requirements for races
 const raceMinimums = {
-  "Human": {
-    "Competence": "d6",
-    "Prowess": "d6",
-    "Fortitude": "d4",
-    "Willpower": "d6"
-  },
-  "Elf": {
-    "Competence": "d6",
-    "Prowess": "d8",
-    "Fortitude": "d4",
-    "Willpower": "d6"
-  },
-  "Dwarf": {
-    "Competence": "d6",
-    "Prowess": "d6",
-    "Fortitude": "d8",
-    "Willpower": "d4"
-  },
-  "Gnome": {
-    "Competence": "d6",
-    "Prowess": "d4",
-    "Fortitude": "d6",
-    "Willpower": "d6"
-  },
-  "Half-Elf": {
-    "Competence": "d6",
-    "Prowess": "d6",
-    "Fortitude": "d6",
-    "Willpower": "d6"
-  },
-  "Half-Orc": {
-    "Competence": "d6",
-    "Prowess": "d8",
-    "Fortitude": "d6",
-    "Willpower": "d4"
-  },
-  "Halfling": {
-    "Competence": "d6",
-    "Prowess": "d4",
-    "Fortitude": "d4",
-    "Willpower": "d6"
-  },
-  "Drakkin": {
-    "Competence": "d6",
-    "Prowess": "d6",
-    "Fortitude": "d6",
-    "Willpower": "d6"
-  }
+  Human: { Competence: "d6", Prowess: "d6", Fortitude: "d4", Willpower: "d6" },
+  Elf: { Competence: "d6", Prowess: "d8", Fortitude: "d4", Willpower: "d6" },
+  Dwarf: { Competence: "d6", Prowess: "d6", Fortitude: "d8", Willpower: "d4" },
+  Gnome: { Competence: "d6", Prowess: "d4", Fortitude: "d6", Willpower: "d6" },
+  "Half-Elf": { Competence: "d6", Prowess: "d6", Fortitude: "d6", Willpower: "d6" },
+  "Half-Orc": { Competence: "d6", Prowess: "d8", Fortitude: "d6", Willpower: "d4" },
+  Halfling: { Competence: "d6", Prowess: "d4", Fortitude: "d4", Willpower: "d6" },
+  Drakkin: { Competence: "d6", Prowess: "d6", Fortitude: "d6", Willpower: "d6" }
 }
 
-// Minimum Die-Ranks for Roles (Classes)
+// Minimum requirements for roles
 const roleMinimums = {
-  "Warrior": {
-    "Prowess": "d8",
-    "Melee": "d6",
-    "Fortitude": "d6"
-  },
-  "Rogue": {
-    "Prowess": "d6",
-    "Agility": "d6",
-    "Fortitude": "d4"
-  },
-  "Assassin": {
-    "Prowess": "d6",
-    "Agility": "d6",
-    "Melee": "d4",
-    "Fortitude": "d4"
-  },
-  "Adept": {
-    "Competence": "d6",
-    "Expertise": "d6",
-    "Willpower": "d6"
-  },
-  "Mage": {
-    "Competence": "d8",
-    "Expertise": "d6",
-    "Willpower": "d8"
-  },
-  "Mystic": {
-    "Competence": "d6",
-    "Expertise": "d6",
-    "Willpower": "d8"
-  },
-  "Theurgist": {
-    "Competence": "d8",
-    "Expertise": "d6",
-    "Willpower": "d8"
-  },
-  "Barbarian": {
-    "Prowess": "d8",
-    "Melee": "d6",
-    "Fortitude": "d6"
+  Warrior: { Prowess: "d8", Melee: "d6", Fortitude: "d6" },
+  Rogue: { Prowess: "d6", Agility: "d6", Fortitude: "d4" },
+  Adept: { Competence: "d6", Expertise: "d6", Willpower: "d6" },
+  Mage: { Competence: "d8", Expertise: "d6", Willpower: "d8" },
+  Mystic: { Competence: "d6", Expertise: "d6", Willpower: "d8" },
+  Theurgist: { Competence: "d8", Expertise: "d6", Willpower: "d8" },
+  Barbarian: { Prowess: "d8", Melee: "d6", Fortitude: "d6" },
+  Assassin: { Prowess: "d6", Agility: "d8", Adroitness: "d6" }
+}
+
+const magicRoles = ["Adept", "Mage", "Mystic", "Theurgist"]
+
+interface NPCCharacter {
+  gender: string
+  race: string
+  role: string
+  level: number
+  abilities: Record<string, string>
+  specialties: Record<string, Record<string, string>>
+  focuses: Record<string, Record<string, string>>
+  defensePools: { active: number; passive: number }
+  spiritPoints: number
+  masteryDie: string
+  armor: string
+  actions: Record<string, string>
+  iconicItem?: {
+    type: string
+    properties: string
+    details?: string
+    potency?: string
+    rarity?: string
+    energyPoints?: number
+    activationCost?: number
   }
 }
 
-function NPCGenerator() {
-  const [gender, setGender] = useState<string>('')
-  const [race, setRace] = useState<string>('')
-  const [role, setRole] = useState<string>('')
-  const [level, setLevel] = useState<number | null>(null)
-  const [includeMagic, setIncludeMagic] = useState<boolean>(false)
+function getRandomElement<T>(array: T[]): T {
+  return array[Math.floor(Math.random() * array.length)]
+}
+
+function getDieValue(dieRank: string): number {
+  const match = dieRank.match(/d(\d+)/)
+  return match ? parseInt(match[1], 10) : 4
+}
+
+function getHigherDieRank(die1: string, die2: string): string {
+  return getDieValue(die1) >= getDieValue(die2) ? die1 : die2
+}
+
+function increaseDieRank(obj: Record<string, string>, key: string): void {
+  const currentRank = obj[key]
+  const currentIndex = dieRanks.indexOf(currentRank)
+  if (currentIndex < dieRanks.length - 1) {
+    obj[key] = dieRanks[currentIndex + 1]
+  }
+}
+
+export default function NPCGenerator() {
+  const [gender, setGender] = useState('')
+  const [race, setRace] = useState('')
+  const [role, setRole] = useState('')
+  const [level, setLevel] = useState<number>(1)
+  const [includeMagic, setIncludeMagic] = useState(false)
   const [character, setCharacter] = useState<NPCCharacter | null>(null)
 
-  // Utility Functions
-  function getRandomElement<T>(array: T[]): T {
-    return array[Math.floor(Math.random() * array.length)]
-  }
-
-  function getDieValue(dieRank: string): number {
-    return dieValues[dieRank as keyof typeof dieValues] || 4
-  }
-
-  function getHigherDieRank(die1: string, die2: string): string {
-    return getDieValue(die1) >= getDieValue(die2) ? die1 : die2
-  }
-
-  function increaseDieRank(obj: Record<string, any>, key: string): void {
-    const currentRank = obj[key]
-    const currentIndex = dieRanks.indexOf(currentRank)
-    if (currentIndex < dieRanks.length - 1) {
-      obj[key] = dieRanks[currentIndex + 1]
-    }
-  }
-
-  function assignAbilities(character: NPCCharacter): void {
-    // Start with base minimums from race
-    const raceMins = raceMinimums[character.race as keyof typeof raceMinimums] || {}
-    
-    abilities.forEach(ability => {
-      const minDieRank = raceMins[ability] || "d4"
-      character.abilities[ability] = minDieRank
-      character.specialties[ability] = {}
-      
-      specialties[ability as keyof typeof specialties].forEach(specialty => {
-        const roleMin = roleMinimums[character.role as keyof typeof roleMinimums][specialty] || "d4"
-        character.specialties[ability][specialty] = getHigherDieRank(minDieRank, roleMin)
-        character.focuses[specialty] = {}
-        
-        focuses[specialty as keyof typeof focuses].forEach(focus => {
-          character.focuses[specialty][focus] = `+${Math.floor(character.level / 2) || 1}`
-        })
-      })
-    })
-
-    // Increase die ranks based on level
-    for (let i = 1; i < character.level; i++) {
-      if (character.role === "Warrior" || character.role === "Barbarian") {
-        increaseDieRank(character.abilities, "Prowess")
-        increaseDieRank(character.specialties.Prowess, "Melee")
-      }
-      if (["Mage", "Mystic", "Theurgist", "Adept"].includes(character.role)) {
-        increaseDieRank(character.abilities, "Competence")
-        increaseDieRank(character.specialties.Competence, "Expertise")
-      }
-      if (character.role === "Rogue" || character.role === "Assassin") {
-        increaseDieRank(character.abilities, "Prowess")
-        increaseDieRank(character.specialties.Prowess, "Agility")
-      }
-    }
-
-    // Ensure specialties are at least as high as their parent ability
-    abilities.forEach(ability => {
-      specialties[ability as keyof typeof specialties].forEach(specialty => {
-        if (getDieValue(character.specialties[ability][specialty]) < getDieValue(character.abilities[ability])) {
-          character.specialties[ability][specialty] = character.abilities[ability]
-        }
-      })
-    })
-  }
-
-  function calculateDefensePools(character: NPCCharacter) {
-    const prowessDie = character.abilities.Prowess
-    const agility = character.specialties.Prowess.Agility
-    const melee = character.specialties.Prowess.Melee
-    const fortitudeDie = character.abilities.Fortitude
-    const endurance = character.specialties.Fortitude.Endurance
-    const strength = character.specialties.Fortitude.Strength
-
-    const activeDefense = getDieValue(prowessDie) + getDieValue(agility) + getDieValue(melee)
-    const passiveDefense = getDieValue(fortitudeDie) + getDieValue(endurance) + getDieValue(strength)
-
-    return { activeDefense, passiveDefense }
-  }
-
-  function calculateSpiritPoints(character: NPCCharacter): number {
-    const competenceDie = character.abilities.Competence
-    const willpower = character.specialties.Fortitude.Willpower
-    return getDieValue(competenceDie) + getDieValue(willpower)
-  }
-
-  function getMasteryDie(level: number): string {
-    const masteryDice = ["d4", "d6", "d8", "d10", "d12"]
-    return masteryDice[Math.min(level - 1, masteryDice.length - 1)]
-  }
-
-  function getArmor(level: number): string {
-    const armorGrades = ["d4", "d6", "d8", "d10", "d12"]
-    return armorGrades[Math.min(Math.floor(level / 2), armorGrades.length - 1)]
-  }
-
-  function calculateActions(character: NPCCharacter) {
-    return {
-      meleeAttack: `${character.abilities.Prowess} + ${character.specialties.Prowess.Melee} + Focus Bonus`,
-      rangedAttack: `${character.abilities.Prowess} + ${character.specialties.Prowess.Precision} + Focus Bonus`,
-      magicAttack: `${character.abilities.Competence} + ${character.specialties.Competence.Expertise} + Focus Bonus`,
-      perceptionCheck: `${character.abilities.Competence} + ${character.specialties.Competence.Perception} + Focus Bonus`
-    }
-  }
-
-  function determineRarity(potency: string): string {
-    switch (potency) {
-      case "d4": return "Common"
-      case "d6": return "Uncommon"
-      case "d8": return "Esoteric"
-      case "d10": return "Occult"
-      case "d12": return "Legendary"
-      default: return "Common"
-    }
-  }
-
   function generateIconicItem(character: NPCCharacter, includeMagic: boolean) {
-    let item = { type: "", properties: "No special properties." } as NPCCharacter['iconicItem']
+    const item: any = { type: "", properties: "No special properties." }
 
-    // Determine the type of Iconic Item based on role
+    // Determine item type based on role
     if (["Warrior", "Barbarian", "Rogue", "Assassin"].includes(character.role)) {
       item.type = "Iconic Weapon"
       if (includeMagic) {
@@ -317,14 +125,14 @@ function NPCGenerator() {
         ]
         const selectedEffect = getRandomElement(magicEffects)
         item.properties = `Magic Effect: ${selectedEffect.effect} - ${selectedEffect.description}`
-        item.potency = getRandomElement(potencyLevels)
+        item.potency = getRandomElement(["d4", "d6", "d8", "d10", "d12"])
         item.rarity = determineRarity(item.potency)
-        item.energyPoints = energyPointsByRarity[item.rarity as keyof typeof energyPointsByRarity]
+        item.energyPoints = getEnergyPoints(item.rarity)
         item.activationCost = 1
       } else {
         item.details = "A personalized weapon of great significance to the character. Can trigger 'Master Twist' when used with a mastery die."
       }
-    } else if (["Mage", "Mystic", "Theurgist", "Adept"].includes(character.role)) {
+    } else if (magicRoles.includes(character.role)) {
       item.type = "Iconic Magic Focus"
       if (includeMagic) {
         const magicEffects = [
@@ -334,9 +142,9 @@ function NPCGenerator() {
         ]
         const selectedEffect = getRandomElement(magicEffects)
         item.properties = `Magic Effect: ${selectedEffect.effect} - ${selectedEffect.description}`
-        item.potency = getRandomElement(potencyLevels)
+        item.potency = getRandomElement(["d4", "d6", "d8", "d10", "d12"])
         item.rarity = determineRarity(item.potency)
-        item.energyPoints = energyPointsByRarity[item.rarity as keyof typeof energyPointsByRarity]
+        item.energyPoints = getEnergyPoints(item.rarity)
         item.activationCost = 1
       } else {
         item.details = "A personalized grimoire or focus significant to the character. Can trigger 'Master Twist' when used with a mastery die."
@@ -351,52 +159,129 @@ function NPCGenerator() {
         ]
         const selectedEffect = getRandomElement(magicEffects)
         item.properties = `Magic Effect: ${selectedEffect.effect} - ${selectedEffect.description}`
-        item.potency = getRandomElement(potencyLevels)
+        item.potency = getRandomElement(["d4", "d6", "d8", "d10", "d12"])
         item.rarity = determineRarity(item.potency)
-        item.energyPoints = energyPointsByRarity[item.rarity as keyof typeof energyPointsByRarity]
+        item.energyPoints = getEnergyPoints(item.rarity)
         item.activationCost = 1
       } else {
         item.details = "An item of sentimental or historical value. Functions as Inspirational Aid, granting +1 bonus per character level to specific ability tests or feats."
       }
     }
+    
     return item
+  }
+
+  function determineRarity(potency: string): string {
+    switch (potency) {
+      case "d4": return "Common"
+      case "d6": return "Uncommon"
+      case "d8": return "Esoteric"
+      case "d10": return "Occult"
+      case "d12": return "Legendary"
+      default: return "Common"
+    }
+  }
+
+  function getEnergyPoints(rarity: string): number {
+    const energyPointsByRarity = {
+      "Common": 8,
+      "Uncommon": 12,
+      "Esoteric": 16,
+      "Occult": 20,
+      "Legendary": 30
+    }
+    return energyPointsByRarity[rarity as keyof typeof energyPointsByRarity] || 8
   }
 
   function generateCharacter() {
     if (!race || !role || !level) {
-      toast.error("Please select a race, role, and level before generating a character.")
+      toast.error("Please select race, role, and level before generating")
       return
     }
 
-    let finalGender: string
-    if (gender === "Random" || !gender) {
-      finalGender = getRandomElement(genders)
-    } else {
-      finalGender = gender
-    }
+    const selectedGender = gender === "Random" || !gender ? getRandomElement(genders) : gender
 
     const character: NPCCharacter = {
-      gender: finalGender,
-      role: role,
-      race: race,
-      level: level,
+      gender: selectedGender,
+      race,
+      role,
+      level,
       abilities: {},
       specialties: {},
       focuses: {},
-      defensePools: { activeDefense: 0, passiveDefense: 0 },
+      defensePools: { active: 0, passive: 0 },
       spiritPoints: 0,
-      masteryDie: '',
-      armor: '',
-      actions: {},
-      iconicItem: { type: '', properties: '' }
+      masteryDie: dieRanks[Math.min(level - 1, dieRanks.length - 1)],
+      armor: dieRanks[Math.min(Math.floor(level / 2), dieRanks.length - 1)],
+      actions: {}
     }
 
-    assignAbilities(character)
-    character.defensePools = calculateDefensePools(character)
-    character.spiritPoints = calculateSpiritPoints(character)
-    character.masteryDie = getMasteryDie(character.level)
-    character.armor = getArmor(character.level)
-    character.actions = calculateActions(character)
+    // Initialize abilities and specialties
+    for (const ability of abilities) {
+      const raceMin = (raceMinimums as any)[race]?.[ability] || "d4"
+      character.abilities[ability] = raceMin
+      character.specialties[ability] = {}
+      character.focuses[ability] = {}
+
+      for (const specialty of (specialties as any)[ability]) {
+        const roleMin = (roleMinimums as any)[role]?.[specialty] || "d4"
+        character.specialties[ability][specialty] = getHigherDieRank(raceMin, roleMin)
+
+        character.focuses[ability][specialty] = {}
+        for (const focus of (focuses as any)[specialty]) {
+          character.focuses[ability][specialty][focus] = `+${Math.max(1, Math.floor(level / 2))}`
+        }
+      }
+    }
+
+    // Improve abilities based on level and role
+    for (let i = 1; i < level; i++) {
+      if (["Warrior", "Barbarian"].includes(role)) {
+        increaseDieRank(character.abilities, "Prowess")
+        increaseDieRank(character.specialties.Prowess, "Melee")
+      } else if (magicRoles.includes(role)) {
+        increaseDieRank(character.abilities, "Competence")
+        increaseDieRank(character.specialties.Competence, "Expertise")
+      } else if (["Rogue", "Assassin"].includes(role)) {
+        increaseDieRank(character.abilities, "Prowess")
+        increaseDieRank(character.specialties.Prowess, "Agility")
+      }
+    }
+
+    // Ensure specialties are at least as high as their parent ability
+    for (const ability of abilities) {
+      for (const specialty of (specialties as any)[ability]) {
+        if (getDieValue(character.specialties[ability][specialty]) < getDieValue(character.abilities[ability])) {
+          character.specialties[ability][specialty] = character.abilities[ability]
+        }
+      }
+    }
+
+    // Calculate defense pools and spirit points
+    character.defensePools = {
+      active: getDieValue(character.abilities.Prowess) + 
+              getDieValue(character.specialties.Prowess.Agility) + 
+              getDieValue(character.specialties.Prowess.Melee),
+      passive: getDieValue(character.abilities.Fortitude) + 
+               getDieValue(character.specialties.Fortitude.Endurance) + 
+               getDieValue(character.specialties.Fortitude.Strength)
+    }
+
+    character.spiritPoints = getDieValue(character.abilities.Competence) + 
+                            getDieValue(character.specialties.Fortitude.Willpower)
+
+    // Calculate actions
+    character.actions = {
+      meleeAttack: `${character.abilities.Prowess} + ${character.specialties.Prowess.Melee} + Focus Bonus`,
+      rangedAttack: `${character.abilities.Prowess} + ${character.specialties.Prowess.Precision} + Focus Bonus`,
+      perceptionCheck: `${character.abilities.Competence} + ${character.specialties.Competence.Perception} + Focus Bonus`
+    }
+
+    if (magicRoles.includes(role)) {
+      character.actions.magicAttack = `${character.abilities.Competence} + ${character.specialties.Competence.Expertise} + Focus Bonus`
+    }
+
+    // Generate iconic item
     character.iconicItem = generateIconicItem(character, includeMagic)
 
     setCharacter(character)
@@ -404,194 +289,177 @@ function NPCGenerator() {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="w-5 h-5" />
-            NPC Generator
-          </CardTitle>
-          <Alert>
-            <AlertDescription>
-              Generate detailed Non-Player Characters for your Eldritch RPG campaigns. 
-              NPCs are built with simplified rules focusing on role-appropriate abilities and iconic items.
-            </AlertDescription>
-          </Alert>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <Label htmlFor="gender">Gender</Label>
-              <Select value={gender} onValueChange={setGender}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Random" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Random">Random</SelectItem>
-                  {genders.map(g => (
-                    <SelectItem key={g} value={g}>{g}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="race">Race</Label>
-              <Select value={race} onValueChange={setRace}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Race" />
-                </SelectTrigger>
-                <SelectContent>
-                  {races.map(r => (
-                    <SelectItem key={r} value={r}>{r}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="role">Role</Label>
-              <Select value={role} onValueChange={setRole}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roles.map(r => (
-                    <SelectItem key={r} value={r}>{r}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="level">Level</Label>
-              <Select value={level?.toString() || ''} onValueChange={(value) => setLevel(parseInt(value))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Level" />
-                </SelectTrigger>
-                <SelectContent>
-                  {levels.map(l => (
-                    <SelectItem key={l} value={l.toString()}>{l}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>NPC Generator</CardTitle>
+        <CardDescription>
+          Quickly generate NPCs for your Eldritch RPG campaigns
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Generation Controls */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="gender">Gender</Label>
+            <Select value={gender} onValueChange={setGender}>
+              <SelectTrigger>
+                <SelectValue placeholder="Random" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Random">Random</SelectItem>
+                {genders.map(g => (
+                  <SelectItem key={g} value={g}>{g}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="includeMagic" 
-              checked={includeMagic} 
-              onCheckedChange={setIncludeMagic}
-            />
-            <Label htmlFor="includeMagic">Include Magical Properties for Iconic Items</Label>
+          <div className="space-y-2">
+            <Label htmlFor="race">Race</Label>
+            <Select value={race} onValueChange={setRace}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select race" />
+              </SelectTrigger>
+              <SelectContent>
+                {races.map(r => (
+                  <SelectItem key={r} value={r}>{r}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <Button onClick={generateCharacter} className="w-full">
-            Generate NPC
-          </Button>
-        </CardContent>
-      </Card>
+          <div className="space-y-2">
+            <Label htmlFor="role">Role</Label>
+            <Select value={role} onValueChange={setRole}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select role" />
+              </SelectTrigger>
+              <SelectContent>
+                {roles.map(r => (
+                  <SelectItem key={r} value={r}>{r}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-      {character && (
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Level {character.level} {character.gender} {character.race} {character.role}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {/* Core Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-muted rounded-lg p-3 text-center">
-                  <div className="text-xs text-muted-foreground">Spirit Points</div>
-                  <div className="text-xl font-bold">{character.spiritPoints}</div>
-                </div>
-                <div className="bg-muted rounded-lg p-3 text-center">
-                  <div className="text-xs text-muted-foreground">Active DP</div>
-                  <div className="text-xl font-bold">{character.defensePools.activeDefense}</div>
-                </div>
-                <div className="bg-muted rounded-lg p-3 text-center">
-                  <div className="text-xs text-muted-foreground">Passive DP</div>
-                  <div className="text-xl font-bold">{character.defensePools.passiveDefense}</div>
-                </div>
-                <div className="bg-muted rounded-lg p-3 text-center">
-                  <div className="text-xs text-muted-foreground">Mastery Die</div>
-                  <div className="text-xl font-bold">{character.masteryDie}</div>
-                </div>
+          <div className="space-y-2">
+            <Label htmlFor="level">Level</Label>
+            <Select value={level.toString()} onValueChange={(val) => setLevel(parseInt(val))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select level" />
+              </SelectTrigger>
+              <SelectContent>
+                {levels.map(l => (
+                  <SelectItem key={l} value={l.toString()}>Level {l}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox 
+            id="include-magic" 
+            checked={includeMagic}
+            onCheckedChange={(checked) => setIncludeMagic(checked as boolean)}
+          />
+          <Label htmlFor="include-magic">Include Magical Properties for Iconic Items</Label>
+        </div>
+
+        <Button onClick={generateCharacter} className="w-full">
+          Generate NPC
+        </Button>
+
+        {/* Character Display */}
+        {character && (
+          <div className="space-y-4 border-t pt-6">
+            <div className="text-center">
+              <h3 className="text-2xl font-bold">
+                Level {character.level} {character.gender} {character.race} {character.role}
+              </h3>
+            </div>
+
+            {/* Core Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div className="bg-secondary/50 rounded-lg p-3">
+                <div className="text-xs text-muted-foreground">Spirit Points</div>
+                <div className="text-xl font-bold">{character.spiritPoints}</div>
               </div>
+              <div className="bg-secondary/50 rounded-lg p-3">
+                <div className="text-xs text-muted-foreground">Active DP</div>
+                <div className="text-xl font-bold">{character.defensePools.active}</div>
+              </div>
+              <div className="bg-secondary/50 rounded-lg p-3">
+                <div className="text-xs text-muted-foreground">Passive DP</div>
+                <div className="text-xl font-bold">{character.defensePools.passive}</div>
+              </div>
+              <div className="bg-secondary/50 rounded-lg p-3">
+                <div className="text-xs text-muted-foreground">Mastery Die</div>
+                <div className="text-xl font-bold">{character.masteryDie}</div>
+              </div>
+            </div>
 
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Abilities */}
               <div>
-                <h3 className="font-semibold mb-3">Abilities</h3>
+                <h4 className="font-semibold mb-2">Abilities</h4>
                 <div className="space-y-2 text-sm">
                   {abilities.map(ability => {
-                    const specs = specialties[ability as keyof typeof specialties]
-                    const specText = specs.map(spec => {
-                      const focusNames = focuses[spec as keyof typeof focuses]
-                      const focusValues = focusNames.map(focus => {
-                        const value = character.focuses[spec]?.[focus] || '+0'
-                        return value !== '+0' ? `${focus} ${value}` : null
-                      }).filter(Boolean)
-                      
-                      return `${spec} **${character.specialties[ability][spec]}**${focusValues.length ? ` (${focusValues.join(', ')})` : ''}`
+                    const specs = (specialties as any)[ability].map((spec: string) => {
+                      const focusEntries = Object.entries(character.focuses[ability][spec] || {})
+                      const focusString = focusEntries.length > 0 ? ` (${focusEntries.map(([focus, value]) => `${focus} ${value}`).join(', ')})` : ''
+                      return `${spec} ${character.specialties[ability][spec]}${focusString}`
                     }).join(', ')
                     
                     return (
                       <div key={ability}>
-                        <strong>{ability} {character.abilities[ability]}</strong> → {specText}.
+                        <strong>{ability} {character.abilities[ability]}</strong> → {specs}
                       </div>
                     )
                   })}
-                </div>
-                
-                <div className="mt-4 text-sm">
-                  <strong>Armor:</strong> {character.armor}
                 </div>
               </div>
 
               {/* Actions */}
               <div>
-                <h3 className="font-semibold mb-3">Actions</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  <div><strong>Melee Attack:</strong> {character.actions.meleeAttack}</div>
-                  <div><strong>Ranged Attack:</strong> {character.actions.rangedAttack}</div>
-                  <div><strong>Magic Attack:</strong> {character.actions.magicAttack}</div>
-                  <div><strong>Perception Check:</strong> {character.actions.perceptionCheck}</div>
-                </div>
+                <h4 className="font-semibold mb-2">Actions</h4>
+                <ul className="space-y-1 text-sm">
+                  {Object.entries(character.actions).map(([name, value]) => (
+                    <li key={name}>
+                      <strong>{name.replace(/([A-Z])/g, ' $1').trim()}:</strong> {value}
+                    </li>
+                  ))}
+                </ul>
               </div>
 
               {/* Iconic Item */}
               {character.iconicItem && (
-                <Card className="bg-accent/20 border-accent">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">{character.iconicItem.type}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2 text-sm">
+                <div className="lg:col-span-2">
+                  <h4 className="font-semibold mb-2">{character.iconicItem.type}</h4>
+                  <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 space-y-2">
                     {character.iconicItem.details && (
-                      <div><strong>Details:</strong> {character.iconicItem.details}</div>
+                      <p className="text-sm"><strong>Details:</strong> {character.iconicItem.details}</p>
                     )}
                     {character.iconicItem.properties !== "No special properties." && (
                       <>
-                        <div><strong>{character.iconicItem.properties}</strong></div>
+                        <p className="text-sm"><strong>{character.iconicItem.properties}</strong></p>
                         {character.iconicItem.potency && (
-                          <>
-                            <div><strong>Potency:</strong> {character.iconicItem.potency}, <strong>Rarity:</strong> {character.iconicItem.rarity}</div>
-                            <div><strong>Energy Points:</strong> {character.iconicItem.energyPoints}, <strong>Activation Cost:</strong> {character.iconicItem.activationCost} energy point(s)</div>
-                          </>
+                          <div className="flex flex-wrap gap-2">
+                            <Badge variant="outline">Potency: {character.iconicItem.potency}</Badge>
+                            <Badge variant="outline">Rarity: {character.iconicItem.rarity}</Badge>
+                            <Badge variant="outline">Energy Points: {character.iconicItem.energyPoints}</Badge>
+                            <Badge variant="outline">Activation Cost: {character.iconicItem.activationCost}</Badge>
+                          </div>
                         )}
                       </>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               )}
             </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
-
-export default NPCGenerator
