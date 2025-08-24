@@ -618,7 +618,7 @@ export default function PlayerCharacterGenerator() {
                     <SelectItem key={path} value={path}>{path}</SelectItem>
                   ))}
                 </SelectContent>
-              </SelectContent>
+              </Select>
             </div>
           )}
         </div>

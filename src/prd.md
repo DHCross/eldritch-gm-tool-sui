@@ -1,49 +1,90 @@
-# Eldritch RPG GM Tool Suite - PRD
+# Planning Guide: Eldritch RPG GM Tool Suite
 
 ## Core Purpose & Success
-- **Mission Statement**: Create a comprehensive digital toolkit for Eldritch RPG game masters and players to generate characters, encounters, and manage game mechanics efficiently.
-- **Success Indicators**: Tool generates balanced characters and encounters, provides accurate spell references, and streamlines gameplay preparation.
-- **Experience Qualities**: Professional, mystical, and efficient.
+- **Mission Statement**: Provide a comprehensive digital toolset for Game Masters running Eldritch RPG sessions, enabling quick character generation, encounter balancing, and campaign management.
+- **Success Indicators**: Users can generate balanced encounters, create NPCs and player characters efficiently, manage battle phases, and reference spells seamlessly during gameplay.
+- **Experience Qualities**: Professional, Intuitive, Mystical
 
 ## Project Classification & Approach
-- **Complexity Level**: Complex Application (multiple interconnected features with advanced functionality)
-- **Primary User Activity**: Creating and managing game content
+- **Complexity Level**: Light Application (multiple features with basic state)
+- **Primary User Activity**: Creating and Managing game content
+
+## Thought Process for Feature Selection
+- **Core Problem Analysis**: Game Masters need quick access to character generation, encounter balancing, and reference tools during live gameplay sessions
+- **User Context**: Used during active RPG sessions where speed and accuracy are critical
+- **Critical Path**: Tool selection → Input parameters → Generate content → Export/use results
+- **Key Moments**: Character generation, encounter balancing, spell reference lookup
 
 ## Essential Features
-- Advanced encounter generator with threat calculations
-- Player character generator with spell selection
-- NPC generator for quick character creation
-- Battle phase calculator for combat management
-- Monster HP calculator
-- Comprehensive spell reference system
+- **Encounter Generator**: Creates balanced encounters based on party composition and difficulty
+- **NPC Generator**: Generates detailed NPCs with stats, abilities, and equipment
+- **Player Character Generator**: Complete character creation following official rules
+- **Battle Calculator**: Manages initiative order and combat phases
+- **Monster HP Calculator**: Calculates hit points based on creature parameters
+- **Spell Reference**: Searchable database of spells with filtering
 
 ## Design Direction
 
 ### Visual Tone & Identity
-- **Emotional Response**: Professional confidence with mystical undertones
-- **Design Personality**: Dark, mystical theme reflecting the Eldritch RPG aesthetic
-- **Visual Metaphors**: Ancient tomes, arcane symbols, shadowy depths
-- **Simplicity Spectrum**: Clean interface with rich content depth
+- **Emotional Response**: Professional confidence with mystical atmosphere
+- **Design Personality**: Elegant and arcane, combining modern UI with fantasy aesthetics
+- **Visual Metaphors**: Ancient grimoires, mystical energy, scholarly precision
+- **Simplicity Spectrum**: Clean interface with rich functionality
 
 ### Color Strategy
-- **Color Scheme Type**: Analogous with accent
+- **Color Scheme Type**: Monochromatic with mystical accents
 - **Primary Color**: Deep mystical green (oklch(0.35 0.15 150)) - represents arcane knowledge
-- **Secondary Colors**: Dark blue-grays for depth and mystery
+- **Secondary Colors**: Dark blues and purples for depth and mystery
 - **Accent Color**: Bright mystical green (oklch(0.65 0.25 145)) for highlights and actions
-- **Color Psychology**: Dark colors convey mystery and depth, green accents suggest magical energy
+- **Color Psychology**: Green conveys wisdom and magic, dark tones suggest depth and mystery
+- **Color Accessibility**: High contrast ratios maintained for readability
 
 ### Typography System
-- **Font Pairing Strategy**: Serif headings (Crimson Text) for elegance, sans-serif body (Inter) for readability
-- **Typographic Hierarchy**: Clear distinction between headings, body text, and data
-- **Typography Consistency**: Consistent sizing and spacing throughout
+- **Font Pairing Strategy**: Serif headings (Crimson Text) with clean sans-serif body (Inter)
+- **Typographic Hierarchy**: Clear distinction between headers, body text, and data
+- **Font Personality**: Scholarly yet approachable, combining tradition with modernity
+- **Readability Focus**: Optimized line spacing and font sizes for quick scanning
+- **Typography Consistency**: Consistent font weights and sizes across all components
 
-### Component Selection
-- **Component Usage**: Cards for tool sections, tabs for navigation, forms for inputs
+### Visual Hierarchy & Layout
+- **Attention Direction**: Tab-based navigation directs users to specific tools
+- **White Space Philosophy**: Generous spacing creates calm, focused experience
+- **Grid System**: Responsive grid adapts from mobile to desktop
+- **Responsive Approach**: Mobile-first design with progressive enhancement
+- **Content Density**: Balanced information density for quick reference
+
+### Animations
+- **Purposeful Meaning**: Subtle transitions enhance usability without distraction
+- **Hierarchy of Movement**: Focus on state changes and feedback
+- **Contextual Appropriateness**: Minimal animations to maintain professional feel
+
+### UI Elements & Component Selection
+- **Component Usage**: Shadcn/ui components for consistency and accessibility
+- **Component Customization**: Custom theming for mystical aesthetic
+- **Component States**: Clear hover, active, and disabled states
+- **Icon Selection**: Phosphor icons for clean, modern iconography
+- **Component Hierarchy**: Primary buttons for generation, secondary for export/copy
 - **Spacing System**: Consistent padding and margins using Tailwind spacing
-- **Mobile Adaptation**: Responsive grid layouts and collapsible navigation
+- **Mobile Adaptation**: Responsive breakpoints for optimal mobile experience
+
+### Visual Consistency Framework
+- **Design System Approach**: Component-based design with consistent theming
+- **Style Guide Elements**: Color palette, typography scale, spacing system
+- **Visual Rhythm**: Consistent card layouts and component spacing
+- **Brand Alignment**: Mystical theme reinforces RPG context
+
+### Accessibility & Readability
+- **Contrast Goal**: WCAG AA compliance for all text and interactive elements
+
+## Edge Cases & Problem Scenarios
+- **Potential Obstacles**: Complex character generation rules, spell database size
+- **Edge Case Handling**: Validation for all inputs, graceful error handling
+- **Technical Constraints**: Browser compatibility, mobile performance
 
 ## Implementation Considerations
-- React with TypeScript for type safety
-- Shadcn components for consistent UI
-- Complex data calculations for RPG mechanics
-- Export functionality for character sheets
+- **Scalability Needs**: Expandable for additional RPG systems or rule sets
+- **Testing Focus**: Character generation accuracy, encounter balance validation
+- **Critical Questions**: Rule interpretation accuracy, user workflow efficiency
+
+## Reflection
+This approach uniquely combines the depth of tabletop RPG rules with modern web application convenience, making complex game mastering tasks accessible and efficient during live gameplay sessions.
