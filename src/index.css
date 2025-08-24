@@ -79,3 +79,21 @@ h1, h2, h3, h4, h5, h6 {
 .font-mono {
   font-family: var(--font-mono);
 }
+
+/* Custom tab styling for better alignment */
+[data-radix-collection-item] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Ensure tab content is properly centered */
+[role="tab"] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  min-height: 3rem;
+}
