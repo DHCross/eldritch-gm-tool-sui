@@ -19,11 +19,11 @@ function App() {
         
         <Tabs defaultValue="gm" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="gm" className="flex items-center gap-2 text-lg py-3">
+            <TabsTrigger value="gm" className="flex items-center justify-center gap-2 text-lg py-3">
               <Crown size={24} />
               Game Master Tools
             </TabsTrigger>
-            <TabsTrigger value="player" className="flex items-center gap-2 text-lg py-3">
+            <TabsTrigger value="player" className="flex items-center justify-center gap-2 text-lg py-3">
               <UserFocus size={24} />
               Player Tools
             </TabsTrigger>
