@@ -116,10 +116,10 @@ const classFeats = {
   Adept: ['Guile', 'Lore', 'Ritual Magic', 'Quick-witted'],
   Assassin: ['Death Strike', 'Lethal Exploit', 'Ranged Ambush', 'Shadow Walk'],
   Barbarian: ['Berserk', 'Brawl', 'Feat of Strength', 'Grapple'],
-  Mage: ['Arcane Finesse', 'Dweomers', 'Intangible Threat', 'Path Mastery'],
-  Mystic: ['Iron Mind', 'Path Mastery', 'Premonition', 'Psychic Powers'],
+  Mage: ['Arcane Finesse', 'Dweomers', 'Intangible Threat', 'Path Mastery (Thaumaturgy, Elementalism, or Sorcery)'],
+  Mystic: ['Iron Mind', 'Path Mastery (Mysticism)', 'Premonition', 'Psychic Powers'],
   Rogue: ['Backstab', 'Evasion', 'Roguish Charm', 'Stealth'],
-  Theurgist: ['Divine Healing', 'Path Mastery', 'Spiritual Smite', 'Supernatural Intervention'],
+  Theurgist: ['Divine Healing', 'Path Mastery (Druidry or Hieraticism)', 'Spiritual Smite', 'Supernatural Intervention'],
   Warrior: ['Battle Savvy', 'Maneuvers', 'Stunning Reversal', 'Sunder Foe']
 }
 
@@ -298,6 +298,12 @@ function PlayerCharacterGenerator() {
       return
     }
 
+    // Check if magic path is required but not selected
+    if (showMagicPath && !magicPath) {
+      toast.error('Please select a magic path for this class.')
+      return
+    }
+
     // Initialize character
     const ch: CharacterData = {
       race,
@@ -351,7 +357,22 @@ function PlayerCharacterGenerator() {
     ch.masteryDie = levelInfo[level - 1].masteryDie
     ch.advantages = getAdvantages(race, characterClass)
     ch.flaws = raceFlaws[race as keyof typeof raceFlaws] || []
-    ch.classFeats = classFeats[characterClass as keyof typeof classFeats] || []
+    
+    // Handle class feats with Path Mastery specialization
+    let feats = [...(classFeats[characterClass as keyof typeof classFeats] || [])]
+    if (characterClass === 'Mage' && magicPath) {
+      const pathMasteryIndex = feats.findIndex(f => f.includes('Path Mastery'))
+      if (pathMasteryIndex !== -1) {
+        feats[pathMasteryIndex] = `Path Mastery (${magicPath})`
+      }
+    } else if (characterClass === 'Theurgist' && magicPath) {
+      const pathMasteryIndex = feats.findIndex(f => f.includes('Path Mastery'))
+      if (pathMasteryIndex !== -1) {
+        feats[pathMasteryIndex] = `Path Mastery (${magicPath})`
+      }
+    }
+    ch.classFeats = feats
+    
     ch.equipment = getEquipment(characterClass)
 
     // Setup actions
@@ -466,7 +487,13 @@ function PlayerCharacterGenerator() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Player Character Generator</CardTitle>
+          <CardTitle>Player Character Generator (Full Rules)</CardTitle>
+          <Alert>
+            <AlertDescription>
+              This generator follows the complete player character creation rules from Eldritch RPG 2nd Edition. 
+              Characters are built with racial and class minimums plus a customization budget based on level.
+            </AlertDescription>
+          </Alert>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

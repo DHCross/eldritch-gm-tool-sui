@@ -27,10 +27,10 @@
 - **Why it matters**: Supports both quick NPC creation and detailed player character building
 - **Success criteria**: Characters follow game rules precisely and can be exported for use
 
-### Player Character Generator
-- **What it does**: Full featured character creation following player creation rules with CP tracking
-- **Why it matters**: Allows players to create characters that follow the exact character point spending rules
-- **Success criteria**: Accurate CP calculations, proper minimums application, and comprehensive character sheets
+### Player Character Generator (Full Rules)
+- **What it does**: Complete character creation following official player character creation rules with accurate CP tracking and spending
+- **Why it matters**: Allows players to create characters that precisely follow the character point spending system from the rulebook
+- **Success criteria**: Accurate CP calculations, proper racial/class minimums application, correct feat assignment, and comprehensive character sheets with advancement tracking
 
 ### Battle Calculator
 - **What it does**: Manages initiative order and tracks combat statistics

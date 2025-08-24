@@ -14,7 +14,7 @@ function App() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="container max-w-4xl mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold text-center mb-8 text-primary drop-shadow-lg">
-          Eldritch GM Tool Suite
+          Eldritch RPG GM Tool Suite
         </h1>
         
         <Tabs defaultValue="encounter" className="w-full">
