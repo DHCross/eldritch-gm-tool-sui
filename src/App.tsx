@@ -7,72 +7,94 @@ import PlayerCharacterGenerator from './components/PlayerCharacterGenerator'
 import BattleCalculator from './components/BattleCalculator'
 import MonsterHPCalculator from './components/MonsterHPCalculator'
 import SpellReference from './components/SpellReference'
-import { Dice6, User, Swords, Heart, Sparkles, UserFocus } from "@phosphor-icons/react"
+import { Crown, UserFocus, Dice6, User, Swords, Heart, Sparkles } from "@phosphor-icons/react"
 
 function App() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="container max-w-4xl mx-auto px-4 py-8">
+      <div className="container max-w-5xl mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold text-center mb-8 text-primary drop-shadow-lg">
-          Eldritch RPG GM Tool Suite
+          Eldritch RPG Tool Suite
         </h1>
         
-        <Tabs defaultValue="encounter" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-6">
-            <TabsTrigger value="encounter" className="flex items-center gap-2">
-              <Dice6 size={20} />
-              <span className="hidden sm:inline">Encounter Generator</span>
-              <span className="sm:hidden">Encounter</span>
+        <Tabs defaultValue="gm" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="gm" className="flex items-center gap-2 text-lg py-3">
+              <Crown size={24} />
+              Game Master Tools
             </TabsTrigger>
-            <TabsTrigger value="character" className="flex items-center gap-2">
-              <User size={20} />
-              <span className="hidden sm:inline">NPC Generator</span>
-              <span className="sm:hidden">NPC</span>
-            </TabsTrigger>
-            <TabsTrigger value="player" className="flex items-center gap-2">
-              <UserFocus size={20} />
-              <span className="hidden sm:inline">Player Character</span>
-              <span className="sm:hidden">Player</span>
-            </TabsTrigger>
-            <TabsTrigger value="battle" className="flex items-center gap-2">
-              <Swords size={20} />
-              <span className="hidden sm:inline">Battle Calculator</span>
-              <span className="sm:hidden">Battle</span>
-            </TabsTrigger>
-            <TabsTrigger value="monster" className="flex items-center gap-2">
-              <Heart size={20} />
-              <span className="hidden sm:inline">Monster HP</span>
-              <span className="sm:hidden">Monster</span>
-            </TabsTrigger>
-            <TabsTrigger value="spells" className="flex items-center gap-2">
-              <Sparkles size={20} />
-              <span className="hidden sm:inline">Spell Reference</span>
-              <span className="sm:hidden">Spells</span>
+            <TabsTrigger value="player" className="flex items-center gap-2 text-lg py-3">
+              <UserFocus size={24} />
+              Player Tools
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="encounter">
-            <EncounterGenerator />
+          <TabsContent value="gm" className="space-y-6">
+            <Tabs defaultValue="encounter" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 mb-6">
+                <TabsTrigger value="encounter" className="flex items-center gap-2">
+                  <Dice6 size={18} />
+                  <span className="hidden sm:inline">Encounter Generator</span>
+                  <span className="sm:hidden">Encounter</span>
+                </TabsTrigger>
+                <TabsTrigger value="npc" className="flex items-center gap-2">
+                  <User size={18} />
+                  <span className="hidden sm:inline">NPC Generator</span>
+                  <span className="sm:hidden">NPC</span>
+                </TabsTrigger>
+                <TabsTrigger value="battle" className="flex items-center gap-2">
+                  <Swords size={18} />
+                  <span className="hidden sm:inline">Battle Calculator</span>
+                  <span className="sm:hidden">Battle</span>
+                </TabsTrigger>
+                <TabsTrigger value="monster" className="flex items-center gap-2">
+                  <Heart size={18} />
+                  <span className="hidden sm:inline">Monster HP</span>
+                  <span className="sm:hidden">Monster</span>
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="encounter">
+                <EncounterGenerator />
+              </TabsContent>
+              
+              <TabsContent value="npc">
+                <NPCGenerator />
+              </TabsContent>
+              
+              <TabsContent value="battle">
+                <BattleCalculator />
+              </TabsContent>
+              
+              <TabsContent value="monster">
+                <MonsterHPCalculator />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
           
-          <TabsContent value="character">
-            <NPCGenerator />
-          </TabsContent>
-          
-          <TabsContent value="player">
-            <PlayerCharacterGenerator />
-          </TabsContent>
-          
-          <TabsContent value="battle">
-            <BattleCalculator />
-          </TabsContent>
-          
-          <TabsContent value="monster">
-            <MonsterHPCalculator />
-          </TabsContent>
-          
-          <TabsContent value="spells">
-            <SpellReference />
+          <TabsContent value="player" className="space-y-6">
+            <Tabs defaultValue="character" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="character" className="flex items-center gap-2">
+                  <UserFocus size={18} />
+                  <span className="hidden sm:inline">Character Generator</span>
+                  <span className="sm:hidden">Character</span>
+                </TabsTrigger>
+                <TabsTrigger value="spells" className="flex items-center gap-2">
+                  <Sparkles size={18} />
+                  <span className="hidden sm:inline">Spell Reference</span>
+                  <span className="sm:hidden">Spells</span>
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="character">
+                <PlayerCharacterGenerator />
+              </TabsContent>
+              
+              <TabsContent value="spells">
+                <SpellReference />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
         </Tabs>
       </div>
