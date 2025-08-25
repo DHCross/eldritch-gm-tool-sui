@@ -523,12 +523,6 @@ const PlayerCharacterGenerator: React.FC = () => {
             )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Build Philosophy */}
-            <Card className="p-4">
-              <h3 className="font-semibold mb-3">Build Philosophy</h3>
-              <RadioGroup
-                value={settings.buildStyle}
                 onValueChange={(value) => setSettings({ ...settings, buildStyle: value as any })}
                 className="flex flex-wrap gap-2"
               >
@@ -537,11 +531,11 @@ const PlayerCharacterGenerator: React.FC = () => {
                   <Label htmlFor="balanced" className="text-sm font-medium">Balanced</Label>
                 </div>
                 <div className="flex items-center space-x-2 bg-background border rounded-full px-3 py-2">
-                  <RadioGroupItem value="hybrid" id="hybrid" />
+              >em value="hybrid" id="hybrid" />
                   <Label htmlFor="hybrid" className="text-sm font-medium">Hybrid</Label>
                 </div>
                 <div className="flex items-center space-x-2 bg-background border rounded-full px-3 py-2">
-                  <RadioGroupItem value="specialist" id="specialist" />
+                </div>t" />
                   <Label htmlFor="specialist" className="text-sm font-medium">Specialist</Label>
                 </div>
               </RadioGroup>
@@ -640,13 +634,13 @@ const PlayerCharacterGenerator: React.FC = () => {
 
       {character && (
         <Card>
-          <CardHeader>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <CardTitle className="text-2xl">{character.race} {character.class}</CardTitle>
-                <CardDescription>Level {character.displayLevel}</CardDescription>
-              </div>
-              <div className="flex items-center gap-2">
+          </div>
+        </CardContent>
+      </Card>
+lassName="text-2xl">{character.race} {character.class}</CardTitle>
+      {character && (aracter.displayLevel}</CardDescription>
+        <Card>
+          <CardHeader>enter gap-2">
                 <Badge variant="secondary">Style: {settings.buildStyle}</Badge>
                 {(settings.level === 1 && settings.rookieProfile !== 'off') && (
                   <Badge variant="outline">Rookie: {settings.rookieProfile}</Badge>
@@ -659,12 +653,18 @@ const PlayerCharacterGenerator: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="text-center p-3 bg-muted rounded-lg">
                 <div className="text-2xl font-bold text-primary">{character.pools.spirit}</div>
+          </CardHeader>assName="text-sm text-muted-foreground">Spirit Points</div>
+          <CardContent className="space-y-6">
+            {/* Core Stats */}bg-muted rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="text-center p-3 bg-muted rounded-lg">
+                <div className="text-2xl font-bold text-primary">{character.pools.spirit}</div>
                 <div className="text-sm text-muted-foreground">Spirit Points</div>
-              </div>
+              </div>-bold text-primary">{character.pools.passive}</div>
               <div className="text-center p-3 bg-muted rounded-lg">
                 <div className="text-2xl font-bold text-primary">{character.pools.active}</div>
                 <div className="text-sm text-muted-foreground">Active DP</div>
-              </div>
+              </div>-bold text-primary">{character.masteryDie}</div>
               <div className="text-center p-3 bg-muted rounded-lg">
                 <div className="text-2xl font-bold text-primary">{character.pools.passive}</div>
                 <div className="text-sm text-muted-foreground">Passive DP</div>
@@ -676,15 +676,9 @@ const PlayerCharacterGenerator: React.FC = () => {
             </div>
 
             <Separator />
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Abilities */}
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Abilities</h3>
-                <div className="space-y-3">
-                  {abilities.map((ability) => {
+ies.map((ability) => {
                     const die = character.abilities[ability];
-                    const specEntries = (specs as any)[ability].map((specialty: string) => {
+              {/* Abilities */}
                       const specDie = character.specialties[ability][specialty];
                       const focusEntries = (foci as any)[specialty].map((focus: string) => {
                         const value = fnum(character.focuses[ability][focus]);
@@ -700,6 +694,12 @@ const PlayerCharacterGenerator: React.FC = () => {
                         <span className="ml-2">→ {specEntries.join(', ')}.</span>
                       </div>
                     );
+                    return (
+                      <div key={ability} className="text-sm">
+                        <span className="font-semibold text-primary">{ability} {die}</span>
+                        <span className="ml-2">→ {specEntries.join(', ')}.</span>
+                      </div>
+                    );
                   })}
                 </div>
               </div>
@@ -707,13 +707,13 @@ const PlayerCharacterGenerator: React.FC = () => {
               {/* Actions */}
               <div>
                 <h3 className="text-lg font-semibold mb-4">Actions</h3>
-                <div className="space-y-2">
-                  {Object.entries(character.actions).map(([name, value]) => {
-                    const displayName = name.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-                    return (
-                      <div key={name} className="flex justify-between text-sm">
-                        <span className="font-medium">{displayName}:</span>
                         <span className="font-mono">{value}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
                       </div>
                     );
                   })}
@@ -790,7 +790,7 @@ const PlayerCharacterGenerator: React.FC = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          <tr className="border-b">
+                            <td className="px-4 py-2">200</td>
                             <td className="px-4 py-2 font-medium">Level 2</td>
                             <td className="px-4 py-2">100</td>
                           </tr>
@@ -799,12 +799,6 @@ const PlayerCharacterGenerator: React.FC = () => {
                             <td className="px-4 py-2">200</td>
                           </tr>
                           <tr className="border-b">
-                            <td className="px-4 py-2 font-medium">Level 4</td>
-                            <td className="px-4 py-2">300</td>
-                          </tr>
-                          <tr>
-                            <td className="px-4 py-2 font-medium">Level 5</td>
-                            <td className="px-4 py-2">500</td>
                           </tr>
                         </tbody>
                       </table>
@@ -816,7 +810,17 @@ const PlayerCharacterGenerator: React.FC = () => {
           </CardContent>
         </Card>
       )}
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
+  );
+};
+
+export default PlayerCharacterGenerator;
   );
 };
 
