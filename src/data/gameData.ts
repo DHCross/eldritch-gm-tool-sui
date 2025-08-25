@@ -1,118 +1,42 @@
-// Eldritch RPG game data and tables
+// Core game data for Eldritch RPG
 
-export const SPELL_CHALLENGE_TABLE = {
-  'Common (D0)': { challenge: 'D0', maintenancePenalty: null },
-  'Common (D4)': { challenge: 'D4', maintenancePenalty: '-1' },
-  'Uncommon': { challenge: 'D6', maintenancePenalty: '-2' },
-  'Esoteric': { challenge: 'D8', maintenancePenalty: '-3' },
-  'Occult': { challenge: 'D10', maintenancePenalty: '-4' },
-  'Legendary': { challenge: 'D12', maintenancePenalty: '-5' },
-}
+export const DICE_RANKS = ['d4', 'd6', 'd8', 'd10', 'd12'] as const
+export const ABILITIES = ['Competence', 'Prowess', 'Fortitude'] as const
+export const DIFFICULTY_LEVELS = ['Easy', 'Moderate', 'Difficult', 'Demanding', 'Formidable', 'Deadly'] as const
+export const DEFENSE_LEVELS = ['Practitioner', 'Competent', 'Proficient', 'Advanced', 'Elite'] as const
 
-export const SPELL_POTENCY_TABLE = {
-  '1': { challenge: 'd4', rarity: 'Common', modifier: '±1' },
-  '2': { challenge: 'd6', rarity: 'Uncommon', modifier: '±2' },
-  '3': { challenge: 'd8', rarity: 'Esoteric', modifier: '±3' },
-  '4': { challenge: 'd10', rarity: 'Occult', modifier: '±4' },
-  '5': { challenge: 'd12', rarity: 'Legendary', modifier: '±5' },
-}
+export const SPECIALTIES = {
+  Competence: ['Adroitness', 'Expertise', 'Perception'],
+  Prowess: ['Agility', 'Melee', 'Precision'],
+  Fortitude: ['Endurance', 'Strength', 'Willpower']
+} as const
 
-export const SPELL_FAILURE_TABLE = {
-  'D0 (Auto Harm)': { reattemptConsequence: 'N/A None' },
-  'D4 (Common)': { reattemptConsequence: 'Next Round Spell Fizzles' },
-  'D6 (Uncommon)': { reattemptConsequence: '2 rounds', spiritLoss: 1, rounds: 2 },
-  'D8 (Esoteric)': { reattemptConsequence: '3 rounds', spiritLoss: 3, rounds: 3 },
-  'D10 (Occult)': { reattemptConsequence: '4 rounds', spiritLoss: 4, rounds: 4 },
-  'D12 (Legendary)': { reattemptConsequence: '5 rounds', spiritLoss: 5, rounds: 5 },
-}
+export const FOCUSES = {
+  Adroitness: ['Skulduggery', 'Cleverness'],
+  Expertise: ['Wizardry', 'Theurgy'],
+  Perception: ['Alertness', 'Perspicacity'],
+  Agility: ['Speed', 'Reaction'],
+  Melee: ['Threat', 'Finesse'],
+  Precision: ['Ranged Threat', 'Ranged Finesse'],
+  Endurance: ['Vitality', 'Resilience'],
+  Strength: ['Ferocity', 'Might'],
+  Willpower: ['Courage', 'Resistance']
+} as const
 
-export const RARITY_UNLOCK_TABLE = {
-  'Weak (1-3)': 'd4 (Common)',
-  'Average (4+)': 'd6 (Uncommon)',
-  'Respectable (12+)': 'd8 (Esoteric)',
-  'Skilled (16+)': 'd10 (Occult)',
-  'Great (20+)': 'd12 (Legendary)',
-  'Phenomenal (24+)': 'd12+ (Legendary+)',
-}
+export const RACES = ['Human', 'Elf', 'Dwarf', 'Gnome', 'Half-Elf', 'Half-Orc', 'Halfling', 'Drakkin'] as const
+export const CLASSES = ['Adept', 'Assassin', 'Barbarian', 'Mage', 'Mystic', 'Rogue', 'Theurgist', 'Warrior'] as const
+export const LEVELS = [1, 2, 3, 4, 5] as const
 
-export const CHALLENGE_DIFFICULTIES = {
-  'Easy': { base: 'd4', withDisadvantage: '2d4' },
-  'Moderate': { base: 'd6', withDisadvantage: '2d6' },
-  'Difficult': { base: 'd8', withDisadvantage: '2d8' },
-  'Demanding': { base: 'd10', withDisadvantage: '2d10' },
-  'Formidable': { base: 'd12', withDisadvantage: '2d12' },
-}
+export const CASTER_CLASSES = ['Adept', 'Mage', 'Mystic', 'Theurgist'] as const
 
-export const SUCCESS_CHANCE_TABLE = [
-  {
-    ability: 'Average (2d4)',
-    difficulties: [
-      { name: 'Easy (≥1d4)', standard: '94%', disadvantage: '59%' },
-      { name: 'Moderate (≥1d6)', standard: '79%', disadvantage: '31%' },
-      { name: 'Difficult (≥1d8)', standard: '62%', disadvantage: '18%' },
-      { name: 'Demanding (≥1d10)', standard: '50%', disadvantage: '11%' },
-      { name: 'Formidable (≥1d12)', standard: '41%', disadvantage: '8%' },
-    ]
-  },
-  {
-    ability: 'Respectable (2d6)',
-    difficulties: [
-      { name: 'Easy (≥1d4)', standard: '97%', disadvantage: '80%' },
-      { name: 'Moderate (≥1d6)', standard: '90%', disadvantage: '56%' },
-      { name: 'Difficult (≥1d8)', standard: '81%', disadvantage: '36%' },
-      { name: 'Demanding (≥1d10)', standard: '69%', disadvantage: '24%' },
-      { name: 'Formidable (≥1d12)', standard: '58%', disadvantage: '17%' },
-    ]
-  },
-  {
-    ability: 'Skilled (2d8)',
-    difficulties: [
-      { name: 'Easy (≥1d4)', standard: '98%', disadvantage: '89%' },
-      { name: 'Moderate (≥1d6)', standard: '94%', disadvantage: '72%' },
-      { name: 'Difficult (≥1d8)', standard: '88%', disadvantage: '54%' },
-      { name: 'Demanding (≥1d10)', standard: '81%', disadvantage: '39%' },
-      { name: 'Formidable (≥1d12)', standard: '72%', disadvantage: '28%' },
-    ]
-  },
-  {
-    ability: 'Great (2d10)',
-    difficulties: [
-      { name: 'Easy (≥1d4)', standard: '99%', disadvantage: '93%' },
-      { name: 'Moderate (≥1d6)', standard: '96%', disadvantage: '82%' },
-      { name: 'Difficult (≥1d8)', standard: '93%', disadvantage: '68%' },
-      { name: 'Demanding (≥1d10)', standard: '88%', disadvantage: '53%' },
-      { name: 'Formidable (≥1d12)', standard: '81%', disadvantage: '41%' },
-    ]
-  },
-  {
-    ability: 'Phenomenal (2d12)',
-    difficulties: [
-      { name: 'Easy (≥1d4)', standard: '99%', disadvantage: '95%' },
-      { name: 'Moderate (≥1d6)', standard: '97%', disadvantage: '88%' },
-      { name: 'Difficult (≥1d8)', standard: '95%', disadvantage: '77%' },
-      { name: 'Demanding (≥1d10)', standard: '91%', disadvantage: '65%' },
-      { name: 'Formidable (≥1d12)', standard: '87%', disadvantage: '53%' },
-    ]
-  },
-]
+export const MAGIC_PATHS_BY_CLASS = {
+  Adept: ['Thaumaturgy', 'Elementalism', 'Sorcery'],
+  Mage: ['Thaumaturgy', 'Elementalism', 'Sorcery'],
+  Mystic: ['Mysticism'],
+  Theurgist: ['Druidry', 'Hieraticism']
+} as const
 
-export const BATTLE_PHASE_TABLE = [
-  { prowess: 'd12', phase: 1, initiative: '12+' },
-  { prowess: 'd10', phase: 2, initiative: '9-11' },
-  { prowess: 'd8', phase: 3, initiative: '7-8' },
-  { prowess: 'd6', phase: 4, initiative: '5-6' },
-  { prowess: 'd4', phase: 5, initiative: '1-4' },
-]
-
-export const CRAFTING_CHALLENGE_TABLE = [
-  { potency: '1d4 or ±1', challenge: '2d4 (Easy)', type: 'Common', time: '1 hour' },
-  { potency: '1d6 or ±2', challenge: '2d6 (Moderate)', type: 'Uncommon', time: '2 hours' },
-  { potency: '1d8 or ±3', challenge: '2d8 (Difficult)', type: 'Esoteric', time: '3 hours' },
-  { potency: '1d10 or ±4', challenge: '2d10 (Demanding)', type: 'Occult', time: '4 hours' },
-  { potency: '1d12 or ±5', challenge: '2d12 (Formidable)', type: 'Legendary', time: '5 hours' },
-]
-
-// Additional data for EncounterGenerator
+// Encounter generation data
 export const ENCOUNTER_DIFFICULTY_TABLE = {
   1: { 
     Practitioner: [7,10,12,14,16,18], 
@@ -142,9 +66,20 @@ export const ENCOUNTER_DIFFICULTY_TABLE = {
     Advanced: [112,147,180,224,256,288], 
     Elite: [140,185,228,280,320,360] 
   }
-}
+} as const
 
-export const HIT_POINT_MODIFIERS = {
+export const THREAT_DICE_BY_CATEGORY = {
+  Minor: ['1d4','1d6','1d8','1d10','1d12'],
+  Standard: ['2d4','2d6','2d8','2d10','2d12'],
+  Exceptional: ['3d4','3d6','3d8','3d10','3d12'],
+  Legendary: ['3d12','3d14','3d16','3d18','3d20']
+} as const
+
+export const CREATURE_SIZES = ['Minuscule', 'Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan'] as const
+export const CREATURE_NATURES = ['Mundane', 'Magical', 'Preternatural', 'Supernatural'] as const
+export const CREATURE_TYPES = ['Minor', 'Standard', 'Exceptional', 'Legendary'] as const
+
+export const HP_MULTIPLIERS = {
   'Minuscule': {'Mundane': 0.5, 'Magical': 1, 'Preternatural': 1.5, 'Supernatural': 2},
   'Tiny': {'Mundane': 0.5, 'Magical': 1, 'Preternatural': 1.5, 'Supernatural': 2},
   'Small': {'Mundane': 1, 'Magical': 1.5, 'Preternatural': 2, 'Supernatural': 2.5},
@@ -152,12 +87,58 @@ export const HIT_POINT_MODIFIERS = {
   'Large': {'Mundane': 1.5, 'Magical': 2, 'Preternatural': 2.5, 'Supernatural': 3},
   'Huge': {'Mundane': 2, 'Magical': 2.5, 'Preternatural': 3, 'Supernatural': 3.5},
   'Gargantuan': {'Mundane': 2.5, 'Magical': 3, 'Preternatural': 3.5, 'Supernatural': 4}
-}
+} as const
 
-export const BATTLE_PHASES = {
-  'd12': { phase: 1, initiative: '12+' },
-  'd10': { phase: 2, initiative: '9-11' },
-  'd8': { phase: 3, initiative: '7-8' },
-  'd6': { phase: 4, initiative: '5-6' },
-  'd4': { phase: 5, initiative: '1-4' },
-}
+// Character creation data
+export const RACE_MINIMA = {
+  Drakkin: {Competence: 'd6', Prowess: 'd6', Fortitude: 'd6', Endurance: 'd6', Strength: 'd4'},
+  Dwarf: {Fortitude: 'd8', Endurance: 'd4', Prowess: 'd6', Melee: 'd6'},
+  Elf: {Competence: 'd6', Expertise: 'd6', Wizardry: '+1', Prowess: 'd4', Agility: 'd4', Reaction: '+1'},
+  Gnome: {Competence: 'd4', Adroitness: 'd6', Expertise: 'd6', Perception: 'd4', Perspicacity: '+1'},
+  'Half-Elf': {Competence: 'd6', Prowess: 'd6', Agility: 'd4', Fortitude: 'd4', Endurance: 'd4', Willpower: 'd4'},
+  'Half-Orc': {Fortitude: 'd6', Strength: 'd8', Ferocity: '+1', Endurance: 'd6'},
+  Halfling: {Competence: 'd6', Adroitness: 'd6', Cleverness: '+1', Fortitude: 'd6', Willpower: 'd4', Courage: '+1'},
+  Human: {Competence: 'd6', Prowess: 'd6', Melee: 'd4', Threat: '+1', Fortitude: 'd4', Willpower: 'd6'}
+} as const
+
+export const CLASS_MINIMA = {
+  Adept: {Competence: 'd6', Adroitness: 'd4', Cleverness: '+1', Expertise: 'd6', Wizardry: '+1', Perception: 'd4', Perspicacity: '+1'},
+  Assassin: {Competence: 'd4', Adroitness: 'd6', Perception: 'd4', Prowess: 'd4', Agility: 'd4', Endurance: 'd6', Melee: 'd4', Finesse: '+1'},
+  Barbarian: {Prowess: 'd6', Melee: 'd8', Fortitude: 'd4', Strength: 'd4', Ferocity: '+1'},
+  Mage: {Competence: 'd6', Expertise: 'd8', Wizardry: '+1', Fortitude: 'd4', Willpower: 'd6', Resistance: '+1'},
+  Mystic: {Competence: 'd6', Expertise: 'd6', Wizardry: '+1', Prowess: 'd4', Melee: 'd4', Fortitude: 'd4', Endurance: 'd6', Resilience: '+1', Vitality: '+2'},
+  Rogue: {Competence: 'd4', Adroitness: 'd4', Skulduggery: '+1', Perception: 'd4', Prowess: 'd6', Agility: 'd8'},
+  Theurgist: {Competence: 'd8', Expertise: 'd4', Theurgy: '+1', Fortitude: 'd6', Willpower: 'd4'},
+  Warrior: {Prowess: 'd8', Melee: 'd6', Threat: '+1', Fortitude: 'd6'}
+} as const
+
+export const CLASS_FEATS = {
+  Adept: ['Guile', 'Lore', 'Ritual Magic', 'Quick-witted'],
+  Assassin: ['Death Strike', 'Lethal Exploit', 'Ranged Ambush', 'Shadow Walk'],
+  Barbarian: ['Berserk', 'Brawl', 'Feat of Strength', 'Grapple'],
+  Mage: ['Arcane Finesse', 'Dweomers', 'Intangible Threat', 'Path Mastery'],
+  Mystic: ['Iron Mind', 'Path Mastery', 'Premonition', 'Psychic Powers'],
+  Rogue: ['Backstab', 'Evasion', 'Roguish Charm', 'Stealth'],
+  Theurgist: ['Divine Healing', 'Path Mastery', 'Spiritual Smite', 'Supernatural Intervention'],
+  Warrior: ['Battle Savvy', 'Maneuvers', 'Stunning Reversal', 'Sunder Foe']
+} as const
+
+export const LEVEL_INFO = [
+  { level: 1, masteryDie: 'd4', usesPerDay: 2, cp_range: '10 to 100' },
+  { level: 2, masteryDie: 'd6', usesPerDay: 4, cp_range: '101 to 199' },
+  { level: 3, masteryDie: 'd8', usesPerDay: 6, cp_range: '200 to 299' },
+  { level: 4, masteryDie: 'd10', usesPerDay: 8, cp_range: '300 to 399' },
+  { level: 5, masteryDie: 'd12', usesPerDay: 10, cp_range: '400 to 500+' }
+] as const
+
+export const STEP_COSTS = {'d4': 6, 'd6': 8, 'd8': 10, 'd10': 12, 'd12': Infinity} as const
+export const FOCUS_STEP_COST = 4
+
+// Battle phase calculation
+export const BATTLE_PHASE_TABLE = {
+  'd12': 1,
+  'd10': 2,
+  'd8': 3,
+  'd6': 4,
+  'd4': 5
+} as const

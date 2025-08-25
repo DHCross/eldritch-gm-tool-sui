@@ -1,62 +1,51 @@
 # Eldritch RPG Tool Suite - Product Requirements Document
 
 ## Core Purpose & Success
-- **Mission Statement**: A comprehensive digital toolkit for the Eldritch RPG system that empowers Game Masters and Players with efficient, accurate, and beautifully designed generators and calculators.
-- **Success Indicators**: Reduced prep time for GMs, accurate rule implementation, intuitive user experience, and increased table engagement.
-- **Experience Qualities**: Mystical, Professional, Efficient
+- **Mission Statement**: Provide Game Masters and Players with comprehensive digital tools for running and playing Eldritch RPG sessions efficiently and elegantly.
+- **Success Indicators**: Tools generate complete, game-ready content that reduces prep time and enhances gameplay experience.
+- **Experience Qualities**: Professional, intuitive, atmospheric.
 
 ## Project Classification & Approach
-- **Complexity Level**: Light Application (multiple features with basic state)
-- **Primary User Activity**: Creating and Acting (generating content for RPG sessions)
+- **Complexity Level**: Complex Application (multiple advanced features with persistent state)
+- **Primary User Activity**: Creating game content and managing gameplay mechanics
 
 ## Essential Features
 
 ### Game Master Tools
-1. **Encounter Generator**: Creates balanced encounters with threat calculations, creature types, and environmental factors
-2. **NPC Generator**: Generates detailed NPCs with abilities, equipment, and background elements
-3. **Battle Calculator**: Manages initiative, hit points, and combat state tracking
-4. **Monster Generator**: Creates detailed monster stat blocks with proper threat calculations
+- **Encounter Generator**: Creates balanced encounters based on party size, defense level, and desired difficulty
+- **NPC Generator**: Generates detailed NPCs with full stats, backgrounds, and equipment
+- **Battle Calculator**: Initiative tracking and combat management system
+- **Monster Generator**: Creates individual creatures with complete stat blocks
 
 ### Player Tools
-1. **Player Character Generator**: Full character creation following Eldritch RPG rules with CP tracking
-2. **Spell Reference**: Searchable spell database with filtering and detailed descriptions
+- **Player Character Generator**: Full character creation following official rules
+- **Spell Reference**: Searchable spell database organized by paths and rarity
 
 ## Design Direction
 
 ### Visual Tone & Identity
-- **Emotional Response**: Users should feel immersed in a mystical, scholarly atmosphere while maintaining modern usability
-- **Design Personality**: Elegant and mystical with clean, professional interface elements
-- **Visual Metaphors**: Ancient tomes, arcane symbols, scholarly instruments
-- **Simplicity Spectrum**: Clean interface with rich functionality hidden in progressive disclosure
+- **Emotional Response**: Mystical, professional, focused
+- **Design Personality**: Dark, atmospheric, elegant with subtle magical elements
+- **Visual Metaphors**: Ancient grimoires, mystical knowledge, scholarly tools
 
 ### Color Strategy
-- **Color Scheme Type**: Custom mystical palette
-- **Primary Color**: Deep mystical green (oklch(0.35 0.15 150)) - represents arcane knowledge and nature
-- **Secondary Colors**: Dark blue-grays for structure and reliability
-- **Accent Color**: Bright mystical green (oklch(0.65 0.25 145)) for interactive elements
-- **Color Psychology**: Dark backgrounds evoke mystery and focus, green accents suggest magic and growth
-- **Foreground/Background Pairings**: 
-  - Background (dark): White/light gray text (high contrast)
-  - Card (medium dark): Light gray text
-  - Primary (mystical green): White text
-  - Accent (bright green): Dark text
+- **Color Scheme Type**: Monochromatic with mystical accents
+- **Primary Color**: Deep mystical green (oklch(0.35 0.15 150))
+- **Secondary Colors**: Dark blues and purples for depth
+- **Accent Color**: Bright mystical green for highlights and active states
+- **Background/Foreground Pairings**: Dark mystical backgrounds with light mystical text ensure high contrast
 
 ### Typography System
-- **Font Pairing Strategy**: Crimson Text for headings (classical, scholarly) with Inter for body text (modern, readable)
-- **Typographic Hierarchy**: Clear distinction between titles, sections, and body content
-- **Font Personality**: Scholarly yet approachable, mystical but not archaic
-- **Which fonts**: Crimson Text for headings, Inter for body text, JetBrains Mono for code/stats
+- **Font Pairing Strategy**: Crimson Text for headers (elegant serif), Inter for body text (clean sans-serif)
+- **Typographic Hierarchy**: Clear distinction between headings, subheadings, and body text
+- **Font Personality**: Scholarly yet approachable
 
 ### UI Elements & Component Selection
-- **Component Usage**: Shadcn components for consistency - Tabs for navigation, Cards for content sections, Forms for generators
-- **Component Hierarchy**: Primary tabs for GM/Player separation, secondary tabs for specific tools
-- **Spacing System**: Generous padding and margins using Tailwind's spacing scale
-- **Mobile Adaptation**: Responsive grid layouts that stack vertically on smaller screens
-
-### Accessibility & Readability
-- **Contrast Goal**: WCAG AA compliance with high contrast ratios for all text elements
+- **Component Usage**: Shadcn tabs for navigation, cards for content sections, forms for input
+- **Component Hierarchy**: Primary tools at top level, secondary functions nested within
+- **Mobile Adaptation**: Responsive design that maintains functionality on all screen sizes
 
 ## Implementation Considerations
-- **Scalability Needs**: Modular component structure allows for easy addition of new tools
-- **State Management**: useKV for persistent data like saved characters, regular state for temporary UI state
-- **Rule Accuracy**: All generators must accurately implement Eldritch RPG mechanics and tables
+- **State Management**: UseKV for persistent data, useState for UI state
+- **Scalability**: Modular component structure for easy expansion
+- **Performance**: Efficient data structures and minimal re-renders

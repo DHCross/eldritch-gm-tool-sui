@@ -1,227 +1,197 @@
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import React, { useState } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { Trash2, Plus } from "@phosphor-icons/react"
 import { useKV } from '@github/spark/hooks'
-import { Swords, Plus, Trash } from "@phosphor-icons/react"
-import { toast } from 'sonner'
-import { BATTLE_PHASES } from '@/data/gameData'
+import { BATTLE_PHASE_TABLE } from '@/data/gameData'
 
 interface Combatant {
   id: string
   name: string
   type: 'pa' | 'npc' | 'qsb'
-  prowess: number
+  prowessDie: string
   battlePhase: number
-  initiativeRange: string
   adp: number
   pdp: number
   maxAdp: number
+  maxPdp: number
   reactionFocus?: number
   spiritPoints?: number
-  isDefeated?: boolean
+  maxSpiritPoints?: number
+  isDefeated: boolean
 }
 
-export default function BattleCalculator() {
+const BattleCalculator: React.FC = () => {
   const [combatants, setCombatants] = useKV<Combatant[]>('battle-combatants', [])
-  const [defeatedCombatants, setDefeatedCombatants] = useKV<Combatant[]>('defeated-combatants', [])
-  
   const [newCombatant, setNewCombatant] = useState({
     name: '',
     type: 'pa' as 'pa' | 'npc' | 'qsb',
-    prowess: 12,
-    adp: 0,
-    pdp: 0,
+    prowessDie: 'd10',
+    adp: 20,
+    pdp: 18,
     reactionFocus: 0,
-    spiritPoints: 0
+    spiritPoints: 10
   })
-
-  const calculateBattlePhase = (prowessDie: number) => {
-    const dieKey = `d${prowessDie}` as keyof typeof BATTLE_PHASES
-    return BATTLE_PHASES[dieKey] || { phase: 5, initiativeRange: '1-4' }
-  }
 
   const addCombatant = () => {
     if (!newCombatant.name.trim()) {
-      toast.error("Please enter a combatant name")
+      alert('Please enter a combatant name.')
       return
     }
 
-    const battlePhaseData = calculateBattlePhase(newCombatant.prowess)
+    const battlePhase = BATTLE_PHASE_TABLE[newCombatant.prowessDie as keyof typeof BATTLE_PHASE_TABLE] || 5
+
     const combatant: Combatant = {
-      id: `${Date.now()}-${Math.random()}`,
+      id: Date.now().toString(),
       name: newCombatant.name,
       type: newCombatant.type,
-      prowess: newCombatant.prowess,
-      battlePhase: battlePhaseData.phase,
-      initiativeRange: battlePhaseData.initiativeRange,
+      prowessDie: newCombatant.prowessDie,
+      battlePhase,
       adp: newCombatant.adp,
       pdp: newCombatant.pdp,
       maxAdp: newCombatant.adp,
+      maxPdp: newCombatant.pdp,
       reactionFocus: newCombatant.type === 'pa' ? newCombatant.reactionFocus : undefined,
-      spiritPoints: newCombatant.type === 'pa' ? newCombatant.spiritPoints : undefined
+      spiritPoints: newCombatant.type === 'pa' ? newCombatant.spiritPoints : undefined,
+      maxSpiritPoints: newCombatant.type === 'pa' ? newCombatant.spiritPoints : undefined,
+      isDefeated: false
     }
 
-    setCombatants(currentCombatants => {
-      const updated = [...currentCombatants, combatant]
-      return updated.sort((a, b) => b.prowess - a.prowess)
-    })
-
+    setCombatants(current => [...current, combatant].sort((a, b) => a.battlePhase - b.battlePhase))
+    
     // Reset form
     setNewCombatant({
       name: '',
       type: 'pa',
-      prowess: 12,
-      adp: 0,
-      pdp: 0,
+      prowessDie: 'd10',
+      adp: 20,
+      pdp: 18,
       reactionFocus: 0,
-      spiritPoints: 0
+      spiritPoints: 10
     })
-
-    toast.success(`${combatant.name} added to battle`)
   }
 
-  const updateCombatantStat = (id: string, stat: keyof Combatant, value: any) => {
-    setCombatants(currentCombatants => 
-      currentCombatants.map(c => 
-        c.id === id ? { ...c, [stat]: value } : c
+  const updateCombatant = (id: string, field: keyof Combatant, value: any) => {
+    setCombatants(current =>
+      current.map(combatant =>
+        combatant.id === id ? { ...combatant, [field]: value } : combatant
       )
     )
   }
 
   const defeatCombatant = (id: string) => {
-    const combatant = combatants.find(c => c.id === id)
-    if (!combatant) return
-
-    setCombatants(currentCombatants => currentCombatants.filter(c => c.id !== id))
-    setDefeatedCombatants(currentDefeated => [...currentDefeated, { ...combatant, isDefeated: true }])
-    
-    toast.success(`${combatant.name} has been defeated`)
+    setCombatants(current =>
+      current.map(combatant =>
+        combatant.id === id ? { ...combatant, isDefeated: true } : combatant
+      )
+    )
   }
 
   const reviveCombatant = (id: string) => {
-    const combatant = defeatedCombatants.find(c => c.id === id)
-    if (!combatant) return
-
-    setDefeatedCombatants(currentDefeated => currentDefeated.filter(c => c.id !== id))
-    setCombatants(currentCombatants => {
-      const updated = [...currentCombatants, { ...combatant, isDefeated: false }]
-      return updated.sort((a, b) => b.prowess - a.prowess)
-    })
-    
-    toast.success(`${combatant.name} has been revived`)
+    setCombatants(current =>
+      current.map(combatant =>
+        combatant.id === id ? { ...combatant, isDefeated: false } : combatant
+      )
+    )
   }
 
-  const removeCombatant = (id: string, isDefeated = false) => {
-    if (isDefeated) {
-      const combatant = defeatedCombatants.find(c => c.id === id)
-      setDefeatedCombatants(currentDefeated => currentDefeated.filter(c => c.id !== id))
-      toast.success(`${combatant?.name} removed from battle`)
-    } else {
-      const combatant = combatants.find(c => c.id === id)
-      setCombatants(currentCombatants => currentCombatants.filter(c => c.id !== id))
-      toast.success(`${combatant?.name} removed from battle`)
-    }
+  const removeCombatant = (id: string) => {
+    setCombatants(current => current.filter(combatant => combatant.id !== id))
   }
 
   const clearAll = () => {
     setCombatants([])
-    setDefeatedCombatants([])
-    toast.success("Battle cleared")
+  }
+
+  const activeCombatants = combatants.filter(c => !c.isDefeated)
+  const defeatedCombatants = combatants.filter(c => c.isDefeated)
+
+  const getInitiativeRange = (prowessDie: string) => {
+    switch (prowessDie) {
+      case 'd12': return '12+'
+      case 'd10': return '9-11'
+      case 'd8': return '7-8'
+      case 'd6': return '5-6'
+      case 'd4': return '1-4'
+      default: return '?'
+    }
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Swords className="text-accent" />
-          Battle Phase Calculator
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Add Combatant Form */}
-        <Card className="bg-muted/20">
-          <CardHeader>
-            <CardTitle className="text-lg">Add Combatant</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="combatant-type">Combatant Type</Label>
-              <Select value={newCombatant.type} onValueChange={(value: 'pa' | 'npc' | 'qsb') => 
-                setNewCombatant(prev => ({ ...prev, type: value }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pa">Player Adventurer (PA)</SelectItem>
-                  <SelectItem value="npc">Non-Player Character (NPC)</SelectItem>
-                  <SelectItem value="qsb">Quick Stat Block (QSB) Creature</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="combatant-name">Name</Label>
-              <Input
-                id="combatant-name"
-                value={newCombatant.name}
-                onChange={(e) => setNewCombatant(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Enter combatant name"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="prowess">Prowess Die</Label>
-              <Select value={newCombatant.prowess.toString()} onValueChange={(value) => 
-                setNewCombatant(prev => ({ ...prev, prowess: parseInt(value) }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="12">d12 (Phase 1)</SelectItem>
-                  <SelectItem value="10">d10 (Phase 2)</SelectItem>
-                  <SelectItem value="8">d8 (Phase 3)</SelectItem>
-                  <SelectItem value="6">d6 (Phase 4)</SelectItem>
-                  <SelectItem value="4">d4 (Phase 5)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {newCombatant.type === 'pa' && (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="reaction-focus">Reaction Focus Bonus</Label>
-                  <Input
-                    id="reaction-focus"
-                    type="number"
-                    value={newCombatant.reactionFocus}
-                    onChange={(e) => setNewCombatant(prev => ({ ...prev, reactionFocus: parseInt(e.target.value) || 0 }))}
-                    placeholder="e.g., 2"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="spirit-points">Spirit Points (SP)</Label>
-                  <Input
-                    id="spirit-points"
-                    type="number"
-                    value={newCombatant.spiritPoints}
-                    onChange={(e) => setNewCombatant(prev => ({ ...prev, spiritPoints: parseInt(e.target.value) || 0 }))}
-                    placeholder="e.g., 10"
-                  />
-                </div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Battle Phase Calculator</CardTitle>
+          <CardDescription>
+            Initiative tracker and combat management for Eldritch RPG
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Add Combatant Form */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Add Combatant</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="type">Combatant Type</Label>
+                <Select 
+                  value={newCombatant.type} 
+                  onValueChange={(value: 'pa' | 'npc' | 'qsb') => setNewCombatant({ ...newCombatant, type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pa">Player Adventurer (PA)</SelectItem>
+                    <SelectItem value="npc">Non-Player Character (NPC)</SelectItem>
+                    <SelectItem value="qsb">Quick Stat Block (QSB) Creature</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            )}
 
-            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  value={newCombatant.name}
+                  onChange={(e) => setNewCombatant({ ...newCombatant, name: e.target.value })}
+                  placeholder="Enter combatant name"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="prowess">Prowess Die</Label>
+                <Select 
+                  value={newCombatant.prowessDie} 
+                  onValueChange={(value) => setNewCombatant({ ...newCombatant, prowessDie: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="d12">d12 (Phase 1)</SelectItem>
+                    <SelectItem value="d10">d10 (Phase 2)</SelectItem>
+                    <SelectItem value="d8">d8 (Phase 3)</SelectItem>
+                    <SelectItem value="d6">d6 (Phase 4)</SelectItem>
+                    <SelectItem value="d4">d4 (Phase 5)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="adp">Active Defense Pool (ADP)</Label>
                 <Input
                   id="adp"
                   type="number"
                   value={newCombatant.adp}
-                  onChange={(e) => setNewCombatant(prev => ({ ...prev, adp: parseInt(e.target.value) || 0 }))}
+                  onChange={(e) => setNewCombatant({ ...newCombatant, adp: parseInt(e.target.value) || 0 })}
                   placeholder="e.g., 22"
                 />
               </div>
@@ -231,121 +201,229 @@ export default function BattleCalculator() {
                   id="pdp"
                   type="number"
                   value={newCombatant.pdp}
-                  onChange={(e) => setNewCombatant(prev => ({ ...prev, pdp: parseInt(e.target.value) || 0 }))}
+                  onChange={(e) => setNewCombatant({ ...newCombatant, pdp: parseInt(e.target.value) || 0 })}
                   placeholder="e.g., 18"
                 />
               </div>
             </div>
 
+            {newCombatant.type === 'pa' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="reactionFocus">Reaction Focus Bonus</Label>
+                  <Input
+                    id="reactionFocus"
+                    type="number"
+                    value={newCombatant.reactionFocus}
+                    onChange={(e) => setNewCombatant({ ...newCombatant, reactionFocus: parseInt(e.target.value) || 0 })}
+                    placeholder="e.g., 2"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="spiritPoints">Spirit Points (SP)</Label>
+                  <Input
+                    id="spiritPoints"
+                    type="number"
+                    value={newCombatant.spiritPoints}
+                    onChange={(e) => setNewCombatant({ ...newCombatant, spiritPoints: parseInt(e.target.value) || 0 })}
+                    placeholder="e.g., 10"
+                  />
+                </div>
+              </div>
+            )}
+
             <Button onClick={addCombatant} className="w-full">
-              <Plus size={16} className="mr-2" />
+              <Plus size={16} />
               Add Combatant
             </Button>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Active Combatants */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold">Active Combatants</h3>
-            {(combatants.length > 0 || defeatedCombatants.length > 0) && (
-              <Button variant="destructive" size="sm" onClick={clearAll}>
+          {combatants.length > 0 && (
+            <div className="flex justify-end">
+              <Button variant="destructive" onClick={clearAll} size="sm">
+                <Trash2 size={16} />
                 Clear All
               </Button>
-            )}
-          </div>
-          
-          {combatants.length === 0 ? (
-            <Card className="bg-muted/20">
-              <CardContent className="pt-6 text-center text-muted-foreground">
-                No active combatants. Add some above to start the battle!
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {combatants.map((combatant) => (
-                <Card key={combatant.id} className="bg-card border-l-4 border-l-primary">
-                  <CardContent className="pt-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <h4 className="font-semibold">{combatant.name}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          d{combatant.prowess} (Phase {combatant.battlePhase}, Init: {combatant.initiativeRange})
-                          {combatant.type === 'pa' && combatant.spiritPoints !== undefined && (
-                            <span> | SP: {combatant.spiritPoints}</span>
-                          )}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="destructive" size="sm" onClick={() => defeatCombatant(combatant.id)}>
-                          Defeat
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => removeCombatant(combatant.id)}>
-                          <Trash size={16} />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor={`adp-${combatant.id}`} className="text-xs">ADP</Label>
-                        <Input
-                          id={`adp-${combatant.id}`}
-                          type="number"
-                          value={combatant.adp}
-                          onChange={(e) => updateCombatantStat(combatant.id, 'adp', parseInt(e.target.value) || 0)}
-                          className="h-8"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor={`pdp-${combatant.id}`} className="text-xs">PDP</Label>
-                        <Input
-                          id={`pdp-${combatant.id}`}
-                          type="number"
-                          value={combatant.pdp}
-                          onChange={(e) => updateCombatantStat(combatant.id, 'pdp', parseInt(e.target.value) || 0)}
-                          className="h-8"
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
             </div>
           )}
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Defeated Combatants */}
-        {defeatedCombatants.length > 0 && (
-          <div>
-            <h3 className="text-xl font-semibold mb-4">Defeated</h3>
-            <div className="space-y-3">
-              {defeatedCombatants.map((combatant) => (
-                <Card key={combatant.id} className="bg-destructive/10 border-l-4 border-l-destructive">
-                  <CardContent className="pt-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-semibold text-muted-foreground">{combatant.name}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          d{combatant.prowess} (Phase {combatant.battlePhase}, Init: {combatant.initiativeRange})
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => reviveCombatant(combatant.id)}>
-                          Revive
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => removeCombatant(combatant.id, true)}>
-                          <Trash size={16} />
-                        </Button>
+      {/* Active Combatants */}
+      {activeCombatants.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Active Combatants</CardTitle>
+            <CardDescription>
+              Battle order by phase (lower phases act first)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {activeCombatants.map((combatant) => (
+              <Card key={combatant.id} className="p-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <h4 className="font-semibold text-lg">{combatant.name}</h4>
+                      <Badge variant="outline">
+                        Phase {combatant.battlePhase}
+                      </Badge>
+                      <Badge variant="outline">
+                        {combatant.prowessDie} (Init: {getInitiativeRange(combatant.prowessDie)})
+                      </Badge>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => defeatCombatant(combatant.id)}
+                      >
+                        Defeat
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeCombatant(combatant.id)}
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <Label htmlFor={`adp-${combatant.id}`} className="text-sm">
+                        ADP
+                      </Label>
+                      <Input
+                        id={`adp-${combatant.id}`}
+                        type="number"
+                        value={combatant.adp}
+                        onChange={(e) => updateCombatant(combatant.id, 'adp', parseInt(e.target.value) || 0)}
+                        className="text-center"
+                      />
+                      <div className="text-xs text-muted-foreground text-center">
+                        Max: {combatant.maxAdp}
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+
+                    <div>
+                      <Label htmlFor={`pdp-${combatant.id}`} className="text-sm">
+                        PDP
+                      </Label>
+                      <Input
+                        id={`pdp-${combatant.id}`}
+                        type="number"
+                        value={combatant.pdp}
+                        onChange={(e) => updateCombatant(combatant.id, 'pdp', parseInt(e.target.value) || 0)}
+                        className="text-center"
+                      />
+                      <div className="text-xs text-muted-foreground text-center">
+                        Max: {combatant.maxPdp}
+                      </div>
+                    </div>
+
+                    {combatant.spiritPoints !== undefined && (
+                      <div>
+                        <Label htmlFor={`sp-${combatant.id}`} className="text-sm">
+                          SP
+                        </Label>
+                        <Input
+                          id={`sp-${combatant.id}`}
+                          type="number"
+                          value={combatant.spiritPoints}
+                          onChange={(e) => updateCombatant(combatant.id, 'spiritPoints', parseInt(e.target.value) || 0)}
+                          className="text-center"
+                        />
+                        <div className="text-xs text-muted-foreground text-center">
+                          Max: {combatant.maxSpiritPoints}
+                        </div>
+                      </div>
+                    )}
+
+                    {combatant.reactionFocus !== undefined && (
+                      <div>
+                        <Label className="text-sm">Reaction Focus</Label>
+                        <div className="text-center p-2 bg-muted rounded-lg">
+                          +{combatant.reactionFocus}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Defeated Combatants */}
+      {defeatedCombatants.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Defeated</CardTitle>
+            <CardDescription>
+              Combatants that have been defeated
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {defeatedCombatants.map((combatant) => (
+              <div
+                key={combatant.id}
+                className="flex items-center justify-between p-4 bg-muted rounded-lg opacity-75"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="font-medium line-through">{combatant.name}</span>
+                  <Badge variant="outline">
+                    {combatant.prowessDie}
+                  </Badge>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => reviveCombatant(combatant.id)}
+                  >
+                    Revive
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => removeCombatant(combatant.id)}
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Battle Phase Reference */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Battle Phase Reference</CardTitle>
+          <CardDescription>
+            Initiative order and ranges for Eldritch RPG
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {Object.entries(BATTLE_PHASE_TABLE).map(([die, phase]) => (
+              <div key={die} className="text-center p-3 bg-muted rounded-lg">
+                <div className="font-bold text-primary">{die}</div>
+                <div className="text-sm text-muted-foreground">Phase {phase}</div>
+                <div className="text-xs text-muted-foreground">
+                  Init: {getInitiativeRange(die)}
+                </div>
+              </div>
+            ))}
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
+
+export default BattleCalculator
