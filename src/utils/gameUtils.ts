@@ -1,6 +1,6 @@
 // Utility functions for Eldritch RPG calculations
 
-import { DICE_RANKS, STEP_COSTS, FOCUS_STEP_COST, HP_MULTIPLIERS, BATTLE_PHASE_TABLE } from './gameData'
+import { DICE_RANKS, STEP_COSTS, FOCUS_STEP_COST, HP_MULTIPLIERS, BATTLE_PHASE_TABLE } from '@/data/gameData'
 
 export function getDieValue(dieRank: string): number {
   if (!dieRank.startsWith('d')) return 0
