@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast } from 'sonner'
@@ -242,11 +241,11 @@ function PlayerCharacterGenerator() {
   }
 
   function weaknessReport(ch: any) {
-    const { active, passive, spirit } = computePools(ch);
+    const pools = computePools(ch);
     const flags = [];
-    if (spirit <= 12) flags.push('Low Spirit Points (mental/arcane pressure will hurt).');
-    if (active < 24) flags.push('Low Active DP (poor agility/parry).');
-    if (passive < 24) flags.push('Low Passive DP (fragile to heavy blows).');
+    if (pools.spirit <= 12) flags.push('Low Spirit Points (mental/arcane pressure will hurt).');
+    if (pools.active < 24) flags.push('Low Active DP (poor agility/parry).');
+    if (pools.passive < 24) flags.push('Low Passive DP (fragile to heavy blows).');
     if (idx(ch.abilities.Competence) <= 1) flags.push('Low Competence (poor perception/social/planning).');
     if (idx(ch.specialties.Competence.Perception) <= 1) flags.push('Low Perception branch (traps/ambush risk).');
     if (idx(ch.specialties.Fortitude.Willpower) <= 1) flags.push('Low Willpower (charms/fear/illusions).');
