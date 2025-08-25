@@ -75,10 +75,17 @@ const threatDiceCombinations = {
   ],
   Legendary: [
     { dice: '3d12', mv: 36 },
+    { dice: '3d14', mv: 42 },
+    { dice: '3d16', mv: 48 },
+    { dice: '3d18', mv: 54 },
+    { dice: '3d20', mv: 60 },
     { dice: '4d10', mv: 40 },
     { dice: '4d12', mv: 48 },
+    { dice: '4d14', mv: 56 },
+    { dice: '4d16', mv: 64 },
     { dice: '5d10', mv: 50 },
-    { dice: '5d12', mv: 60 }
+    { dice: '5d12', mv: 60 },
+    { dice: '5d14', mv: 70 }
   ]
 }
 
@@ -140,10 +147,16 @@ export default function MonsterGenerator() {
         { value: '3d8', label: '3d8 (Exceptional)', category: 'Exceptional' },
         { value: '3d10', label: '3d10 (Exceptional)', category: 'Exceptional' },
         { value: '3d12', label: '3d12 (Exceptional)', category: 'Exceptional' },
+        { value: '3d16', label: '3d16 (Legendary)', category: 'Legendary' },
+        { value: '3d18', label: '3d18 (Legendary)', category: 'Legendary' },
+        { value: '3d20', label: '3d20 (Legendary)', category: 'Legendary' },
         { value: '4d10', label: '4d10 (Legendary)', category: 'Legendary' },
         { value: '4d12', label: '4d12 (Legendary)', category: 'Legendary' },
+        { value: '4d14', label: '4d14 (Legendary)', category: 'Legendary' },
+        { value: '4d16', label: '4d16 (Legendary)', category: 'Legendary' },
         { value: '5d10', label: '5d10 (Legendary)', category: 'Legendary' },
-        { value: '5d12', label: '5d12 (Legendary)', category: 'Legendary' }
+        { value: '5d12', label: '5d12 (Legendary)', category: 'Legendary' },
+        { value: '5d14', label: '5d14 (Legendary)', category: 'Legendary' }
       ]
     }
 
@@ -213,10 +226,18 @@ export default function MonsterGenerator() {
           { value: '3d8', label: '3d8 (Exceptional)', category: 'Exceptional' },
           { value: '3d10', label: '3d10 (Exceptional)', category: 'Exceptional' },
           { value: '3d12', label: '3d12 (Exceptional)', category: 'Exceptional' },
+          { value: '3d12', label: '3d12 (Legendary)', category: 'Legendary' },
+          { value: '3d14', label: '3d14 (Legendary)', category: 'Legendary' },
+          { value: '3d16', label: '3d16 (Legendary)', category: 'Legendary' },
+          { value: '3d18', label: '3d18 (Legendary)', category: 'Legendary' },
+          { value: '3d20', label: '3d20 (Legendary)', category: 'Legendary' },
           { value: '4d10', label: '4d10 (Legendary)', category: 'Legendary' },
           { value: '4d12', label: '4d12 (Legendary)', category: 'Legendary' },
+          { value: '4d14', label: '4d14 (Legendary)', category: 'Legendary' },
+          { value: '4d16', label: '4d16 (Legendary)', category: 'Legendary' },
           { value: '5d10', label: '5d10 (Legendary)', category: 'Legendary' },
-          { value: '5d12', label: '5d12 (Legendary)', category: 'Legendary' }
+          { value: '5d12', label: '5d12 (Legendary)', category: 'Legendary' },
+          { value: '5d14', label: '5d14 (Legendary)', category: 'Legendary' }
         ]
       
       default:
@@ -250,8 +271,8 @@ export default function MonsterGenerator() {
         return maxDice === 2 && diceNumbers.includes(2)
       case 'Exceptional':
         // At least one attack must be 3 dice, none can be more than 3 dice
-        // But other attacks can be lower (1d# or 2d#)
-        return maxDice === 3 && diceNumbers.includes(3)
+        // But other attacks can be lower (1d#, 2d#, or 3d#)
+        return maxDice <= 3 && diceNumbers.includes(3)
       case 'Legendary':
         // Must have at least 3 dice AND either 4+ dice OR high die values
         return maxDice >= 3 && (
@@ -321,6 +342,8 @@ export default function MonsterGenerator() {
   }
 
   const generateMonster = () => {
+    // This function generates a standalone monster stat block
+    // It has no connection to the Encounter Generator tool
     if (!monsterNature || !monsterSize) {
       alert("Please select monster nature and size at minimum.")
       return
@@ -452,6 +475,9 @@ Saving Throw: ${savingThrow} (${finalType} threat)`
           <Heart className="text-accent" />
           Monster Generator
         </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Create individual monster stat blocks. This tool is independent of the Encounter Generator.
+        </p>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Basic Information */}
@@ -542,7 +568,7 @@ Saving Throw: ${savingThrow} (${finalType} threat)`
               <div className="text-sm text-muted-foreground">
                 {creatureType === 'Minor' && 'Minor threats: All attacks use exactly 1 die (1d4 to 1d12)'}
                 {creatureType === 'Standard' && 'Standard threats: At least one attack must be 2d#, others can be 1d# or 2d#'}
-                {creatureType === 'Exceptional' && 'Exceptional threats: At least one attack must be 3d#, others can be lower (1d#, 2d#, or 3d#)'}
+                {creatureType === 'Exceptional' && 'Exceptional threats: At least one attack must be 3d#, others can be 1d#, 2d#, or 3d#'}
                 {creatureType === 'Legendary' && 'Legendary threats: At least one attack must be 4d# or high 3d# (3d12+), can use d14-d20'}
               </div>
             )}
@@ -897,10 +923,13 @@ Notes: ${result.notes}` : ''}`}
             <CardTitle className="text-lg">Threat Type Guide</CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-2">
-            <p><strong>Minor (1 Threat Die):</strong> 1d4 to 1d12 attacks</p>
-            <p><strong>Standard (2 Threat Dice):</strong> 2d4 to 2d12 attacks</p>
-            <p><strong>Exceptional (3 Threat Dice):</strong> 3d4 to 3d12 attacks</p>
-            <p><strong>Legendary (3+ High Dice):</strong> 3d12+ or combinations like 4d10, 5d12</p>
+            <p><strong>Minor (1 Threat Die):</strong> All attacks use exactly 1 die (1d4 to 1d12)</p>
+            <p><strong>Standard (2 Threat Dice):</strong> At least one attack uses 2 dice (2d4 to 2d12), others can be 1d# or 2d#</p>
+            <p><strong>Exceptional (3 Threat Dice):</strong> At least one attack uses 3 dice (3d4 to 3d12), others can be 1d#, 2d#, or 3d#</p>
+            <p><strong>Legendary (3+ High Dice):</strong> At least one attack uses 4+ dice (4d10+) or high 3-dice combinations (3d12+)</p>
+            <p className="text-xs text-muted-foreground mt-2">
+              <strong>Note:</strong> Not all creatures need attacks in every category. You can mix and match as needed.
+            </p>
           </CardContent>
         </Card>
       </CardContent>
