@@ -4,384 +4,261 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Search } from "@phosphor-icons/react"
+import { Sparkles, Search } from "@phosphor-icons/react"
 
-interface Spell {
-  name: string
-  path: string
-  rarity: string
-  effect: string
-  description: string
-}
-
-const SPELL_DATABASE: Spell[] = [
-  // Universal Spells
-  { name: 'Dispel Effect', path: 'Universal', rarity: 'Common', effect: 'Activate', description: 'Used to remove magical barriers or effects.' },
-  { name: 'Identify Magic', path: 'Universal', rarity: 'Common', effect: 'Activate', description: 'Used to detect and identify magic emanations.' },
-  { name: 'Eldritch Bolt', path: 'Universal', rarity: 'Common', effect: 'Harm', description: 'A basic magic attack.' },
-  { name: 'Eldritch Defense', path: 'Universal', rarity: 'Common', effect: 'Protect', description: 'Creates a protective barrier.' },
-
-  // Elementalism
-  { name: 'Air Bubble', path: 'Elementalism', rarity: 'Common', effect: 'Protect', description: 'Creates a bubble of breathable air.' },
-  { name: 'Ball of Light', path: 'Elementalism', rarity: 'Common', effect: 'Activate', description: 'Illuminates an area.' },
-  { name: 'Boil Water', path: 'Elementalism', rarity: 'Common', effect: 'Modify', description: 'Rapidly heats water to boiling.' },
-  { name: 'Breeze', path: 'Elementalism', rarity: 'Common', effect: 'Activate', description: 'Creates a gentle wind.' },
-  { name: 'Fire Strike', path: 'Elementalism', rarity: 'Common', effect: 'Harm', description: 'Manipulates existing fire to attack.' },
-  { name: 'Water Breathing', path: 'Elementalism', rarity: 'Common', effect: 'Protect', description: 'Grants the ability to breathe underwater.' },
-  { name: 'Arcane Maelstrom', path: 'Elementalism', rarity: 'Uncommon', effect: 'Harm', description: 'Creates a swirling vortex of arcane energy.' },
-  { name: 'Fire Whip', path: 'Elementalism', rarity: 'Uncommon', effect: 'Harm', description: 'Shapes flames into a long, flexible whip attack.' },
-  { name: 'Stone Shape', path: 'Elementalism', rarity: 'Uncommon', effect: 'Modify', description: 'Manipulates stone into desired forms.' },
-
-  // Sorcery
-  { name: 'Arcane Lock', path: 'Sorcery', rarity: 'Common', effect: 'Protect', description: 'Imbues an object to make it harder to open.' },
-  { name: 'Minor Illusion', path: 'Sorcery', rarity: 'Common', effect: 'Activate', description: 'Creates a simple visual illusion.' },
-  { name: 'Shadow Step', path: 'Sorcery', rarity: 'Common', effect: 'Activate', description: 'Moves rapidly between shadows over short distances.' },
-  { name: 'Transmute Rock', path: 'Sorcery', rarity: 'Common', effect: 'Modify', description: 'Changes the composition of stone.' },
-  { name: 'Enfeeblement', path: 'Sorcery', rarity: 'Uncommon', effect: 'Afflict', description: 'Weakens a target\'s physical abilities.' },
-  { name: 'Illusory Disguise', path: 'Sorcery', rarity: 'Uncommon', effect: 'Modify', description: 'Changes the appearance of a recipient.' },
-  { name: 'Summon Monster', path: 'Sorcery', rarity: 'Uncommon', effect: 'Activate', description: 'Summons a humanoid monster to beset foes.' },
-
-  // Thaumaturgy
-  { name: 'Banish', path: 'Thaumaturgy', rarity: 'Common', effect: 'Afflict', description: 'Sends a creature away.' },
-  { name: 'Claw Growth', path: 'Thaumaturgy', rarity: 'Common', effect: 'Modify', description: 'Imbues unarmed strikes with arcane potency.' },
-  { name: 'Conjure Weapon', path: 'Thaumaturgy', rarity: 'Common', effect: 'Activate', description: 'Creates a temporary magical weapon.' },
-  { name: 'Mend', path: 'Thaumaturgy', rarity: 'Common', effect: 'Restore', description: 'Repairs damaged objects.' },
-  { name: 'Sharpen Blade', path: 'Thaumaturgy', rarity: 'Common', effect: 'Modify', description: 'Enhances a weapon\'s cutting edge.' },
-  { name: 'Invisibility', path: 'Thaumaturgy', rarity: 'Uncommon', effect: 'Protect', description: 'Cloaks a target creature in a veil of invisibility.' },
-  { name: 'Mana Burst', path: 'Thaumaturgy', rarity: 'Uncommon', effect: 'Harm', description: 'Releases a burst of magical energy.' },
-  { name: 'Create Illusion', path: 'Thaumaturgy', rarity: 'Uncommon', effect: 'Modify', description: 'Creates a more complex visual illusion.' },
-
-  // Mysticism
-  { name: 'Confusion', path: 'Mysticism', rarity: 'Common', effect: 'Afflict', description: 'Confuses a target, making them uncertain of actions.' },
-  { name: 'Detect Magic', path: 'Mysticism', rarity: 'Common', effect: 'Activate', description: 'Detects magical auras.' },
-  { name: 'Ethereal Sight', path: 'Mysticism', rarity: 'Common', effect: 'Activate', description: 'See into the ethereal plane.' },
-  { name: 'Levitation', path: 'Mysticism', rarity: 'Common', effect: 'Activate', description: 'Causes an object or creature to float.' },
-  { name: 'Soothing Balm', path: 'Mysticism', rarity: 'Common', effect: 'Restore', description: 'Restores health and grants temporary fear immunity.' },
-  { name: 'Mind Shield', path: 'Mysticism', rarity: 'Uncommon', effect: 'Protect', description: 'Blocks attempts to read the mystic\'s mind.' },
-  { name: 'Mind Blade', path: 'Mysticism', rarity: 'Uncommon', effect: 'Harm', description: 'Channels mental energy into a shimmering blade.' },
-  { name: 'See Aura', path: 'Mysticism', rarity: 'Uncommon', effect: 'Activate', description: 'Reveals a creature or object\'s psychic aura.' },
-
-  // Hieraticism
-  { name: 'Aura of Restoration', path: 'Hieraticism', rarity: 'Common', effect: 'Restore', description: 'Creates an aura that restores passive defense points.' },
-  { name: 'Blessing of Renewal', path: 'Hieraticism', rarity: 'Common', effect: 'Restore', description: 'Renews strength and vitality.' },
-  { name: 'Heal', path: 'Hieraticism', rarity: 'Common', effect: 'Restore', description: 'Restores passive defense points.' },
-  { name: 'Repel Undead', path: 'Hieraticism', rarity: 'Common', effect: 'Protect', description: 'Creates an effect to deter undead.' },
-  { name: 'Word of Cleansing', path: 'Hieraticism', rarity: 'Common', effect: 'Restore', description: 'Purifies corruption and disease.' },
-  { name: 'Blessing of Health', path: 'Hieraticism', rarity: 'Uncommon', effect: 'Restore', description: 'Restores health and can cure diseases or poisons.' },
-  { name: 'Dispel Magic', path: 'Hieraticism', rarity: 'Uncommon', effect: 'Modify', description: 'Dispels active magical effects.' },
-  { name: 'Consecrate Ground', path: 'Hieraticism', rarity: 'Uncommon', effect: 'Protect', description: 'Imbues an area with holy energy, harming undead.' },
-
-  // Druidry
-  { name: 'Blossom/Wither Plants', path: 'Druidry', rarity: 'Common', effect: 'Modify', description: 'Causes plants to bloom or wither.' },
-  { name: 'Branch to Staff', path: 'Druidry', rarity: 'Common', effect: 'Modify', description: 'Transforms a branch into a sturdy staff.' },
-  { name: 'Commune with Plants', path: 'Druidry', rarity: 'Common', effect: 'Activate', description: 'Communicate with plant life.' },
-  { name: 'Entangling Roots', path: 'Druidry', rarity: 'Common', effect: 'Afflict', description: 'Ensnare and immobilize creatures.' },
-  { name: 'Plant Growth', path: 'Druidry', rarity: 'Common', effect: 'Activate', description: 'Increases the size of a target plant.' },
-  { name: 'Summon Animal', path: 'Druidry', rarity: 'Common', effect: 'Activate', description: 'Summons a normal animal under the druid\'s control.' },
-  { name: 'Animate Flora', path: 'Druidry', rarity: 'Uncommon', effect: 'Activate', description: 'Plants move in accord with the caster\'s will.' },
-  { name: 'Bramble Wall', path: 'Druidry', rarity: 'Uncommon', effect: 'Activate', description: 'Creates a wall of thorny plants.' },
-  { name: 'Control Animal', path: 'Druidry', rarity: 'Uncommon', effect: 'Afflict', description: 'Exerts control over an animal.' }
-]
-
-const SPELL_PATHS = ['All', 'Universal', 'Elementalism', 'Sorcery', 'Thaumaturgy', 'Mysticism', 'Hieraticism', 'Druidry']
-const SPELL_RARITIES = ['All', 'Common', 'Uncommon', 'Esoteric', 'Occult', 'Legendary']
-const SPELL_EFFECTS = ['All', 'Activate', 'Harm', 'Protect', 'Restore', 'Modify', 'Afflict']
-
-const SpellReference: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedPath, setSelectedPath] = useState('All')
-  const [selectedRarity, setSelectedRarity] = useState('All')
-  const [selectedEffect, setSelectedEffect] = useState('All')
-
-  const filteredSpells = SPELL_DATABASE.filter(spell => {
-    const matchesSearch = spell.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         spell.description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesPath = selectedPath === 'All' || spell.path === selectedPath
-    const matchesRarity = selectedRarity === 'All' || spell.rarity === selectedRarity
-    const matchesEffect = selectedEffect === 'All' || spell.effect === selectedEffect
-
-    return matchesSearch && matchesPath && matchesRarity && matchesEffect
-  })
-
-  const getRarityColor = (rarity: string) => {
-    switch (rarity) {
-      case 'Common':
-        return 'bg-green-100 text-green-800 border-green-200'
-      case 'Uncommon':
-        return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'Esoteric':
-        return 'bg-purple-100 text-purple-800 border-purple-200'
-      case 'Occult':
-        return 'bg-red-100 text-red-800 border-red-200'
-      case 'Legendary':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
-    }
+// Sample spell data - this would typically come from a data file
+const spellPaths = {
+  'All Paths': {
+    Common: ['Dispel Effect', 'Identify Magic', 'Eldritch Bolt', 'Eldritch Defense']
+  },
+  Elementalism: {
+    Common: ['Air Bubble', 'Ball of Light', 'Boil Water', 'Breeze', 'Charge of the Elements', 'Cleanse Air', 'Crystal Vision', 'Drown', 'Energy Jump', 'Energy Pulse', 'Extinguish Flames', 'Fire Strike', 'Fire Trail', 'Flame Creature', 'Flame Fists', 'Flame Weapon', 'Forge From Stone', 'Freeze', 'Fresh Air', 'Fuel Flames', 'Halo of Energy', 'Heat', 'Illuminating Insight', 'Luminous Wave', 'Mineral Analysis', 'Kinetic Augmentation', 'Rain', 'Resist Elements', 'Rocky Terrain', 'Safe Descent', 'Sense Air Currents', 'Steal Breath', 'Tremor Sense', 'Water Breathing', 'Water Streaming', 'Water Vortex', 'Water Ward', 'Water Whip', 'Zephyr Mind'],
+    Uncommon: ['Arcane Maelstrom', 'Crystal Enhancement', 'Crystalize Earth', 'Disorienting Gale', 'Energy Drain', 'Energy Leech', 'Energy Surge', 'Energy Transference', 'Fire Whip', 'Fissure', 'Healing Waters', 'Heatwave', 'Ice Blade', 'Ignite', 'Rend Walls', 'Stone Shape', 'Stone Shatter', 'Water Elemental', 'Water Illusion', 'Water Prison', 'Water Walk', 'Windwalk'],
+    Esoteric: ['Air Pocket', 'Aquatic Summons', 'Crystal Analysis', 'Crystal Growth', 'Crystalize Object', 'Diamond Strike', 'Earth Kin', 'Energy Conversion', 'Energy Beacon', 'Energy Infusion', 'Energy Leech', 'Fire Armor', 'Fire Elemental', 'Flame Grasp', 'Ice Shield', 'Minor Earthquake', 'Propel', 'Purify Water', 'Quartz Shield', 'Sky Shelter', 'Skywalk', 'Stone Armor', 'Stone Skin', 'Water Breathing', 'Whirlpool', 'Whirlwind Prison'],
+    Occult: ['Aeromancy', 'Choking Vacuum', 'Energy Surge', 'Ethereal Pulse', 'Flame Trap', 'Liquid Armor', 'Stone Golem', 'Stone Weapon', 'Whelm', 'Whirlwind', 'Wind Rush'],
+    Legendary: ['Crystal Fortress', 'Earth Merge', 'Elemental Form', 'Energy Blade', 'Glacial Prison', 'Quicksand', 'Tidal Surge', 'Wind Riding']
+  },
+  Sorcery: {
+    Common: ['Arcane Lock', 'Arcane Mark', 'Minor Illusion', 'Olfactory Illusion', 'Shadow Step', 'Teleport Object', 'Transmute Rock'],
+    Uncommon: ['Audio Illusion', 'Chameleon', 'Dustify', 'Enfeeblement', 'Flux Portal', 'Illusory Disguise', 'Phantom Blade', 'Summon Monster'],
+    Esoteric: ['Apport Object', 'Cone of Silence', 'Full Body Illusion', 'Illusory Quiescence', 'Minion Horde', 'Object Space', 'Phantasms', 'Transdimensional Shift'],
+    Occult: ['Dimensional Travel', 'Havoc', 'Mirrored Opponent', 'Teleport Self', 'Waking Terror', 'Whisper of Woe'],
+    Legendary: ['Apport Creature', 'Assume Inanimate Form', 'Dreamscape', 'Mass Invisibility']
+  },
+  Thaumaturgy: {
+    Common: ['Banish', 'Claw Growth', 'Conjure Weapon', 'Echo', 'Fortify Object', 'Lighten', 'Magic Ride', 'Mend', 'Savorless', 'Sharpen Blade', 'Weaken Creature', 'Weaken Object'],
+    Uncommon: ['Contingent Notification', 'Create Illusion', 'Dimensional Pocket', 'Forced Egress', 'Invisibility', 'Mana Burst', 'Phantom Steed', 'Quickened Reflexes', 'Strengthen Creature', 'Weapon Readiness'],
+    Esoteric: ['Dance of Blades', 'Elemental Transmutation', 'Illusionary Clone', 'Levitation', 'Manipulate Object', 'Spatial Warp', 'Transmute Flesh'],
+    Occult: ['Deafness', 'Discordance', 'Loop Time', 'Matter Fusion', 'Monster Form', 'Temporal Rift'],
+    Legendary: ['Alter Age', 'Blindness', 'Demolish', 'Initiative Warp', 'Petrify', 'Stand Still', 'Time Halt']
+  },
+  Mysticism: {
+    Common: ['Confusion', 'Detect Magic', 'Ethereal Sight', 'Levitation', 'Mindfulness', 'Phase Shift', 'Silence', 'Soothing Balm', 'Soothing Mists'],
+    Uncommon: ['Discern Soul', 'Mind Shield', 'Object Read', 'Mind Blade', 'See Aura', 'See Invisible', 'Sense Power', 'Sixth Sense'],
+    Esoteric: ['Cosmic Shift', 'Fathom', 'Mind Read', 'Mystic Lore', 'Premonition', 'Psychic Beacon', 'Reassemble', 'Shadow Walk'],
+    Occult: ['Continuous Shadow', 'Dreamwalk', 'Ethereal Projection', 'Foreknowledge', 'Manipulate Shadow', 'Release Mind'],
+    Legendary: ['Control Humanoid', 'Form of Night', 'Hypnotic Suggestion', 'Induce Sleep', 'Mind Control', 'Super Intuition']
+  },
+  Hieraticism: {
+    Common: ['Aura of Restoration', 'Blessing of Renewal', 'Entreaty of Mercy', 'Heal', 'Repel Undead', 'Soothe Self', 'Word of Cleansing'],
+    Uncommon: ['Consecrate Ground', 'Healing Aura', 'Banish Undead', 'Blessing of Health', 'Dispel Magic', 'Nullify Poison', 'Recovery of the Unready', 'Soothe Ally', 'Soul Transfer'],
+    Esoteric: ['Doomsday Premonition', 'Mystical Regeneration', 'Rejuvenate', 'Remove Curse', 'Unbind Spirit'],
+    Occult: ['Desolate Curse', 'Entreat Entity', 'Omniscient Eye', 'Soul Transmutation'],
+    Legendary: ['Create Undead', 'Commune with the Dead', 'Regeneration', 'Summon Spirit']
+  },
+  Druidry: {
+    Common: ['Blossom/Wither Plants', 'Branch to Staff', 'Commune with Plants', 'Ears of the Bat', 'Entangling Roots', 'Eyes of the Eagle', 'Nose of the Wolf', 'Plant Growth', 'Rose Whip', 'Summon Animal'],
+    Uncommon: ['Animate Flora', 'Bramble Wall', 'Control Animal', 'Gust', 'Healing Grove', 'Seizing Plants', 'Shape Wood', 'Shapeshift', 'Wild Growth'],
+    Esoteric: ['Plant Automaton', 'Plant Meld', 'Regrowth', 'Speak with Nature', 'Tangle Trap', 'Thorny Shield'],
+    Occult: ['Animal Transformation', 'Might of the Oak', 'Nature\'s Blessing', 'Plant Armor', 'Plant Behemoth'],
+    Legendary: ['Magical Transformation', 'Plant Mastery']
   }
+};
 
-  const getEffectColor = (effect: string) => {
-    switch (effect) {
-      case 'Harm':
-        return 'bg-red-50 text-red-700 border-red-200'
-      case 'Protect':
-        return 'bg-blue-50 text-blue-700 border-blue-200'
-      case 'Restore':
-        return 'bg-green-50 text-green-700 border-green-200'
-      case 'Modify':
-        return 'bg-purple-50 text-purple-700 border-purple-200'
-      case 'Activate':
-        return 'bg-orange-50 text-orange-700 border-orange-200'
-      case 'Afflict':
-        return 'bg-gray-50 text-gray-700 border-gray-200'
-      default:
-        return 'bg-gray-50 text-gray-700 border-gray-200'
+const rarityColors = {
+  Common: 'bg-gray-100 text-gray-800 border-gray-200',
+  Uncommon: 'bg-green-100 text-green-800 border-green-200',
+  Esoteric: 'bg-blue-100 text-blue-800 border-blue-200',
+  Occult: 'bg-purple-100 text-purple-800 border-purple-200',
+  Legendary: 'bg-yellow-100 text-yellow-800 border-yellow-200'
+};
+
+function SpellReference() {
+  const [selectedPath, setSelectedPath] = useState('All Paths');
+  const [selectedRarity, setSelectedRarity] = useState('All');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Get all available paths
+  const paths = Object.keys(spellPaths);
+
+  // Get all available rarities
+  const rarities = ['All', 'Common', 'Uncommon', 'Esoteric', 'Occult', 'Legendary'];
+
+  // Filter spells based on current filters
+  const getFilteredSpells = () => {
+    const results: Array<{ name: string, path: string, rarity: string }> = [];
+
+    if (selectedPath === 'All Paths') {
+      // Search all paths
+      Object.entries(spellPaths).forEach(([pathName, pathSpells]) => {
+        Object.entries(pathSpells).forEach(([rarity, spells]) => {
+          spells.forEach(spell => {
+            if (selectedRarity === 'All' || selectedRarity === rarity) {
+              if (!searchTerm || spell.toLowerCase().includes(searchTerm.toLowerCase())) {
+                results.push({ name: spell, path: pathName, rarity });
+              }
+            }
+          });
+        });
+      });
+    } else {
+      // Search specific path
+      const pathSpells = (spellPaths as any)[selectedPath];
+      if (pathSpells) {
+        Object.entries(pathSpells).forEach(([rarity, spells]: [string, string[]]) => {
+          spells.forEach(spell => {
+            if (selectedRarity === 'All' || selectedRarity === rarity) {
+              if (!searchTerm || spell.toLowerCase().includes(searchTerm.toLowerCase())) {
+                results.push({ name: spell, path: selectedPath, rarity });
+              }
+            }
+          });
+        });
+      }
     }
-  }
+
+    // Sort by rarity, then by name
+    const rarityOrder = { Common: 0, Uncommon: 1, Esoteric: 2, Occult: 3, Legendary: 4 };
+    return results.sort((a, b) => {
+      const rarityDiff = (rarityOrder as any)[a.rarity] - (rarityOrder as any)[b.rarity];
+      if (rarityDiff !== 0) return rarityDiff;
+      return a.name.localeCompare(b.name);
+    });
+  };
+
+  const filteredSpells = getFilteredSpells();
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Spell Reference</CardTitle>
+          <CardTitle className="text-2xl flex items-center gap-2">
+            <Sparkles className="text-accent" />
+            Spell Reference
+          </CardTitle>
           <CardDescription>
-            Search and browse spells from the Eldritch RPG magic system
+            Browse spells by magic path and rarity for Eldritch RPG
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Search and Filters */}
-          <div className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search spells by name or description..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+          {/* Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="path">Magic Path</Label>
+              <Select value={selectedPath} onValueChange={setSelectedPath}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All Paths">All Paths</SelectItem>
+                  {paths.filter(path => path !== 'All Paths').map((path) => (
+                    <SelectItem key={path} value={path}>
+                      {path}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="path">Magic Path</Label>
-                <Select value={selectedPath} onValueChange={setSelectedPath}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SPELL_PATHS.map((path) => (
-                      <SelectItem key={path} value={path}>
-                        {path}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <Label htmlFor="rarity">Rarity</Label>
+              <Select value={selectedRarity} onValueChange={setSelectedRarity}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {rarities.map((rarity) => (
+                    <SelectItem key={rarity} value={rarity}>
+                      {rarity}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-              <div>
-                <Label htmlFor="rarity">Rarity</Label>
-                <Select value={selectedRarity} onValueChange={setSelectedRarity}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SPELL_RARITIES.map((rarity) => (
-                      <SelectItem key={rarity} value={rarity}>
-                        {rarity}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="effect">Effect Type</Label>
-                <Select value={selectedEffect} onValueChange={setSelectedEffect}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SPELL_EFFECTS.map((effect) => (
-                      <SelectItem key={effect} value={effect}>
-                        {effect}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div>
+              <Label htmlFor="search">Search Spells</Label>
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="search"
+                  placeholder="Search by name..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
               </div>
             </div>
           </div>
 
-          <Separator />
-
-          {/* Results */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">
-                Spells Found: {filteredSpells.length}
-              </h3>
-              {(searchTerm || selectedPath !== 'All' || selectedRarity !== 'All' || selectedEffect !== 'All') && (
-                <div className="flex gap-2">
-                  {searchTerm && (
-                    <Badge variant="outline">Search: {searchTerm}</Badge>
-                  )}
-                  {selectedPath !== 'All' && (
-                    <Badge variant="outline">Path: {selectedPath}</Badge>
-                  )}
-                  {selectedRarity !== 'All' && (
-                    <Badge variant="outline">Rarity: {selectedRarity}</Badge>
-                  )}
-                  {selectedEffect !== 'All' && (
-                    <Badge variant="outline">Effect: {selectedEffect}</Badge>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className="grid gap-4">
-              {filteredSpells.map((spell, index) => (
-                <Card key={index} className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="text-lg font-semibold text-primary">
-                          {spell.name}
-                        </h4>
-                        <p className="text-sm text-muted-foreground">
-                          {spell.path} Magic
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Badge 
-                          variant="outline"
-                          className={getRarityColor(spell.rarity)}
-                        >
-                          {spell.rarity}
-                        </Badge>
-                        <Badge 
-                          variant="outline"
-                          className={getEffectColor(spell.effect)}
-                        >
-                          {spell.effect}
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    <p className="text-sm leading-relaxed">
-                      {spell.description}
-                    </p>
-                  </div>
-                </Card>
-              ))}
-            </div>
-
-            {filteredSpells.length === 0 && (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">
-                  No spells found matching your criteria.
-                </p>
-              </div>
-            )}
+          {/* Results summary */}
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Showing {filteredSpells.length} spell{filteredSpells.length !== 1 ? 's' : ''}
+              {selectedPath !== 'All Paths' && ` from ${selectedPath}`}
+              {selectedRarity !== 'All' && ` (${selectedRarity} rarity)`}
+            </p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Spell System Reference */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Spell System Reference</CardTitle>
-          <CardDescription>
-            Quick reference for the Eldritch RPG magic system
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Rarity Table */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Spell Rarity & Challenge</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-2">Rarity</th>
-                    <th className="text-left p-2">Challenge</th>
-                    <th className="text-left p-2">Maintenance Penalty</th>
-                    <th className="text-left p-2">Failure Consequence</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b">
-                    <td className="p-2">
-                      <Badge className={getRarityColor('Common')}>Common</Badge>
-                    </td>
-                    <td className="p-2">d4</td>
-                    <td className="p-2">-1</td>
-                    <td className="p-2">Next round spell fizzles</td>
-                  </tr>
-                  <tr className="border-b">
-                    <td className="p-2">
-                      <Badge className={getRarityColor('Uncommon')}>Uncommon</Badge>
-                    </td>
-                    <td className="p-2">d6</td>
-                    <td className="p-2">-2</td>
-                    <td className="p-2">2 rounds, -1 spirit point</td>
-                  </tr>
-                  <tr className="border-b">
-                    <td className="p-2">
-                      <Badge className={getRarityColor('Esoteric')}>Esoteric</Badge>
-                    </td>
-                    <td className="p-2">d8</td>
-                    <td className="p-2">-3</td>
-                    <td className="p-2">3 rounds, -3 spirit points</td>
-                  </tr>
-                  <tr className="border-b">
-                    <td className="p-2">
-                      <Badge className={getRarityColor('Occult')}>Occult</Badge>
-                    </td>
-                    <td className="p-2">d10</td>
-                    <td className="p-2">-4</td>
-                    <td className="p-2">4 rounds, -4 spirit points</td>
-                  </tr>
-                  <tr>
-                    <td className="p-2">
-                      <Badge className={getRarityColor('Legendary')}>Legendary</Badge>
-                    </td>
-                    <td className="p-2">d12</td>
-                    <td className="p-2">-5</td>
-                    <td className="p-2">5 rounds, -5 spirit points</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Effect Types */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Effect Types</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {SPELL_EFFECTS.slice(1).map((effect) => (
-                <div key={effect} className="flex items-center gap-2">
-                  <Badge className={getEffectColor(effect)}>
-                    {effect}
-                  </Badge>
-                  <span className="text-sm text-muted-foreground">
-                    {effect === 'Harm' && 'Deals damage'}
-                    {effect === 'Protect' && 'Provides defense'}
-                    {effect === 'Restore' && 'Heals or repairs'}
-                    {effect === 'Modify' && 'Changes properties'}
-                    {effect === 'Activate' && 'Triggers effects'}
-                    {effect === 'Afflict' && 'Causes conditions'}
-                  </span>
+      {/* Spell List */}
+      {filteredSpells.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredSpells.map((spell, index) => (
+            <Card key={index} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-lg">{spell.name}</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline" className={(rarityColors as any)[spell.rarity]}>
+                      {spell.rarity}
+                    </Badge>
+                    {spell.path !== 'All Paths' && (
+                      <Badge variant="outline" className="text-xs">
+                        {spell.path}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-              ))}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <Sparkles className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No spells found</h3>
+            <p className="text-muted-foreground">
+              Try adjusting your search criteria or clearing the search field.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Spell Information */}
+      <Card className="bg-muted/20">
+        <CardHeader>
+          <CardTitle className="text-lg">Understanding Spell Rarities</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+            <div>
+              <Badge className={rarityColors.Common}>Common</Badge>
+              <p className="mt-1">Basic spells available to all casters. Challenge: d0-d4</p>
+            </div>
+            <div>
+              <Badge className={rarityColors.Uncommon}>Uncommon</Badge>
+              <p className="mt-1">Intermediate spells with moderate complexity. Challenge: d6</p>
+            </div>
+            <div>
+              <Badge className={rarityColors.Esoteric}>Esoteric</Badge>
+              <p className="mt-1">Advanced spells requiring skill and knowledge. Challenge: d8</p>
+            </div>
+            <div>
+              <Badge className={rarityColors.Occult}>Occult</Badge>
+              <p className="mt-1">Powerful spells with significant effects. Challenge: d10</p>
+            </div>
+            <div>
+              <Badge className={rarityColors.Legendary}>Legendary</Badge>
+              <p className="mt-1">The most powerful and dangerous spells. Challenge: d12</p>
             </div>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
 export default SpellReference

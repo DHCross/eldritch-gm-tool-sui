@@ -5,165 +5,225 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
-import { 
-  CREATURE_SIZES, 
-  CREATURE_NATURES, 
-  CREATURE_TYPES 
-} from '@/data/gameData'
-import { 
-  calculateHitPoints, 
-  calculateBattlePhase, 
-  parseThreatDice 
-} from '@/utils/gameUtils'
+import { Separator } from "@/components/ui/separator"
+import { toast } from 'sonner'
+import { Heart, Calculator, Dice6 } from "@phosphor-icons/react"
 
-interface Monster {
+// Hit Point Modifiers Table
+const HIT_POINT_MODIFIERS = {
+  'Minuscule': { 'Mundane': 0.5, 'Magical': 1, 'Preternatural': 1.5, 'Supernatural': 2 },
+  'Tiny': { 'Mundane': 0.5, 'Magical': 1, 'Preternatural': 1.5, 'Supernatural': 2 },
+  'Small': { 'Mundane': 1, 'Magical': 1.5, 'Preternatural': 2, 'Supernatural': 2.5 },
+  'Medium': { 'Mundane': 1, 'Magical': 1.5, 'Preternatural': 2, 'Supernatural': 2.5 },
+  'Large': { 'Mundane': 1.5, 'Magical': 2, 'Preternatural': 2.5, 'Supernatural': 3 },
+  'Huge': { 'Mundane': 2, 'Magical': 2.5, 'Preternatural': 3, 'Supernatural': 3.5 },
+  'Gargantuan': { 'Mundane': 2.5, 'Magical': 3, 'Preternatural': 3.5, 'Supernatural': 4 }
+};
+
+interface MonsterData {
   name: string
   type: string
   size: string
   nature: string
-  meleeAttack: string
-  naturalAttack: string
-  rangedAttack: string
-  arcaneAttack: string
-  damageReduction: string
-  savingThrow: string
+  meleeAttack: { dice: number, die: number }
+  naturalAttack: { dice: number, die: number }
+  rangedAttack: { dice: number, die: number }
+  arcaneAttack: { dice: number, die: number }
   hitPoints: number
   activeDefense: number
   passiveDefense: number
+  damageReduction: string
+  savingThrow: string
   battlePhase: number
   notes: string
 }
 
-const MonsterGenerator: React.FC = () => {
-  const [monster, setMonster] = useState<Monster>({
+interface ThreatValidation {
+  isValid: boolean
+  message: string
+}
+
+function MonsterGenerator() {
+  const [monsterData, setMonsterData] = useState<MonsterData>({
     name: '',
     type: 'Standard',
     size: 'Medium',
     nature: 'Mundane',
-    meleeAttack: '2d6',
-    naturalAttack: 'none',
-    rangedAttack: 'none',
-    arcaneAttack: 'none',
-    damageReduction: 'none',
-    savingThrow: 'd8',
+    meleeAttack: { dice: 2, die: 6 },
+    naturalAttack: { dice: 0, die: 4 },
+    rangedAttack: { dice: 0, die: 4 },
+    arcaneAttack: { dice: 0, die: 4 },
     hitPoints: 0,
     activeDefense: 0,
     passiveDefense: 0,
-    battlePhase: 0,
+    damageReduction: '',
+    savingThrow: '',
+    battlePhase: 1,
     notes: ''
-  })
+  });
 
-  const [generatedOutput, setGeneratedOutput] = useState<string>('')
+  const [generatedMonster, setGeneratedMonster] = useState<MonsterData | null>(null);
 
-  // Get available threat dice options based on creature type
-  const getThreatDiceOptions = (type: string, isPrimary: boolean = false) => {
-    const options: string[] = []
+  // Available dice sizes
+  const diceOptions = [4, 6, 8, 10, 12, 14, 16, 18, 20];
+  const standardDice = [4, 6, 8, 10, 12];
+
+  // Validate threat dice based on creature type
+  function validateThreatDice(type: string, attacks: any[]): ThreatValidation {
+    const nonZeroAttacks = attacks.filter(attack => attack.dice > 0);
     
-    if (type === 'Minor') {
-      options.push('1d4', '1d6', '1d8', '1d10', '1d12')
-    } else if (type === 'Standard') {
-      if (isPrimary) {
-        options.push('2d4', '2d6', '2d8', '2d10', '2d12')
-      } else {
-        options.push('none', '1d4', '1d6', '1d8', '1d10', '1d12', '2d4', '2d6', '2d8', '2d10', '2d12')
-      }
-    } else if (type === 'Exceptional') {
-      if (isPrimary) {
-        options.push('3d4', '3d6', '3d8', '3d10', '3d12')
-      } else {
-        options.push('none', '1d4', '1d6', '1d8', '1d10', '1d12', '2d4', '2d6', '2d8', '2d10', '2d12', '3d4', '3d6', '3d8', '3d10', '3d12')
-      }
-    } else if (type === 'Legendary') {
-      if (isPrimary) {
-        options.push('3d12', '3d14', '3d16', '3d18', '3d20')
-      } else {
-        options.push('none', '1d4', '1d6', '1d8', '1d10', '1d12', '2d4', '2d6', '2d8', '2d10', '2d12', '3d4', '3d6', '3d8', '3d10', '3d12', '3d12', '3d14', '3d16', '3d18', '3d20')
-      }
+    if (nonZeroAttacks.length === 0) {
+      return { isValid: false, message: "At least one attack must have dice assigned." };
     }
+
+    const maxDiceCount = Math.max(...nonZeroAttacks.map(attack => attack.dice));
     
-    return options
+    switch (type) {
+      case 'Minor':
+        if (maxDiceCount > 1) {
+          return { isValid: false, message: "Minor threats can only have 1 die in any attack." };
+        }
+        break;
+      case 'Standard':
+        if (maxDiceCount !== 2) {
+          return { isValid: false, message: "Standard threats must have exactly 2 dice in their primary attack." };
+        }
+        if (nonZeroAttacks.some(attack => attack.dice > 2)) {
+          return { isValid: false, message: "Standard threats cannot have more than 2 dice in any attack." };
+        }
+        break;
+      case 'Exceptional':
+        if (maxDiceCount < 3) {
+          return { isValid: false, message: "Exceptional threats must have at least 3 dice in their primary attack." };
+        }
+        break;
+      case 'Legendary':
+        if (maxDiceCount < 3) {
+          return { isValid: false, message: "Legendary threats must have at least 3 dice in their primary attack." };
+        }
+        // Legendary can use larger dice (d14, d16, d18, d20)
+        break;
+    }
+
+    return { isValid: true, message: "" };
   }
 
-  const calculateMonster = () => {
-    const attacks = [monster.meleeAttack, monster.naturalAttack, monster.rangedAttack, monster.arcaneAttack]
-      .filter(attack => attack && attack.trim() !== '' && attack !== 'none')
+  // Get available dice sizes based on creature type
+  function getAvailableDice(type: string): number[] {
+    return type === 'Legendary' ? diceOptions : standardDice;
+  }
+
+  // Get available dice count options based on creature type
+  function getAvailableDiceCount(type: string, isPrimary: boolean = false): number[] {
+    switch (type) {
+      case 'Minor':
+        return [0, 1];
+      case 'Standard':
+        if (isPrimary) return [2];
+        return [0, 1, 2];
+      case 'Exceptional':
+        if (isPrimary) return [3, 4, 5];
+        return [0, 1, 2, 3];
+      case 'Legendary':
+        if (isPrimary) return [3, 4, 5, 6];
+        return [0, 1, 2, 3, 4, 5];
+      default:
+        return [0, 1, 2, 3];
+    }
+  }
+
+  // Calculate battle phase based on highest die
+  function calculateBattlePhase(attacks: any[]): number {
+    const nonZeroAttacks = attacks.filter(attack => attack.dice > 0);
+    if (nonZeroAttacks.length === 0) return 5;
     
-    if (attacks.length === 0) {
-      alert('Please specify at least one attack form.')
-      return
+    const highestDie = Math.max(...nonZeroAttacks.map(attack => attack.die));
+    
+    if (highestDie >= 12) return 1;
+    if (highestDie >= 10) return 2;
+    if (highestDie >= 8) return 3;
+    if (highestDie >= 6) return 4;
+    return 5;
+  }
+
+  // Calculate saving throw based on type
+  function calculateSavingThrow(type: string): string {
+    switch (type) {
+      case 'Minor': return 'd4';
+      case 'Standard': return 'd8';
+      case 'Exceptional': return 'd12';
+      case 'Legendary': return 'd16';
+      default: return 'd4';
+    }
+  }
+
+  // Calculate hit points
+  function calculateHitPoints(attacks: any[], size: string, nature: string): number {
+    const maxMV = Math.max(...attacks.map(attack => 
+      attack.dice > 0 ? attack.dice * attack.die : 0
+    ));
+    
+    const multiplier = (HIT_POINT_MODIFIERS as any)[size]?.[nature] || 1;
+    return Math.round(maxMV * multiplier);
+  }
+
+  function generateMonster() {
+    if (!monsterData.name.trim()) {
+      toast.error("Please enter a monster name.");
+      return;
     }
 
-    // Find the highest MV attack for base HP calculation
-    let highestMV = 0
-    let primaryAttack = ''
-    
-    attacks.forEach(attack => {
-      const { mv } = parseThreatDice(attack)
-      if (mv > highestMV) {
-        highestMV = mv
-        primaryAttack = attack
-      }
-    })
+    const attacks = [
+      monsterData.meleeAttack,
+      monsterData.naturalAttack,
+      monsterData.rangedAttack,
+      monsterData.arcaneAttack
+    ];
 
-    // Calculate hit points
-    const { hitPoints } = calculateHitPoints(highestMV, monster.size, monster.nature)
-    
-    // Calculate defense pools (simplified - using HP/2 for each)
-    const activeDefense = Math.round(hitPoints / 2)
-    const passiveDefense = hitPoints - activeDefense
-    
-    // Calculate battle phase from primary attack
-    const { die } = parseThreatDice(primaryAttack)
-    const battlePhase = calculateBattlePhase(`d${die}`)
+    const validation = validateThreatDice(monsterData.type, attacks);
+    if (!validation.isValid) {
+      toast.error(validation.message);
+      return;
+    }
 
-    const updatedMonster = {
-      ...monster,
+    const hitPoints = calculateHitPoints(attacks, monsterData.size, monsterData.nature);
+    const battlePhase = calculateBattlePhase(attacks);
+    const savingThrow = calculateSavingThrow(monsterData.type);
+
+    // Calculate defense pools (simplified for NPCs)
+    const activeDefense = Math.round(hitPoints * 0.4);
+    const passiveDefense = hitPoints - activeDefense;
+
+    const generated: MonsterData = {
+      ...monsterData,
       hitPoints,
       activeDefense,
       passiveDefense,
-      battlePhase
-    }
+      battlePhase,
+      savingThrow
+    };
 
-    setMonster(updatedMonster)
-    generateOutput(updatedMonster, highestMV)
+    setGeneratedMonster(generated);
+    toast.success('Monster generated successfully!');
   }
 
-  const generateOutput = (monsterData: Monster, baseMV: number) => {
-    const attacks = []
-    if (monsterData.meleeAttack && monsterData.meleeAttack !== 'none') attacks.push(`Melee: ${monsterData.meleeAttack}`)
-    if (monsterData.naturalAttack && monsterData.naturalAttack !== 'none') attacks.push(`Natural: ${monsterData.naturalAttack}`)
-    if (monsterData.rangedAttack && monsterData.rangedAttack !== 'none') attacks.push(`Ranged: ${monsterData.rangedAttack}`)
-    if (monsterData.arcaneAttack && monsterData.arcaneAttack !== 'none') attacks.push(`Arcane: ${monsterData.arcaneAttack}`)
-
-    const output = `${monsterData.name || 'Unnamed Creature'}
-${monsterData.type} ${monsterData.size} ${monsterData.nature} Creature
-
-Base HP (MV): ${baseMV}
-TD: ${attacks.join(', ')}
-HP: ${monsterData.hitPoints} (${monsterData.activeDefense}A/${monsterData.passiveDefense}P) [${monsterData.size.toLowerCase()}, ${monsterData.nature.toLowerCase()}; HP ×${calculateHitPoints(baseMV, monsterData.size, monsterData.nature).multiplier}]
-ST: ${monsterData.savingThrow} (${monsterData.type} threat)
-BP: ${monsterData.battlePhase}
-DR: ${monsterData.damageReduction === 'none' ? 'None' : monsterData.damageReduction}
-
-${monsterData.notes ? `Notes: ${monsterData.notes}` : ''}`
-
-    setGeneratedOutput(output)
+  function formatThreatDice(attack: { dice: number, die: number }): string {
+    if (attack.dice === 0) return "—";
+    return `${attack.dice}d${attack.die}`;
   }
 
-  const getTypeDescription = (type: string) => {
+  function getThreatMV(attack: { dice: number, die: number }): number {
+    return attack.dice * attack.die;
+  }
+
+  function getTypeDescription(type: string): string {
     switch (type) {
-      case 'Minor':
-        return 'Single attack die (1d4 to 1d12)'
-      case 'Standard':
-        return 'Two attack dice as primary (2d4 to 2d12), others can be lower'
-      case 'Exceptional':
-        return 'Three attack dice as primary (3d4 to 3d12), others can be lower'
-      case 'Legendary':
-        return 'Three or more attack dice (3d12+), can use d14-d20'
-      default:
-        return ''
+      case 'Minor': return "1 threat die maximum";
+      case 'Standard': return "Exactly 2 dice in primary attack, max 2 dice in others";
+      case 'Exceptional': return "At least 3 dice in primary attack";
+      case 'Legendary': return "At least 3 dice, can use d14-d20";
+      default: return "";
     }
   }
 
@@ -171,71 +231,83 @@ ${monsterData.notes ? `Notes: ${monsterData.notes}` : ''}`
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Monster Generator</CardTitle>
+          <CardTitle className="text-2xl flex items-center gap-2">
+            <Heart className="text-accent" />
+            Monster Generator
+          </CardTitle>
           <CardDescription>
-            Create detailed creature stat blocks for Eldritch RPG
+            Create complete stat blocks for creatures in the Eldritch Realms
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Basic Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Basic Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <Label htmlFor="name">Creature Name</Label>
               <Input
                 id="name"
-                value={monster.name}
-                onChange={(e) => setMonster({ ...monster, name: e.target.value })}
+                value={monsterData.name}
+                onChange={(e) => setMonsterData({ ...monsterData, name: e.target.value })}
                 placeholder="Enter creature name"
               />
             </div>
+
             <div>
               <Label htmlFor="type">Creature Type</Label>
-              <Select value={monster.type} onValueChange={(value) => setMonster({ ...monster, type: value })}>
+              <Select 
+                value={monsterData.type} 
+                onValueChange={(value) => setMonsterData({ ...monsterData, type: value })}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {CREATURE_TYPES.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="Minor">Minor</SelectItem>
+                  <SelectItem value="Standard">Standard</SelectItem>
+                  <SelectItem value="Exceptional">Exceptional</SelectItem>
+                  <SelectItem value="Legendary">Legendary</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-sm text-muted-foreground mt-1">
-                {getTypeDescription(monster.type)}
+              <p className="text-xs text-muted-foreground mt-1">
+                {getTypeDescription(monsterData.type)}
               </p>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="size">Size</Label>
-              <Select value={monster.size} onValueChange={(value) => setMonster({ ...monster, size: value })}>
+              <Select 
+                value={monsterData.size} 
+                onValueChange={(value) => setMonsterData({ ...monsterData, size: value })}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {CREATURE_SIZES.map((size) => (
-                    <SelectItem key={size} value={size}>
-                      {size}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="Minuscule">Minuscule</SelectItem>
+                  <SelectItem value="Tiny">Tiny</SelectItem>
+                  <SelectItem value="Small">Small</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="Large">Large</SelectItem>
+                  <SelectItem value="Huge">Huge</SelectItem>
+                  <SelectItem value="Gargantuan">Gargantuan</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
             <div>
               <Label htmlFor="nature">Nature</Label>
-              <Select value={monster.nature} onValueChange={(value) => setMonster({ ...monster, nature: value })}>
+              <Select 
+                value={monsterData.nature} 
+                onValueChange={(value) => setMonsterData({ ...monsterData, nature: value })}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {CREATURE_NATURES.map((nature) => (
-                    <SelectItem key={nature} value={nature}>
-                      {nature}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="Mundane">Mundane</SelectItem>
+                  <SelectItem value="Magical">Magical</SelectItem>
+                  <SelectItem value="Preternatural">Preternatural</SelectItem>
+                  <SelectItem value="Supernatural">Supernatural</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -243,176 +315,318 @@ ${monsterData.notes ? `Notes: ${monsterData.notes}` : ''}`
 
           <Separator />
 
-          {/* Attack Forms */}
+          {/* Attack Types */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Attack Forms</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="melee">Melee Attack</Label>
-                <Select 
-                  value={monster.meleeAttack} 
-                  onValueChange={(value) => setMonster({ ...monster, meleeAttack: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getThreatDiceOptions(monster.type, true).map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {option || 'None'}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <h3 className="text-lg font-semibold mb-4">Threat Dice (TD)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Melee Attack */}
+              <div className="space-y-2">
+                <Label>Melee Attack</Label>
+                <div className="flex gap-2">
+                  <Select 
+                    value={monsterData.meleeAttack.dice.toString()} 
+                    onValueChange={(value) => setMonsterData({ 
+                      ...monsterData, 
+                      meleeAttack: { ...monsterData.meleeAttack, dice: parseInt(value) }
+                    })}
+                  >
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableDiceCount(monsterData.type).map(num => (
+                        <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="self-center">d</span>
+                  <Select 
+                    value={monsterData.meleeAttack.die.toString()} 
+                    onValueChange={(value) => setMonsterData({ 
+                      ...monsterData, 
+                      meleeAttack: { ...monsterData.meleeAttack, die: parseInt(value) }
+                    })}
+                  >
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableDice(monsterData.type).map(die => (
+                        <SelectItem key={die} value={die.toString()}>{die}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="self-center text-sm text-muted-foreground">
+                    (MV: {getThreatMV(monsterData.meleeAttack)})
+                  </span>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="natural">Natural Attack</Label>
-                <Select 
-                  value={monster.naturalAttack} 
-                  onValueChange={(value) => setMonster({ ...monster, naturalAttack: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getThreatDiceOptions(monster.type, false).map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {option === 'none' ? 'None' : option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+
+              {/* Natural Attack */}
+              <div className="space-y-2">
+                <Label>Natural Attack</Label>
+                <div className="flex gap-2">
+                  <Select 
+                    value={monsterData.naturalAttack.dice.toString()} 
+                    onValueChange={(value) => setMonsterData({ 
+                      ...monsterData, 
+                      naturalAttack: { ...monsterData.naturalAttack, dice: parseInt(value) }
+                    })}
+                  >
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableDiceCount(monsterData.type).map(num => (
+                        <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="self-center">d</span>
+                  <Select 
+                    value={monsterData.naturalAttack.die.toString()} 
+                    onValueChange={(value) => setMonsterData({ 
+                      ...monsterData, 
+                      naturalAttack: { ...monsterData.naturalAttack, die: parseInt(value) }
+                    })}
+                  >
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableDice(monsterData.type).map(die => (
+                        <SelectItem key={die} value={die.toString()}>{die}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="self-center text-sm text-muted-foreground">
+                    (MV: {getThreatMV(monsterData.naturalAttack)})
+                  </span>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="ranged">Ranged Attack</Label>
-                <Select 
-                  value={monster.rangedAttack} 
-                  onValueChange={(value) => setMonster({ ...monster, rangedAttack: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getThreatDiceOptions(monster.type, false).map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {option === 'none' ? 'None' : option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+
+              {/* Ranged Attack */}
+              <div className="space-y-2">
+                <Label>Ranged Attack</Label>
+                <div className="flex gap-2">
+                  <Select 
+                    value={monsterData.rangedAttack.dice.toString()} 
+                    onValueChange={(value) => setMonsterData({ 
+                      ...monsterData, 
+                      rangedAttack: { ...monsterData.rangedAttack, dice: parseInt(value) }
+                    })}
+                  >
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableDiceCount(monsterData.type).map(num => (
+                        <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="self-center">d</span>
+                  <Select 
+                    value={monsterData.rangedAttack.die.toString()} 
+                    onValueChange={(value) => setMonsterData({ 
+                      ...monsterData, 
+                      rangedAttack: { ...monsterData.rangedAttack, die: parseInt(value) }
+                    })}
+                  >
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableDice(monsterData.type).map(die => (
+                        <SelectItem key={die} value={die.toString()}>{die}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="self-center text-sm text-muted-foreground">
+                    (MV: {getThreatMV(monsterData.rangedAttack)})
+                  </span>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="arcane">Arcane Attack</Label>
-                <Select 
-                  value={monster.arcaneAttack} 
-                  onValueChange={(value) => setMonster({ ...monster, arcaneAttack: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getThreatDiceOptions(monster.type, false).map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {option === 'none' ? 'None' : option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+
+              {/* Arcane Attack */}
+              <div className="space-y-2">
+                <Label>Arcane Attack</Label>
+                <div className="flex gap-2">
+                  <Select 
+                    value={monsterData.arcaneAttack.dice.toString()} 
+                    onValueChange={(value) => setMonsterData({ 
+                      ...monsterData, 
+                      arcaneAttack: { ...monsterData.arcaneAttack, dice: parseInt(value) }
+                    })}
+                  >
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableDiceCount(monsterData.type).map(num => (
+                        <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="self-center">d</span>
+                  <Select 
+                    value={monsterData.arcaneAttack.die.toString()} 
+                    onValueChange={(value) => setMonsterData({ 
+                      ...monsterData, 
+                      arcaneAttack: { ...monsterData.arcaneAttack, die: parseInt(value) }
+                    })}
+                  >
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableDice(monsterData.type).map(die => (
+                        <SelectItem key={die} value={die.toString()}>{die}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="self-center text-sm text-muted-foreground">
+                    (MV: {getThreatMV(monsterData.arcaneAttack)})
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
           <Separator />
 
-          {/* Defenses */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Defenses</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="damageReduction">Damage Reduction</Label>
-                <Select 
-                  value={monster.damageReduction} 
-                  onValueChange={(value) => setMonster({ ...monster, damageReduction: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    <SelectItem value="d4">d4 (Hide/Natural)</SelectItem>
-                    <SelectItem value="d6">d6 (Leather/Scales)</SelectItem>
-                    <SelectItem value="d8">d8 (Chain/Plates)</SelectItem>
-                    <SelectItem value="d10">d10 (Plate/Shell)</SelectItem>
-                    <SelectItem value="d12">d12 (Magic)</SelectItem>
-                    <SelectItem value="+1">+1 (Light Armor)</SelectItem>
-                    <SelectItem value="+2">+2 (Medium Armor)</SelectItem>
-                    <SelectItem value="+3">+3 (Heavy Armor)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="savingThrow">Saving Throw</Label>
-                <Select 
-                  value={monster.savingThrow} 
-                  onValueChange={(value) => setMonster({ ...monster, savingThrow: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="d4">d4 (Minor threat)</SelectItem>
-                    <SelectItem value="d8">d8 (Standard threat)</SelectItem>
-                    <SelectItem value="d12">d12 (Exceptional threat)</SelectItem>
-                    <SelectItem value="d16">d16 (Legendary threat)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          {/* Additional Details */}
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="damageReduction">Damage Reduction (DR)</Label>
+              <Input
+                id="damageReduction"
+                value={monsterData.damageReduction}
+                onChange={(e) => setMonsterData({ ...monsterData, damageReduction: e.target.value })}
+                placeholder="e.g., 1d6 (armor), 1d4 (tough hide)"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="notes">Notes & Special Abilities</Label>
+              <Textarea
+                id="notes"
+                value={monsterData.notes}
+                onChange={(e) => setMonsterData({ ...monsterData, notes: e.target.value })}
+                placeholder="Describe special abilities, equipment, lore, or other unique traits..."
+                rows={3}
+              />
             </div>
           </div>
 
-          {/* Notes */}
-          <div>
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={monster.notes}
-              onChange={(e) => setMonster({ ...monster, notes: e.target.value })}
-              placeholder="Special abilities, equipment, lore, etc."
-              rows={3}
-            />
-          </div>
-
-          <Button onClick={calculateMonster} className="w-full">
+          <Button onClick={generateMonster} className="w-full">
+            <Calculator size={16} className="mr-2" />
             Generate Monster
           </Button>
         </CardContent>
       </Card>
 
-      {generatedOutput && (
+      {/* Generated Monster Display */}
+      {generatedMonster && (
         <Card>
           <CardHeader>
-            <CardTitle>Generated Monster Stat Block</CardTitle>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Dice6 className="text-accent" />
+              {generatedMonster.name}
+            </CardTitle>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="outline">{generatedMonster.type} Threat</Badge>
+              <Badge variant="outline">{generatedMonster.size}</Badge>
+              <Badge variant="outline">{generatedMonster.nature}</Badge>
+            </div>
           </CardHeader>
-          <CardContent>
-            <pre className="whitespace-pre-wrap font-mono text-sm bg-muted p-4 rounded-lg">
-              {generatedOutput}
-            </pre>
-            <div className="mt-4 flex gap-2">
-              <Badge variant="outline">
-                HP: {monster.hitPoints}
-              </Badge>
-              <Badge variant="outline">
-                BP: {monster.battlePhase}
-              </Badge>
-              <Badge variant="outline">
-                {monster.activeDefense}A/{monster.passiveDefense}P
-              </Badge>
+          <CardContent className="space-y-6">
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div className="bg-muted rounded-lg p-3">
+                <div className="text-xs text-muted-foreground">HP</div>
+                <div className="text-lg font-bold">{generatedMonster.hitPoints}</div>
+                <div className="text-xs text-muted-foreground">
+                  ({generatedMonster.activeDefense}A/{generatedMonster.passiveDefense}P)
+                </div>
+              </div>
+              <div className="bg-muted rounded-lg p-3">
+                <div className="text-xs text-muted-foreground">ST</div>
+                <div className="text-lg font-bold">{generatedMonster.savingThrow}</div>
+              </div>
+              <div className="bg-muted rounded-lg p-3">
+                <div className="text-xs text-muted-foreground">BP</div>
+                <div className="text-lg font-bold">{generatedMonster.battlePhase}</div>
+              </div>
+              <div className="bg-muted rounded-lg p-3">
+                <div className="text-xs text-muted-foreground">Type</div>
+                <div className="text-lg font-bold">{generatedMonster.type}</div>
+              </div>
+            </div>
+
+            {/* Threat Dice */}
+            <div>
+              <h4 className="font-semibold mb-3">Threat Dice (TD)</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <div className="text-sm font-medium">Melee</div>
+                  <div className="text-lg">{formatThreatDice(generatedMonster.meleeAttack)}</div>
+                  <div className="text-xs text-muted-foreground">MV: {getThreatMV(generatedMonster.meleeAttack)}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium">Natural</div>
+                  <div className="text-lg">{formatThreatDice(generatedMonster.naturalAttack)}</div>
+                  <div className="text-xs text-muted-foreground">MV: {getThreatMV(generatedMonster.naturalAttack)}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium">Ranged</div>
+                  <div className="text-lg">{formatThreatDice(generatedMonster.rangedAttack)}</div>
+                  <div className="text-xs text-muted-foreground">MV: {getThreatMV(generatedMonster.rangedAttack)}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium">Arcane</div>
+                  <div className="text-lg">{formatThreatDice(generatedMonster.arcaneAttack)}</div>
+                  <div className="text-xs text-muted-foreground">MV: {getThreatMV(generatedMonster.arcaneAttack)}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Info */}
+            {(generatedMonster.damageReduction || generatedMonster.notes) && (
+              <div className="space-y-3">
+                {generatedMonster.damageReduction && (
+                  <div>
+                    <h4 className="font-semibold mb-1">Damage Reduction (DR)</h4>
+                    <p className="text-sm">{generatedMonster.damageReduction}</p>
+                  </div>
+                )}
+                
+                {generatedMonster.notes && (
+                  <div>
+                    <h4 className="font-semibold mb-1">Notes</h4>
+                    <p className="text-sm whitespace-pre-wrap">{generatedMonster.notes}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Full Stat Block */}
+            <div className="border-t pt-4">
+              <h4 className="font-semibold mb-2">Complete Stat Block</h4>
+              <div className="bg-muted p-4 rounded font-mono text-sm">
+                <div><strong>{generatedMonster.name}</strong> ({generatedMonster.type} {generatedMonster.size} {generatedMonster.nature})</div>
+                <div>TD: Melee {formatThreatDice(generatedMonster.meleeAttack)}, Natural {formatThreatDice(generatedMonster.naturalAttack)}, Ranged {formatThreatDice(generatedMonster.rangedAttack)}, Arcane {formatThreatDice(generatedMonster.arcaneAttack)}</div>
+                <div>HP: {generatedMonster.hitPoints} ({generatedMonster.activeDefense}A/{generatedMonster.passiveDefense}P)</div>
+                {generatedMonster.damageReduction && <div>DR: {generatedMonster.damageReduction}</div>}
+                <div>ST: {generatedMonster.savingThrow} | BP: {generatedMonster.battlePhase}</div>
+                {generatedMonster.notes && <div>Notes: {generatedMonster.notes}</div>}
+              </div>
             </div>
           </CardContent>
         </Card>
       )}
     </div>
-  )
+  );
 }
 
 export default MonsterGenerator

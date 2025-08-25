@@ -99,185 +99,149 @@ interface Character {
   actions: Record<string, string>
 }
 
+interface GeneratorSettings {
+  race: string
+  class: string
+  level: number
+  magicPath: string
+  buildStyle: 'balanced' | 'hybrid' | 'specialist'
+  rookieProfile: 'off' | 'pure' | 'balanced' | 'specialist'
+  enforceSoftcaps: boolean
+  iconicArcane: boolean
+  npcMode: boolean
+  showWeakness: boolean
+}
+
 // ======= HELPERS =======
 const idx = (r: string) => dieRanks.indexOf(r);
 const mv = (r: string) => r && r.startsWith('d') ? parseInt(r.slice(1), 10) : 0;
 const fnum = (v: string) => v ? parseInt(String(v).replace('+', ''), 10) : 0;
 
-const PlayerCharacterGenerator: React.FC = () => {
-  const [settings, setSettings] = useState({
+function PlayerCharacterGenerator() {
+  const [settings, setSettings] = useState<GeneratorSettings>({
     race: '',
     class: '',
     level: 1,
     magicPath: '',
-    iconicArcane: false,
-    buildStyle: 'balanced' as 'balanced' | 'hybrid' | 'specialist',
-    rookieProfile: 'off' as 'off' | 'pure' | 'balanced' | 'specialist',
-    npcMode: false,
+    buildStyle: 'balanced',
+    rookieProfile: 'off',
     enforceSoftcaps: true,
+    iconicArcane: false,
+    npcMode: false,
     showWeakness: true
   });
 
   const [character, setCharacter] = useState<Character | null>(null);
-  const [cpTotals, setCpTotals] = useState<any>(null);
-  const [warnings, setWarnings] = useState<string[]>([]);
+  const [lastGeneratedData, setLastGeneratedData] = useState<any>(null);
 
-  useEffect(() => {
-    // Enable/disable rookie profile based on level
-    if (settings.level !== 1) {
-      setSettings(prev => ({ ...prev, rookieProfile: 'off' }));
-    }
-  }, [settings.level]);
-
-  const applyMinima = (ch: Character, minima: Record<string, string>) => {
+  // ======= CORE LOGIC =======
+  function applyMinima(ch: any, minima: any) {
     for (const [k, v] of Object.entries(minima || {})) {
       if (abilities.includes(k)) {
-        if (idx(v) > idx(ch.abilities[k])) ch.abilities[k] = v;
+        if (idx(v as string) > idx(ch.abilities[k])) ch.abilities[k] = v;
       } else {
         const parentA = Object.keys(specs).find(a => (specs as any)[a].includes(k));
         const parentS = Object.keys(foci).find(s => (foci as any)[s].includes(k));
         if (parentA) {
-          if (idx(v) > idx(ch.specialties[parentA][k])) ch.specialties[parentA][k] = v;
+          if (idx(v as string) > idx(ch.specialties[parentA][k])) ch.specialties[parentA][k] = v;
         } else if (parentS) {
           const pa = Object.keys(specs).find(a => (specs as any)[a].includes(parentS));
-          if (pa && fnum(v) > fnum(ch.focuses[pa][k])) ch.focuses[pa][k] = `+${fnum(v)}`;
+          if (pa && fnum(v as string) > fnum(ch.focuses[pa][k])) ch.focuses[pa][k] = `+${fnum(v as string)}`;
         }
       }
     }
-  };
+  }
 
-  const rookieCaps = (profile: string) => {
-    if (profile === 'pure') return { abilityMax: 'd6', specMax: 'd6', focusMax: 1, rules: [(ch: Character) => true] };
-    if (profile === 'balanced') return { abilityMax: 'd8', specMax: 'd8', focusMax: 2, rules: [(ch: Character) => breadthFloors(ch, 'd6')] };
-    if (profile === 'specialist') return { abilityMax: 'd8', specMax: 'd10', focusMax: 3, rules: [(ch: Character) => floors(ch, 'd4')] };
-    return null;
-  };
-
-  const softCaps = (level: number, style: string) => {
-    const sc = { abilityMax: 'd12', specMax: 'd12', focusMax: 5, rules: [] as any[] };
-    if (style === 'balanced') {
-      if (level <= 3) { sc.abilityMax = 'd10'; sc.specMax = 'd10'; sc.focusMax = 3; }
-      if (level === 4) { sc.focusMax = 4; }
-      sc.rules.push((ch: Character) => breadthFloors(ch, 'd8'));
-      sc.rules.push((ch: Character) => countSpecsAtOrAbove(ch, 'd12') <= 1);
-    }
-    if (style === 'hybrid' && level <= 3) sc.focusMax = 4;
-    if (style === 'specialist') {
-      if (level <= 3) sc.focusMax = 5;
-      sc.rules.push((ch: Character) => floors(ch, 'd4'));
-    }
-    return sc;
-  };
-
-  const order = { 'd4': 0, 'd6': 1, 'd8': 2, 'd10': 3, 'd12': 4 };
-  const breadthFloors = (ch: Character, rank: string) => Object.values(ch.abilities).every(r => (order as any)[r] >= (order as any)[rank]);
-  const floors = (ch: Character, rank: string) => Object.values(ch.abilities).every(r => (order as any)[r] >= (order as any)[rank]);
-  const countSpecsAtOrAbove = (ch: Character, rank: string) => {
-    let n = 0;
-    for (const a of abilities) {
-      for (const s of (specs as any)[a])
-        if ((order as any)[ch.specialties[a][s]] >= (order as any)[rank]) n++;
-    }
-    return n;
-  };
-
-  const buildWeights = (klass: string, style: string) => {
+  function buildWeights(klass: string, style: string) {
     const axis = (classAxes as any)[klass] || [];
-    const w: Record<string, number> = {};
-    axis.forEach((k: string, i: number) => w[k] = (style === 'specialist' ? 100 - i * 4 : style === 'balanced' ? 60 - i * 3 : 80 - i * 3));
+    const w: any = {};
+    axis.forEach((k: string, i: number) => {
+      w[k] = style === 'specialist' ? 100 - i * 4 : style === 'balanced' ? 60 - i * 3 : 80 - i * 3;
+    });
     if (style === 'balanced') {
       w['Competence'] = (w['Competence'] || 30) + 20;
       w['Fortitude'] = (w['Fortitude'] || 30) + 20;
       ['Endurance', 'Strength', 'Willpower', 'Agility'].forEach(k => w[k] = (w[k] || 20) + 10);
     }
     return w;
-  };
+  }
 
-  const canUpgrade = (ch: Character, key: string, kind: 'ability' | 'spec', level: number, style: string) => {
-    if (!settings.enforceSoftcaps) return true;
-    const rp = settings.rookieProfile;
-    const rc = rookieCaps(rp);
-    const sc = (level === 1 && rp !== 'off') ? rc : softCaps(level, style);
-    const maxDie = (kind === 'ability') ? sc!.abilityMax : sc!.specMax;
-    let cur = 'd4';
-    if (kind === 'ability') cur = ch.abilities[key];
-    else {
-      const pa = Object.keys(specs).find(a => (specs as any)[a].includes(key));
-      if (pa) cur = ch.specialties[pa][key];
-    }
-    if ((order as any)[cur] >= (order as any)[maxDie]) return false;
-    for (const rule of sc!.rules) { if (!rule(ch)) return false; }
-    if (!rc && style === 'balanced' && kind === 'spec') {
-      const pa = Object.keys(specs).find(a => (specs as any)[a].includes(key));
-      if (pa) {
-        const parent = ch.abilities[pa];
-        if ((order as any)[cur] + 1 > (order as any)[parent] + 1) return false;
-      }
-    }
-    return true;
-  };
-
-  const spendCP = (ch: Character, cpBudget: { value: number }, style: string, level: number) => {
+  function spendCP(ch: any, cpBudget: { value: number }, style: string, level: number) {
     const weights = buildWeights(ch.class, style);
-    const tryUpgrade = (key: string) => {
-      if (abilities.includes(key)) {
-        const cur = ch.abilities[key];
-        if (cur === 'd12') return false;
-        if (!canUpgrade(ch, key, 'ability', level, style)) return false;
-        const cost = stepCost[cur as keyof typeof stepCost];
-        if (cpBudget.value < cost) return false;
-        ch.abilities[key] = dieRanks[idx(cur) + 1];
-        cpBudget.value -= cost;
-        return true;
-      }
-      const pa = Object.keys(specs).find(a => (specs as any)[a].includes(key));
-      if (pa) {
-        const cur = ch.specialties[pa][key];
-        if (cur === 'd12') return false;
-        if (!canUpgrade(ch, key, 'spec', level, style)) return false;
-        const cost = stepCost[cur as keyof typeof stepCost];
-        if (cpBudget.value < cost) return false;
-        ch.specialties[pa][key] = dieRanks[idx(cur) + 1];
-        cpBudget.value -= cost;
-        return true;
-      }
-      const ps = Object.keys(foci).find(s => (foci as any)[s].includes(key));
-      if (ps) {
-        const pa2 = Object.keys(specs).find(a => (specs as any)[a].includes(ps));
-        if (pa2) {
-          const val = fnum(ch.focuses[pa2][key]);
-          const rp = settings.rookieProfile;
-          const rc = rookieCaps(rp);
-          const sc = (level === 1 && rp !== 'off') ? rc : softCaps(level, style);
-          if (val >= sc!.focusMax) return false;
-          if (cpBudget.value < focusStepCost) return false;
-          ch.focuses[pa2][key] = `+${val + 1}`;
-          cpBudget.value -= focusStepCost;
-          return true;
-        }
-      }
-      return false;
-    };
-    
     const keys = [...new Set([...abilities, ...Object.values(specs).flat(), ...Object.values(foci).flat()])];
     let safety = 0;
+    
     while (cpBudget.value > 0 && safety < 5000) {
       safety++;
       const sorted = keys.slice().sort((a, b) => (weights[b] || 10) - (weights[a] || 10));
       let upgraded = false;
-      for (const k of sorted) { if (tryUpgrade(k)) { upgraded = true; break; } }
+      
+      for (const k of sorted) {
+        if (abilities.includes(k)) {
+          const cur = ch.abilities[k];
+          if (cur === 'd12') continue;
+          const cost = stepCost[cur as keyof typeof stepCost];
+          if (cpBudget.value < cost) continue;
+          ch.abilities[k] = dieRanks[idx(cur) + 1];
+          cpBudget.value -= cost;
+          upgraded = true;
+          break;
+        }
+        
+        const pa = Object.keys(specs).find(a => (specs as any)[a].includes(k));
+        if (pa) {
+          const cur = ch.specialties[pa][k];
+          if (cur === 'd12') continue;
+          const cost = stepCost[cur as keyof typeof stepCost];
+          if (cpBudget.value < cost) continue;
+          ch.specialties[pa][k] = dieRanks[idx(cur) + 1];
+          cpBudget.value -= cost;
+          upgraded = true;
+          break;
+        }
+        
+        const ps = Object.keys(foci).find(s => (foci as any)[s].includes(k));
+        if (ps) {
+          const pa2 = Object.keys(specs).find(a => (specs as any)[a].includes(ps));
+          if (pa2) {
+            const val = fnum(ch.focuses[pa2][k]);
+            if (val >= 5) continue;
+            if (cpBudget.value < focusStepCost) continue;
+            ch.focuses[pa2][k] = `+${val + 1}`;
+            cpBudget.value -= focusStepCost;
+            upgraded = true;
+            break;
+          }
+        }
+      }
+      
       if (!upgraded) break;
     }
-  };
+  }
 
-  const computePools = (ch: Character) => {
+  function computePools(ch: any) {
     const AD = mv(ch.abilities.Prowess) + mv(ch.specialties.Prowess.Agility) + mv(ch.specialties.Prowess.Melee);
     const PD = mv(ch.abilities.Fortitude) + mv(ch.specialties.Fortitude.Endurance) + mv(ch.specialties.Fortitude.Strength);
     const SP = mv(ch.abilities.Competence) + mv(ch.specialties.Fortitude.Willpower);
     return { active: AD, passive: PD, spirit: SP };
-  };
+  }
 
-  const weaknessReport = (ch: Character) => {
+  function cpTally(ch: any, iconic: boolean) {
+    let a = 0, s = 0, f = 0;
+    for (const ab of abilities) {
+      a += (cumulativeDieCost as any)[ch.abilities[ab]] || 0;
+      for (const sp of (specs as any)[ab]) {
+        s += (cumulativeDieCost as any)[ch.specialties[ab][sp]] || 0;
+      }
+      for (const fx of Object.values(ch.focuses[ab])) {
+        f += fnum(fx as string) * focusStepCost;
+      }
+    }
+    const base = 10, adv = iconic ? 4 : 0;
+    return { base, abilities: a, specialties: s, focuses: f, advantages: adv, total: base + a + s + f + adv };
+  }
+
+  function weaknessReport(ch: any) {
     const { active, passive, spirit } = computePools(ch);
     const flags = [];
     if (spirit <= 12) flags.push('Low Spirit Points (mental/arcane pressure will hurt).');
@@ -288,60 +252,48 @@ const PlayerCharacterGenerator: React.FC = () => {
     if (idx(ch.specialties.Fortitude.Willpower) <= 1) flags.push('Low Willpower (charms/fear/illusions).');
     if (idx(ch.specialties.Prowess.Precision) <= 1) flags.push('Weak ranged capability.');
     return flags;
-  };
+  }
 
-  const cpTally = (ch: Character, iconic: boolean) => {
-    let a = 0, s = 0, f = 0;
-    for (const ab of abilities) {
-      a += (cumulativeDieCost[ch.abilities[ab] as keyof typeof cumulativeDieCost] || 0);
-      for (const sp of (specs as any)[ab])
-        s += (cumulativeDieCost[ch.specialties[ab][sp] as keyof typeof cumulativeDieCost] || 0);
-      for (const fx of Object.values(ch.focuses[ab]))
-        f += fnum(fx) * focusStepCost;
-    }
-    const base = 10, adv = iconic ? 4 : 0;
-    return { base, abilities: a, specialties: s, focuses: f, advantages: adv, total: base + a + s + f + adv };
-  };
-
-  const generateCharacter = () => {
-    if (!settings.race || !settings.class) {
-      toast.error('Please select a valid race and class');
+  // ======= MAIN GENERATE FUNCTION =======
+  function generate() {
+    if (!settings.race || !settings.class || !settings.level) {
+      toast.error('Please select a valid race, class, and level.');
       return;
     }
 
-    const ch: Character = {
+    const ch: any = {
       race: settings.race,
       class: settings.class,
       level: settings.level,
-      displayLevel: 1,
       abilities: {},
       specialties: {},
-      focuses: {},
-      pools: { active: 0, passive: 0, spirit: 0 },
-      masteryDie: 'd4',
-      actions: {}
+      focuses: {}
     };
 
+    // Initialize all abilities and structures
     for (const a of abilities) {
       ch.abilities[a] = 'd4';
       ch.specialties[a] = {};
       ch.focuses[a] = {};
       for (const s of (specs as any)[a]) {
         ch.specialties[a][s] = 'd4';
-        for (const fx of (foci as any)[s]) ch.focuses[a][fx] = '+0';
+        for (const fx of (foci as any)[s]) {
+          ch.focuses[a][fx] = '+0';
+        }
       }
     }
 
+    // Apply race and class minima
     applyMinima(ch, (raceMinima as any)[settings.race]);
     applyMinima(ch, (classMinima as any)[settings.class]);
 
+    // Spend CP budget
     const cpBudget = { value: 10 + (settings.level - 1) * 100 - (settings.iconicArcane ? 4 : 0) };
-    if (settings.level === 1 && settings.rookieProfile === 'pure') {
-      /* no CP spending beyond minima */
-    } else {
+    if (!(settings.level === 1 && settings.rookieProfile === 'pure')) {
       spendCP(ch, cpBudget, settings.buildStyle, settings.level);
     }
 
+    // Calculate final stats
     const totals = cpTally(ch, settings.iconicArcane);
     let actualLevel = 1;
     for (let i = levelInfo.length - 1; i >= 0; i--) {
@@ -353,42 +305,49 @@ const PlayerCharacterGenerator: React.FC = () => {
     ch.displayLevel = actualLevel;
     ch.masteryDie = levelInfo[actualLevel - 1].masteryDie;
 
+    // Calculate actions
     const w = fnum(ch.focuses.Competence.Wizardry);
     const t = fnum(ch.focuses.Competence.Theurgy);
     ch.actions = {
-      meleeAttack: `${ch.abilities.Prowess} + ${ch.specialties.Prowess.Melee}` + (fnum(ch.focuses.Prowess.Threat) ? ` + Threat +${fnum(ch.focuses.Prowess.Threat)}` : ''),
-      rangedAttack: `${ch.abilities.Prowess} + ${ch.specialties.Prowess.Precision}` + (fnum(ch.focuses.Prowess['Ranged Threat']) ? ` + Ranged Threat +${fnum(ch.focuses.Prowess['Ranged Threat'])}` : ''),
-      perceptionCheck: `${ch.abilities.Competence} + ${ch.specialties.Competence.Perception}` + (fnum(ch.focuses.Competence.Perspicacity) ? ` + Perspicacity +${fnum(ch.focuses.Competence.Perspicacity)}` : ''),
-      magicAttack: casterClasses.includes(settings.class) ? `${ch.abilities.Competence} + ${ch.specialties.Competence.Expertise} + ${(w ? `Wizardry +${w}` : t ? `Theurgy +${t}` : '(path focus 0)')}` : '—'
+      meleeAttack: `${ch.abilities.Prowess} + ${ch.specialties.Prowess.Melee}` + 
+        (fnum(ch.focuses.Prowess.Threat) ? ` + Threat +${fnum(ch.focuses.Prowess.Threat)}` : ''),
+      rangedAttack: `${ch.abilities.Prowess} + ${ch.specialties.Prowess.Precision}` + 
+        (fnum(ch.focuses.Prowess['Ranged Threat']) ? ` + Ranged Threat +${fnum(ch.focuses.Prowess['Ranged Threat'])}` : ''),
+      perceptionCheck: `${ch.abilities.Competence} + ${ch.specialties.Competence.Perception}` + 
+        (fnum(ch.focuses.Competence.Perspicacity) ? ` + Perspicacity +${fnum(ch.focuses.Competence.Perspicacity)}` : ''),
+      magicAttack: casterClasses.includes(settings.class) ?
+        `${ch.abilities.Competence} + ${ch.specialties.Competence.Expertise} + ${(w ? `Wizardry +${w}` : t ? `Theurgy +${t}` : '(path focus 0)')}` : '—'
     };
 
     ch.pools = computePools(ch);
-    const warn = settings.showWeakness ? weaknessReport(ch) : [];
-
     setCharacter(ch);
-    setCpTotals(totals);
-    setWarnings(warn);
+    setLastGeneratedData({ character: ch, totals, settings: { ...settings } });
+    
     toast.success('Character generated successfully!');
-  };
+  }
 
-  const getFullMarkdown = () => {
-    if (!character) return '';
-    const ch = character;
-    const totals = cpTotals;
+  // Export functions
+  function exportMarkdown() {
+    if (!lastGeneratedData) {
+      toast.error('Generate a character first!');
+      return;
+    }
+
+    const { character: ch, totals } = lastGeneratedData;
     const band = levelInfo[ch.displayLevel - 1].cpBand;
     const bandStr = `${band[0]} to ${band[1]}`;
     
-    let md = `# ${ch.race} ${ch.class} (Level ${ch.displayLevel})\n\n` +
-      `### Core Stats\n` +
-      `- **SP:** ${ch.pools.spirit} | **Active DP:** ${ch.pools.active} | **Passive DP:** ${ch.pools.passive}\n` +
-      `- **Mastery Die:** ${ch.masteryDie}\n` +
-      `- **Total CP Value:** ${totals.total} (Expected Range for Level ${ch.displayLevel}: ${bandStr})\n\n` +
-      `### Abilities\n`;
+    let md = `# ${ch.race} ${ch.class} (Level ${ch.displayLevel})\n\n`;
+    md += `### Core Stats\n`;
+    md += `- **SP:** ${ch.pools.spirit} | **Active DP:** ${ch.pools.active} | **Passive DP:** ${ch.pools.passive}\n`;
+    md += `- **Mastery Die:** ${ch.masteryDie}\n`;
+    md += `- **Total CP Value:** ${totals.total} (Expected Range for Level ${ch.displayLevel}: ${bandStr})\n\n`;
     
+    md += `### Abilities\n`;
     for (const a of abilities) {
       const sp = (specs as any)[a].map((s: string) => {
         const fl = (foci as any)[s].map((fx: string) => {
-          const v = fnum(ch.focuses[a][fx]);
+          const v = fnum(ch.focuses[a]?.[fx]);
           return v ? `${fx} +${v}` : null;
         }).filter(Boolean).join(', ');
         return `${s} **${ch.specialties[a][s]}**${fl ? ` (${fl})` : ''}`;
@@ -396,9 +355,24 @@ const PlayerCharacterGenerator: React.FC = () => {
       md += `**${a} ${ch.abilities[a]}** → ${sp}.\n`;
     }
     
-    md += `\n### Actions\n- **Melee Attack:** ${ch.actions.meleeAttack}\n- **Ranged Attack:** ${ch.actions.rangedAttack}\n- **Perception Check:** ${ch.actions.perceptionCheck}\n` + (casterClasses.includes(ch.class) ? `- **Magic Attack:** ${ch.actions.magicAttack}\n\n` : '\n');
-    md += `### Character Points Breakdown (Total Value)\n- **Base Customization:** ${totals.base}\n- **From Abilities:** ${totals.abilities}\n- **From Specialties:** ${totals.specialties}\n- **From Focuses:** ${totals.focuses}\n- **From Advantages:** ${totals.advantages}\n- **Total CP Value:** ${totals.total}\n`;
+    md += `\n### Actions\n`;
+    md += `- **Melee Attack:** ${ch.actions.meleeAttack}\n`;
+    md += `- **Ranged Attack:** ${ch.actions.rangedAttack}\n`;
+    md += `- **Perception Check:** ${ch.actions.perceptionCheck}\n`;
+    if (casterClasses.includes(ch.class)) {
+      md += `- **Magic Attack:** ${ch.actions.magicAttack}\n`;
+    }
+    
+    md += `\n### Character Points Breakdown (Total Value)\n`;
+    md += `- **Base Customization:** ${totals.base}\n`;
+    md += `- **From Abilities:** ${totals.abilities}\n`;
+    md += `- **From Specialties:** ${totals.specialties}\n`;
+    md += `- **From Focuses:** ${totals.focuses}\n`;
+    md += `- **From Advantages:** ${totals.advantages}\n`;
+    md += `- **Total CP Value:** ${totals.total}\n`;
+    
     md += `\n_Note: Total CP Value reflects the character's build balance. Advancement in-game is tracked separately via Earned CP, starting from 0._\n`;
+    
     md += `\n### Level Advancement (Earned CP)\n`;
     md += `| To Reach Level | Total Earned CP Required |\n`;
     md += `| :------------- | :----------------------- |\n`;
@@ -406,39 +380,60 @@ const PlayerCharacterGenerator: React.FC = () => {
     md += `| Level 3        | 200                      |\n`;
     md += `| Level 4        | 300                      |\n`;
     md += `| Level 5        | 500                      |\n`;
-    return md;
-  };
 
-  const exportMarkdown = () => {
-    const md = getFullMarkdown();
-    if (!md) {
-      toast.error('Generate a character first!');
-      return;
-    }
     const blob = new Blob([md], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${character!.race}_${character!.class}_L${character!.displayLevel}.md`;
+    a.download = `${ch.race}_${ch.class}_L${ch.displayLevel}.md`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-  };
+  }
 
-  const copyMarkdown = async () => {
-    const md = getFullMarkdown();
-    if (!md) {
+  function copyMarkdown() {
+    if (!lastGeneratedData) {
       toast.error('Generate a character first!');
       return;
     }
-    try {
-      await navigator.clipboard.writeText(md);
-      toast.success('Markdown copied to clipboard!');
-    } catch (err) {
-      toast.error('Failed to copy markdown.');
+
+    const { character: ch, totals } = lastGeneratedData;
+    const band = levelInfo[ch.displayLevel - 1].cpBand;
+    const bandStr = `${band[0]} to ${band[1]}`;
+    
+    let md = `# ${ch.race} ${ch.class} (Level ${ch.displayLevel})\n\n`;
+    md += `### Core Stats\n`;
+    md += `- **SP:** ${ch.pools.spirit} | **Active DP:** ${ch.pools.active} | **Passive DP:** ${ch.pools.passive}\n`;
+    md += `- **Mastery Die:** ${ch.masteryDie}\n`;
+    md += `- **Total CP Value:** ${totals.total} (Expected Range for Level ${ch.displayLevel}: ${bandStr})\n\n`;
+    
+    md += `### Abilities\n`;
+    for (const a of abilities) {
+      const sp = (specs as any)[a].map((s: string) => {
+        const fl = (foci as any)[s].map((fx: string) => {
+          const v = fnum(ch.focuses[a]?.[fx]);
+          return v ? `${fx} +${v}` : null;
+        }).filter(Boolean).join(', ');
+        return `${s} **${ch.specialties[a][s]}**${fl ? ` (${fl})` : ''}`;
+      }).join(', ');
+      md += `**${a} ${ch.abilities[a]}** → ${sp}.\n`;
     }
-  };
+    
+    md += `\n### Actions\n`;
+    md += `- **Melee Attack:** ${ch.actions.meleeAttack}\n`;
+    md += `- **Ranged Attack:** ${ch.actions.rangedAttack}\n`;
+    md += `- **Perception Check:** ${ch.actions.perceptionCheck}\n`;
+    if (casterClasses.includes(ch.class)) {
+      md += `- **Magic Attack:** ${ch.actions.magicAttack}\n`;
+    }
+
+    navigator.clipboard.writeText(md).then(() => {
+      toast.success('Markdown copied to clipboard!');
+    }).catch(() => {
+      toast.error('Failed to copy markdown.');
+    });
+  }
 
   const showMagicPathSelector = casterClasses.includes(settings.class) &&
     settings.class !== 'Adept' &&
@@ -523,6 +518,12 @@ const PlayerCharacterGenerator: React.FC = () => {
             )}
           </div>
 
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Build Philosophy */}
+            <Card className="p-4">
+              <h3 className="font-semibold mb-3">Build Philosophy</h3>
+              <RadioGroup
+                value={settings.buildStyle}
                 onValueChange={(value) => setSettings({ ...settings, buildStyle: value as any })}
                 className="flex flex-wrap gap-2"
               >
@@ -531,11 +532,11 @@ const PlayerCharacterGenerator: React.FC = () => {
                   <Label htmlFor="balanced" className="text-sm font-medium">Balanced</Label>
                 </div>
                 <div className="flex items-center space-x-2 bg-background border rounded-full px-3 py-2">
-              >em value="hybrid" id="hybrid" />
+                  <RadioGroupItem value="hybrid" id="hybrid" />
                   <Label htmlFor="hybrid" className="text-sm font-medium">Hybrid</Label>
                 </div>
                 <div className="flex items-center space-x-2 bg-background border rounded-full px-3 py-2">
-                </div>t" />
+                  <RadioGroupItem value="specialist" id="specialist" />
                   <Label htmlFor="specialist" className="text-sm font-medium">Specialist</Label>
                 </div>
               </RadioGroup>
@@ -588,7 +589,6 @@ const PlayerCharacterGenerator: React.FC = () => {
                     Iconic Arcane Inheritance <span className="text-xs text-muted-foreground">(Costs 4 CP)</span>
                   </Label>
                 </div>
-                
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="npcMode"
@@ -599,7 +599,6 @@ const PlayerCharacterGenerator: React.FC = () => {
                     NPC Mode <span className="text-xs text-muted-foreground">(favor breadth / avoid d12 at low level)</span>
                   </Label>
                 </div>
-                
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="showWeakness"
@@ -608,23 +607,16 @@ const PlayerCharacterGenerator: React.FC = () => {
                   />
                   <Label htmlFor="showWeakness" className="text-sm">Show Weakness Report</Label>
                 </div>
-                
                 <div className="flex flex-wrap gap-2 pt-2">
-                  <Button onClick={generateCharacter} className="flex-1">
-                    Generate
+                  <Button onClick={generate} className="rounded-full">Generate</Button>
+                  <Button onClick={exportMarkdown} variant="outline" className="rounded-full">
+                    <Download className="w-4 h-4 mr-2" />
+                    Export MD
                   </Button>
-                  {character && (
-                    <>
-                      <Button variant="outline" onClick={exportMarkdown} size="sm">
-                        <Download size={16} className="mr-1" />
-                        Export MD
-                      </Button>
-                      <Button variant="outline" onClick={copyMarkdown} size="sm">
-                        <Copy size={16} className="mr-1" />
-                        Copy MD
-                      </Button>
-                    </>
-                  )}
+                  <Button onClick={copyMarkdown} variant="outline" className="rounded-full">
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy MD
+                  </Button>
                 </div>
               </div>
             </Card>
@@ -632,196 +624,151 @@ const PlayerCharacterGenerator: React.FC = () => {
         </CardContent>
       </Card>
 
-      {character && (
+      {/* Character Output */}
+      {character && lastGeneratedData && (
         <Card>
-          </div>
-        </CardContent>
-      </Card>
-lassName="text-2xl">{character.race} {character.class}</CardTitle>
-      {character && (aracter.displayLevel}</CardDescription>
-        <Card>
-          <CardHeader>enter gap-2">
-                <Badge variant="secondary">Style: {settings.buildStyle}</Badge>
-                {(settings.level === 1 && settings.rookieProfile !== 'off') && (
-                  <Badge variant="outline">Rookie: {settings.rookieProfile}</Badge>
+          <CardContent className="p-6">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-2xl font-bold">{character.race} {character.class} — Level {character.displayLevel}</h2>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">Style: {lastGeneratedData.settings.buildStyle}</Badge>
+                  {lastGeneratedData.settings.level === 1 && lastGeneratedData.settings.rookieProfile !== 'off' && (
+                    <Badge variant="outline">Rookie: {lastGeneratedData.settings.rookieProfile}</Badge>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+                <div className="bg-muted rounded-xl p-3">
+                  <div className="text-xs text-muted-foreground">Spirit Points</div>
+                  <div className="text-xl font-bold">{character.pools.spirit}</div>
+                </div>
+                <div className="bg-muted rounded-xl p-3">
+                  <div className="text-xs text-muted-foreground">Active DP</div>
+                  <div className="text-xl font-bold">{character.pools.active}</div>
+                </div>
+                <div className="bg-muted rounded-xl p-3">
+                  <div className="text-xs text-muted-foreground">Passive DP</div>
+                  <div className="text-xl font-bold">{character.pools.passive}</div>
+                </div>
+                <div className="bg-muted rounded-xl p-3">
+                  <div className="text-xs text-muted-foreground">Mastery Die</div>
+                  <div className="text-xl font-bold">{character.masteryDie}</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="font-semibold mb-2">Abilities</h3>
+                  <div className="text-sm leading-relaxed space-y-2">
+                    {abilities.map(ab => {
+                      const sp = (specs as any)[ab].map((s: string) => {
+                        const fxList = (foci as any)[s].map((fx: string) => {
+                          const v = fnum(character.focuses[ab][fx]);
+                          return v ? `${fx} +${v}` : null;
+                        }).filter(Boolean).join(', ');
+                        return `${s} <strong>${character.specialties[ab][s]}</strong>${fxList ? ` (${fxList})` : ''}`;
+                      }).join(', ');
+                      return (
+                        <div key={ab} className="mb-2">
+                          <span className="font-semibold">{ab} <strong>{character.abilities[ab]}</strong></span> → {sp}.
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-2">Actions</h3>
+                  <ul className="text-sm list-disc list-inside space-y-1">
+                    <li><strong>Melee Attack:</strong> {character.actions.meleeAttack}</li>
+                    <li><strong>Ranged Attack:</strong> {character.actions.rangedAttack}</li>
+                    <li><strong>Perception Check:</strong> {character.actions.perceptionCheck}</li>
+                    {casterClasses.includes(character.class) && (
+                      <li><strong>Magic Attack:</strong> {character.actions.magicAttack}</li>
+                    )}
+                  </ul>
+                </div>
+
+                {settings.showWeakness && (
+                  <div className="lg:col-span-2">
+                    {(() => {
+                      const warnings = weaknessReport(character);
+                      return warnings.length > 0 ? (
+                        <Alert className="border-destructive/50 text-destructive dark:border-destructive">
+                          <AlertTriangle className="h-4 w-4" />
+                          <AlertDescription>
+                            <strong>Weakness Report:</strong>
+                            <ul className="mt-1 list-disc list-inside text-sm">
+                              {warnings.map((warning, i) => (
+                                <li key={i}>{warning}</li>
+                              ))}
+                            </ul>
+                          </AlertDescription>
+                        </Alert>
+                      ) : null;
+                    })()}
+                  </div>
                 )}
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Core Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="text-center p-3 bg-muted rounded-lg">
-                <div className="text-2xl font-bold text-primary">{character.pools.spirit}</div>
-          </CardHeader>assName="text-sm text-muted-foreground">Spirit Points</div>
-          <CardContent className="space-y-6">
-            {/* Core Stats */}bg-muted rounded-lg">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="text-center p-3 bg-muted rounded-lg">
-                <div className="text-2xl font-bold text-primary">{character.pools.spirit}</div>
-                <div className="text-sm text-muted-foreground">Spirit Points</div>
-              </div>-bold text-primary">{character.pools.passive}</div>
-              <div className="text-center p-3 bg-muted rounded-lg">
-                <div className="text-2xl font-bold text-primary">{character.pools.active}</div>
-                <div className="text-sm text-muted-foreground">Active DP</div>
-              </div>-bold text-primary">{character.masteryDie}</div>
-              <div className="text-center p-3 bg-muted rounded-lg">
-                <div className="text-2xl font-bold text-primary">{character.pools.passive}</div>
-                <div className="text-sm text-muted-foreground">Passive DP</div>
-              </div>
-              <div className="text-center p-3 bg-muted rounded-lg">
-                <div className="text-2xl font-bold text-primary">{character.masteryDie}</div>
-                <div className="text-sm text-muted-foreground">Mastery Die</div>
-              </div>
-            </div>
 
-            <Separator />
-ies.map((ability) => {
-                    const die = character.abilities[ability];
-              {/* Abilities */}
-                      const specDie = character.specialties[ability][specialty];
-                      const focusEntries = (foci as any)[specialty].map((focus: string) => {
-                        const value = fnum(character.focuses[ability][focus]);
-                        return value > 0 ? `${focus} +${value}` : null;
-                      }).filter(Boolean);
-                      
-                      return `${specialty} **${specDie}**${focusEntries.length > 0 ? ` (${focusEntries.join(', ')})` : ''}`;
-                    });
-                    
-                    return (
-                      <div key={ability} className="text-sm">
-                        <span className="font-semibold text-primary">{ability} {die}</span>
-                        <span className="ml-2">→ {specEntries.join(', ')}.</span>
-                      </div>
-                    );
-                    return (
-                      <div key={ability} className="text-sm">
-                        <span className="font-semibold text-primary">{ability} {die}</span>
-                        <span className="ml-2">→ {specEntries.join(', ')}.</span>
-                      </div>
-                    );
-                  })}
+                <div>
+                  <h3 className="font-semibold mb-2">Character Points (Total Value)</h3>
+                  <ul className="text-sm list-disc list-inside space-y-1">
+                    <li><strong>Base Customization:</strong> {lastGeneratedData.totals.base}</li>
+                    <li><strong>From Abilities:</strong> {lastGeneratedData.totals.abilities}</li>
+                    <li><strong>From Specialties:</strong> {lastGeneratedData.totals.specialties}</li>
+                    <li><strong>From Focuses:</strong> {lastGeneratedData.totals.focuses}</li>
+                    <li><strong>From Advantages:</strong> {lastGeneratedData.totals.advantages}</li>
+                    <li><strong>Total CP Value:</strong> {lastGeneratedData.totals.total} 
+                      <span className="text-muted-foreground text-xs ml-1">
+                        (Lvl {character.displayLevel} Range: {levelInfo[character.displayLevel - 1].cpBand[0]} to {levelInfo[character.displayLevel - 1].cpBand[1]})
+                      </span>
+                    </li>
+                  </ul>
+                  <p className="text-xs text-muted-foreground mt-2 italic">
+                    Total CP is a diagnostic for balance; in-play advancement uses Earned CP.
+                  </p>
                 </div>
-              </div>
 
-              {/* Actions */}
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Actions</h3>
-                        <span className="font-mono">{value}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Weakness Report */}
-            {warnings.length > 0 && (
-              <>
-                <Separator />
-                <Alert className="border-amber-200 bg-amber-50">
-                  <AlertTriangle className="h-4 w-4 text-amber-600" />
-                  <AlertDescription>
-                    <h4 className="font-semibold text-amber-900 mb-2">Weakness Report</h4>
-                    <ul className="text-sm text-amber-900 list-disc list-inside space-y-1">
-                      {warnings.map((warning, index) => (
-                        <li key={index}>{warning}</li>
-                      ))}
-                    </ul>
-                  </AlertDescription>
-                </Alert>
-              </>
-            )}
-
-            {cpTotals && (
-              <>
-                <Separator />
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* CP Breakdown */}
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Character Points (Total Value)</h3>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Base Customization:</span>
-                        <span className="font-bold">{cpTotals.base}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>From Abilities:</span>
-                        <span className="font-bold">{cpTotals.abilities}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>From Specialties:</span>
-                        <span className="font-bold">{cpTotals.specialties}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>From Focuses:</span>
-                        <span className="font-bold">{cpTotals.focuses}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>From Advantages:</span>
-                        <span className="font-bold">{cpTotals.advantages}</span>
-                      </div>
-                      <Separator />
-                      <div className="flex justify-between font-bold">
-                        <span>Total CP Value:</span>
-                        <span className="text-primary">{cpTotals.total}</span>
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Total CP is a diagnostic for balance; in-play advancement uses Earned CP.
-                    </p>
-                  </div>
-
-                  {/* Level Advancement Table */}
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Level Advancement (Earned CP)</h3>
-                    <div className="overflow-hidden rounded-lg border">
-                      <table className="w-full text-sm">
-                        <thead className="bg-muted">
-                          <tr>
-                            <th className="px-4 py-2 text-left">To Reach Level</th>
-                            <th className="px-4 py-2 text-left">Total Earned CP Required</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                            <td className="px-4 py-2">200</td>
-                            <td className="px-4 py-2 font-medium">Level 2</td>
-                            <td className="px-4 py-2">100</td>
-                          </tr>
-                          <tr className="border-b">
-                            <td className="px-4 py-2 font-medium">Level 3</td>
-                            <td className="px-4 py-2">200</td>
-                          </tr>
-                          <tr className="border-b">
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
+                <div className="lg:col-span-2">
+                  <h3 className="text-lg font-semibold mb-2">Level Advancement (Earned CP)</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="px-4 py-2 text-left">To Reach Level</th>
+                          <th className="px-4 py-2 text-left">Total Earned CP Required</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b">
+                          <td className="px-4 py-2 font-medium">Level 2</td>
+                          <td className="px-4 py-2">100</td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="px-4 py-2 font-medium">Level 3</td>
+                          <td className="px-4 py-2">200</td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="px-4 py-2 font-medium">Level 4</td>
+                          <td className="px-4 py-2">300</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 font-medium">Level 5</td>
+                          <td className="px-4 py-2">500</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      )}
-                </div>
-              </>
-            )}
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default PlayerCharacterGenerator;
-  );
-};
-
-export default PlayerCharacterGenerator;
+export default PlayerCharacterGenerator
