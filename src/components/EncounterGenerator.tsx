@@ -1,38 +1,25 @@
 import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { 
-  ENCOUNTER_DIFFICULTY_TABLE, 
   DIFFICULTY_LEVELS, 
-  DEFENSE_LEVELS,
+  DEFENSE_LEVELS, 
+  ENCOUNTER_DIFFICULTY_TABLE,
   THREAT_DICE_BY_CATEGORY,
   CREATURE_SIZES,
-  CREATURE_NATURES
+  CREATURE_NATURES,
+  HP_MULTIPLIERS
 } from '@/data/gameData'
-import { 
-  calculateHitPoints, 
-  calculateBattlePhase, 
-  parseThreatDice, 
-  getRandomElement 
-} from '@/utils/gameUtils'
+import { calculateHitPoints, calculateBattlePhase, parseThreatDice, getRandomElement } from '@/utils/gameUtils'
 
-interface EncounterSettings {
-  partySize: number
-  defenseLevel: number
-  difficulty: number
-  nonMediumPercentage: number
-  nonMundanePercentage: number
-  specialTypePercentage: number
-  selectedTypes: string[]
-}
-
-interface Monster {
-  name: string
+interface GeneratedCreature {
+  id: string
   category: string
   threatDice: string
   threatMV: number
@@ -44,22 +31,24 @@ interface Monster {
   passiveDefense: number
   savingThrow: string
   battlePhase: number
-  multiplier: number
 }
 
 const EncounterGenerator: React.FC = () => {
-  const [settings, setSettings] = useState<EncounterSettings>({
+  const [settings, setSettings] = useState({
     partySize: 4,
-    defenseLevel: 0, // Practitioner
-    difficulty: 1, // Moderate
+    defenseLevel: 'Practitioner',
+    difficulty: 'Moderate',
     nonMediumPercentage: 10,
     nonMundanePercentage: 20,
     specialTypePercentage: 30,
-    selectedTypes: ['Minor', 'Standard', 'Exceptional']
+    selectedTypes: ['Minor', 'Standard', 'Exceptional'] as string[]
   })
 
-  const [encounter, setEncounter] = useState<Monster[]>([])
-  const [encounterInfo, setEncounterInfo] = useState<any>(null)
+  const [generatedEncounter, setGeneratedEncounter] = useState<{
+    creatures: GeneratedCreature[]
+    totalThreat: number
+    targetThreat: number
+  } | null>(null)
 
   const generateEncounter = () => {
     if (settings.selectedTypes.length === 0) {
@@ -67,71 +56,88 @@ const EncounterGenerator: React.FC = () => {
       return
     }
 
+    const defenseIndex = DEFENSE_LEVELS.indexOf(settings.defenseLevel as any)
+    const difficultyIndex = DIFFICULTY_LEVELS.indexOf(settings.difficulty as any)
+    
     const threatScore = ENCOUNTER_DIFFICULTY_TABLE[settings.partySize as keyof typeof ENCOUNTER_DIFFICULTY_TABLE]
-      [DEFENSE_LEVELS[settings.defenseLevel] as keyof typeof ENCOUNTER_DIFFICULTY_TABLE[1]]
-      [settings.difficulty]
+      ?.[settings.defenseLevel as keyof typeof ENCOUNTER_DIFFICULTY_TABLE[4]]
+      ?.[difficultyIndex] || 20
 
     let remainingThreat = threatScore
-    const monsters: Monster[] = []
+    const creatures: GeneratedCreature[] = []
     let safety = 0
 
-    while (remainingThreat > 5 && monsters.length < 20 && safety < 1000) {
+    while (remainingThreat > 5 && creatures.length < 20 && safety < 100) {
       safety++
-      const monster = generateMonsterForEncounter(remainingThreat, settings)
-      if (monster.threatMV > 0) {
-        monsters.push(monster)
-        remainingThreat -= monster.threatMV
+      
+      const creature = generateCreatureForEncounter(
+        remainingThreat,
+        settings.selectedTypes,
+        settings.nonMediumPercentage,
+        settings.nonMundanePercentage,
+        settings.specialTypePercentage
+      )
+      
+      if (creature && creature.threatMV > 0 && creature.threatMV <= remainingThreat) {
+        creatures.push(creature)
+        remainingThreat -= creature.threatMV
       } else {
         break
       }
     }
 
-    setEncounter(monsters)
-    setEncounterInfo({
-      partySize: settings.partySize,
-      defenseLevel: DEFENSE_LEVELS[settings.defenseLevel],
-      difficulty: DIFFICULTY_LEVELS[settings.difficulty],
-      totalThreatScore: threatScore,
-      remainingThreat
+    setGeneratedEncounter({
+      creatures,
+      totalThreat: threatScore - remainingThreat,
+      targetThreat: threatScore
     })
   }
 
-  const generateMonsterForEncounter = (maxThreat: number, settings: EncounterSettings): Monster => {
-    const category = getRandomElement(settings.selectedTypes)
-    const threatDiceOptions = THREAT_DICE_BY_CATEGORY[category as keyof typeof THREAT_DICE_BY_CATEGORY]
-      .filter(dice => {
-        const { mv } = parseThreatDice(dice)
-        return mv <= maxThreat
-      })
+  const generateCreatureForEncounter = (
+    maxThreat: number,
+    selectedTypes: string[],
+    nonMediumPercentage: number,
+    nonMundanePercentage: number,
+    specialTypePercentage: number
+  ): GeneratedCreature | null => {
+    const category = getRandomElement(selectedTypes)
+    const availableDice = THREAT_DICE_BY_CATEGORY[category as keyof typeof THREAT_DICE_BY_CATEGORY]
     
-    const threatDice = threatDiceOptions.length > 0 
-      ? getRandomElement(threatDiceOptions)
-      : THREAT_DICE_BY_CATEGORY[category as keyof typeof THREAT_DICE_BY_CATEGORY][0]
-    
+    // Filter dice that fit within the remaining threat budget
+    const validDice = availableDice.filter(dice => {
+      const { mv } = parseThreatDice(dice)
+      return mv <= maxThreat
+    })
+
+    if (validDice.length === 0) return null
+
+    const threatDice = getRandomElement(validDice)
     const { mv: threatMV } = parseThreatDice(threatDice)
 
     // Determine size
     let size = 'Medium'
-    if (Math.random() * 100 < settings.nonMediumPercentage) {
-      const nonMediumSizes = CREATURE_SIZES.filter(s => s !== 'Medium')
-      size = getRandomElement(nonMediumSizes)
+    if (Math.random() * 100 < nonMediumPercentage) {
+      const sizes = CREATURE_SIZES.filter(s => s !== 'Medium')
+      size = getRandomElement(sizes)
     }
 
     // Determine nature
     let nature = 'Mundane'
-    if (Math.random() * 100 < settings.nonMundanePercentage) {
-      const nonMundaneNatures = CREATURE_NATURES.filter(n => n !== 'Mundane')
-      nature = getRandomElement(nonMundaneNatures)
+    if (Math.random() * 100 < nonMundanePercentage) {
+      const natures = CREATURE_NATURES.filter(n => n !== 'Mundane')
+      nature = getRandomElement(natures)
     }
 
     // Determine creature type (Fast/Tough/Normal)
     let creatureType = 'Normal'
-    if (Math.random() * 100 < settings.specialTypePercentage) {
+    if (Math.random() * 100 < specialTypePercentage) {
       creatureType = Math.random() < 0.5 ? 'Fast' : 'Tough'
     }
 
-    const { hitPoints, multiplier } = calculateHitPoints(threatMV, size, nature)
-    
+    // Calculate hit points
+    const { hitPoints } = calculateHitPoints(threatMV, size, nature)
+
+    // Calculate defense pools
     let activeDefense: number, passiveDefense: number
     if (creatureType === 'Fast') {
       activeDefense = Math.round(hitPoints * 0.75)
@@ -144,12 +150,13 @@ const EncounterGenerator: React.FC = () => {
       passiveDefense = hitPoints - activeDefense
     }
 
+    // Calculate battle phase and saving throw
     const { die } = parseThreatDice(threatDice)
     const battlePhase = calculateBattlePhase(`d${die}`)
     const savingThrow = `d${4 * (['Minor', 'Standard', 'Exceptional', 'Legendary'].indexOf(category) + 1)}`
 
     return {
-      name: `${category} ${size} ${nature} ${creatureType !== 'Normal' ? creatureType + ' ' : ''}Creature`,
+      id: Math.random().toString(36).substr(2, 9),
       category,
       threatDice,
       threatMV,
@@ -160,16 +167,22 @@ const EncounterGenerator: React.FC = () => {
       activeDefense,
       passiveDefense,
       savingThrow,
-      battlePhase,
-      multiplier
+      battlePhase
     }
   }
 
-  const toggleCreatureType = (type: string) => {
-    const newTypes = settings.selectedTypes.includes(type)
-      ? settings.selectedTypes.filter(t => t !== type)
-      : [...settings.selectedTypes, type]
-    setSettings({ ...settings, selectedTypes: newTypes })
+  const handleTypeToggle = (type: string, checked: boolean) => {
+    if (checked) {
+      setSettings(prev => ({
+        ...prev,
+        selectedTypes: [...prev.selectedTypes, type]
+      }))
+    } else {
+      setSettings(prev => ({
+        ...prev,
+        selectedTypes: prev.selectedTypes.filter(t => t !== type)
+      }))
+    }
   }
 
   return (
@@ -178,104 +191,112 @@ const EncounterGenerator: React.FC = () => {
         <CardHeader>
           <CardTitle>Encounter Generator</CardTitle>
           <CardDescription>
-            Generate balanced encounters for your party based on Eldritch RPG rules
+            Generate balanced encounters for your Eldritch RPG sessions
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Party Configuration */}
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Label>Party Size: {settings.partySize}</Label>
               <Slider
                 value={[settings.partySize]}
                 onValueChange={(value) => setSettings({ ...settings, partySize: value[0] })}
-                max={4}
                 min={1}
-                step={1}
-                className="mt-2"
-              />
-            </div>
-
-            <div>
-              <Label>Party Defense Level: {DEFENSE_LEVELS[settings.defenseLevel]}</Label>
-              <Slider
-                value={[settings.defenseLevel]}
-                onValueChange={(value) => setSettings({ ...settings, defenseLevel: value[0] })}
                 max={4}
-                min={0}
                 step={1}
                 className="mt-2"
               />
             </div>
-
+            
             <div>
-              <Label>Desired Difficulty: {DIFFICULTY_LEVELS[settings.difficulty]}</Label>
-              <Slider
-                value={[settings.difficulty]}
-                onValueChange={(value) => setSettings({ ...settings, difficulty: value[0] })}
-                max={5}
-                min={0}
-                step={1}
-                className="mt-2"
-              />
+              <Label htmlFor="defenseLevel">Defense Level</Label>
+              <Select value={settings.defenseLevel} onValueChange={(value) => setSettings({ ...settings, defenseLevel: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DEFENSE_LEVELS.map((level) => (
+                    <SelectItem key={level} value={level}>
+                      {level}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="difficulty">Difficulty</Label>
+              <Select value={settings.difficulty} onValueChange={(value) => setSettings({ ...settings, difficulty: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DIFFICULTY_LEVELS.map((difficulty) => (
+                    <SelectItem key={difficulty} value={difficulty}>
+                      {difficulty}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
           <Separator />
 
-          {/* Creature Variation */}
+          {/* Creature Variation Settings */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Creature Variation</h3>
             
-            <div>
-              <Label>Non-Medium Size %: {settings.nonMediumPercentage}%</Label>
-              <Slider
-                value={[settings.nonMediumPercentage]}
-                onValueChange={(value) => setSettings({ ...settings, nonMediumPercentage: value[0] })}
-                max={100}
-                min={0}
-                step={5}
-                className="mt-2"
-              />
-            </div>
-
-            <div>
-              <Label>Non-Mundane Nature %: {settings.nonMundanePercentage}%</Label>
-              <Slider
-                value={[settings.nonMundanePercentage]}
-                onValueChange={(value) => setSettings({ ...settings, nonMundanePercentage: value[0] })}
-                max={100}
-                min={0}
-                step={5}
-                className="mt-2"
-              />
-            </div>
-
-            <div>
-              <Label>Fast/Tough Creature %: {settings.specialTypePercentage}%</Label>
-              <Slider
-                value={[settings.specialTypePercentage]}
-                onValueChange={(value) => setSettings({ ...settings, specialTypePercentage: value[0] })}
-                max={100}
-                min={0}
-                step={5}
-                className="mt-2"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label>Non-Medium Size: {settings.nonMediumPercentage}%</Label>
+                <Slider
+                  value={[settings.nonMediumPercentage]}
+                  onValueChange={(value) => setSettings({ ...settings, nonMediumPercentage: value[0] })}
+                  min={0}
+                  max={100}
+                  step={5}
+                  className="mt-2"
+                />
+              </div>
+              
+              <div>
+                <Label>Non-Mundane Nature: {settings.nonMundanePercentage}%</Label>
+                <Slider
+                  value={[settings.nonMundanePercentage]}
+                  onValueChange={(value) => setSettings({ ...settings, nonMundanePercentage: value[0] })}
+                  min={0}
+                  max={100}
+                  step={5}
+                  className="mt-2"
+                />
+              </div>
+              
+              <div>
+                <Label>Fast/Tough Types: {settings.specialTypePercentage}%</Label>
+                <Slider
+                  value={[settings.specialTypePercentage]}
+                  onValueChange={(value) => setSettings({ ...settings, specialTypePercentage: value[0] })}
+                  min={0}
+                  max={100}
+                  step={5}
+                  className="mt-2"
+                />
+              </div>
             </div>
           </div>
 
-          <Separator />
-
           {/* Creature Types */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Allowed Creature Types</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {Object.keys(THREAT_DICE_BY_CATEGORY).map((type) => (
+            <h3 className="text-lg font-semibold">Creature Types</h3>
+            <div className="flex flex-wrap gap-4">
+              {['Minor', 'Standard', 'Exceptional', 'Legendary'].map((type) => (
                 <div key={type} className="flex items-center space-x-2">
                   <Checkbox
                     id={type}
                     checked={settings.selectedTypes.includes(type)}
-                    onCheckedChange={() => toggleCreatureType(type)}
+                    onCheckedChange={(checked) => handleTypeToggle(type, checked as boolean)}
                   />
                   <Label htmlFor={type}>{type}</Label>
                 </div>
@@ -289,76 +310,41 @@ const EncounterGenerator: React.FC = () => {
         </CardContent>
       </Card>
 
-      {encounterInfo && (
+      {generatedEncounter && (
         <Card>
           <CardHeader>
-            <CardTitle>Encounter Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{encounterInfo.partySize}</div>
-                <div className="text-sm text-muted-foreground">Party Size</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{encounterInfo.defenseLevel}</div>
-                <div className="text-sm text-muted-foreground">Defense Level</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{encounterInfo.difficulty}</div>
-                <div className="text-sm text-muted-foreground">Difficulty</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{encounterInfo.totalThreatScore}</div>
-                <div className="text-sm text-muted-foreground">Total Threat</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {encounter.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Generated Creatures</CardTitle>
+            <CardTitle>Generated Encounter</CardTitle>
             <CardDescription>
-              {encounter.length} creature{encounter.length !== 1 ? 's' : ''} generated
+              Party Size: {settings.partySize} | Defense: {settings.defenseLevel} | Difficulty: {settings.difficulty}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {encounter.map((monster, index) => (
-              <Card key={index} className="p-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-semibold">{monster.name}</h4>
-                    <div className="flex gap-2">
-                      <Badge variant="outline">{monster.category}</Badge>
-                      <Badge variant="outline">MV: {monster.threatMV}</Badge>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex gap-2 mb-4">
+                <Badge variant="outline">
+                  Target Threat: {generatedEncounter.targetThreat}
+                </Badge>
+                <Badge variant="outline">
+                  Actual Threat: {generatedEncounter.totalThreat}
+                </Badge>
+              </div>
+
+              <div className="space-y-3">
+                {generatedEncounter.creatures.map((creature, index) => (
+                  <div key={creature.id} className="p-4 border rounded-lg bg-muted/20">
+                    <h4 className="font-semibold mb-2">
+                      Creature {index + 1}: {creature.category} {creature.size} {creature.nature} {creature.creatureType}
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                      <div><strong>TD:</strong> {creature.threatDice} (MV: {creature.threatMV})</div>
+                      <div><strong>HP:</strong> {creature.hitPoints} ({creature.activeDefense}A/{creature.passiveDefense}P)</div>
+                      <div><strong>ST:</strong> {creature.savingThrow}</div>
+                      <div><strong>BP:</strong> {creature.battlePhase}</div>
                     </div>
                   </div>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium">TD:</span> {monster.threatDice}
-                    </div>
-                    <div>
-                      <span className="font-medium">HP:</span> {monster.hitPoints} ({monster.activeDefense}A/{monster.passiveDefense}P)
-                    </div>
-                    <div>
-                      <span className="font-medium">ST:</span> {monster.savingThrow}
-                    </div>
-                    <div>
-                      <span className="font-medium">BP:</span> {monster.battlePhase}
-                    </div>
-                  </div>
-                  
-                  <div className="text-xs text-muted-foreground">
-                    {monster.size} {monster.nature} {monster.creatureType !== 'Normal' ? monster.creatureType + ' ' : ''}creature
-                    {monster.multiplier !== 1 && ` (HP ×${monster.multiplier})`}
-                  </div>
-                </div>
-              </Card>
-            ))}
+                ))}
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}

@@ -43,10 +43,10 @@ const MonsterGenerator: React.FC = () => {
     size: 'Medium',
     nature: 'Mundane',
     meleeAttack: '2d6',
-    naturalAttack: '',
-    rangedAttack: '',
-    arcaneAttack: '',
-    damageReduction: 'd6',
+    naturalAttack: 'none',
+    rangedAttack: 'none',
+    arcaneAttack: 'none',
+    damageReduction: 'none',
     savingThrow: 'd8',
     hitPoints: 0,
     activeDefense: 0,
@@ -67,19 +67,19 @@ const MonsterGenerator: React.FC = () => {
       if (isPrimary) {
         options.push('2d4', '2d6', '2d8', '2d10', '2d12')
       } else {
-        options.push('', '1d4', '1d6', '1d8', '1d10', '1d12', '2d4', '2d6', '2d8', '2d10', '2d12')
+        options.push('none', '1d4', '1d6', '1d8', '1d10', '1d12', '2d4', '2d6', '2d8', '2d10', '2d12')
       }
     } else if (type === 'Exceptional') {
       if (isPrimary) {
         options.push('3d4', '3d6', '3d8', '3d10', '3d12')
       } else {
-        options.push('', '1d4', '1d6', '1d8', '1d10', '1d12', '2d4', '2d6', '2d8', '2d10', '2d12', '3d4', '3d6', '3d8', '3d10', '3d12')
+        options.push('none', '1d4', '1d6', '1d8', '1d10', '1d12', '2d4', '2d6', '2d8', '2d10', '2d12', '3d4', '3d6', '3d8', '3d10', '3d12')
       }
     } else if (type === 'Legendary') {
       if (isPrimary) {
         options.push('3d12', '3d14', '3d16', '3d18', '3d20')
       } else {
-        options.push('', '1d4', '1d6', '1d8', '1d10', '1d12', '2d4', '2d6', '2d8', '2d10', '2d12', '3d4', '3d6', '3d8', '3d10', '3d12', '3d12', '3d14', '3d16', '3d18', '3d20')
+        options.push('none', '1d4', '1d6', '1d8', '1d10', '1d12', '2d4', '2d6', '2d8', '2d10', '2d12', '3d4', '3d6', '3d8', '3d10', '3d12', '3d12', '3d14', '3d16', '3d18', '3d20')
       }
     }
     
@@ -88,7 +88,7 @@ const MonsterGenerator: React.FC = () => {
 
   const calculateMonster = () => {
     const attacks = [monster.meleeAttack, monster.naturalAttack, monster.rangedAttack, monster.arcaneAttack]
-      .filter(attack => attack && attack.trim() !== '')
+      .filter(attack => attack && attack.trim() !== '' && attack !== 'none')
     
     if (attacks.length === 0) {
       alert('Please specify at least one attack form.')
@@ -132,10 +132,10 @@ const MonsterGenerator: React.FC = () => {
 
   const generateOutput = (monsterData: Monster, baseMV: number) => {
     const attacks = []
-    if (monsterData.meleeAttack) attacks.push(`Melee: ${monsterData.meleeAttack}`)
-    if (monsterData.naturalAttack) attacks.push(`Natural: ${monsterData.naturalAttack}`)
-    if (monsterData.rangedAttack) attacks.push(`Ranged: ${monsterData.rangedAttack}`)
-    if (monsterData.arcaneAttack) attacks.push(`Arcane: ${monsterData.arcaneAttack}`)
+    if (monsterData.meleeAttack && monsterData.meleeAttack !== 'none') attacks.push(`Melee: ${monsterData.meleeAttack}`)
+    if (monsterData.naturalAttack && monsterData.naturalAttack !== 'none') attacks.push(`Natural: ${monsterData.naturalAttack}`)
+    if (monsterData.rangedAttack && monsterData.rangedAttack !== 'none') attacks.push(`Ranged: ${monsterData.rangedAttack}`)
+    if (monsterData.arcaneAttack && monsterData.arcaneAttack !== 'none') attacks.push(`Arcane: ${monsterData.arcaneAttack}`)
 
     const output = `${monsterData.name || 'Unnamed Creature'}
 ${monsterData.type} ${monsterData.size} ${monsterData.nature} Creature
@@ -145,7 +145,7 @@ TD: ${attacks.join(', ')}
 HP: ${monsterData.hitPoints} (${monsterData.activeDefense}A/${monsterData.passiveDefense}P) [${monsterData.size.toLowerCase()}, ${monsterData.nature.toLowerCase()}; HP ×${calculateHitPoints(baseMV, monsterData.size, monsterData.nature).multiplier}]
 ST: ${monsterData.savingThrow} (${monsterData.type} threat)
 BP: ${monsterData.battlePhase}
-DR: ${monsterData.damageReduction}
+DR: ${monsterData.damageReduction === 'none' ? 'None' : monsterData.damageReduction}
 
 ${monsterData.notes ? `Notes: ${monsterData.notes}` : ''}`
 
@@ -277,7 +277,7 @@ ${monsterData.notes ? `Notes: ${monsterData.notes}` : ''}`
                   <SelectContent>
                     {getThreatDiceOptions(monster.type, false).map((option) => (
                       <SelectItem key={option} value={option}>
-                        {option || 'None'}
+                        {option === 'none' ? 'None' : option}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -295,7 +295,7 @@ ${monsterData.notes ? `Notes: ${monsterData.notes}` : ''}`
                   <SelectContent>
                     {getThreatDiceOptions(monster.type, false).map((option) => (
                       <SelectItem key={option} value={option}>
-                        {option || 'None'}
+                        {option === 'none' ? 'None' : option}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -313,7 +313,7 @@ ${monsterData.notes ? `Notes: ${monsterData.notes}` : ''}`
                   <SelectContent>
                     {getThreatDiceOptions(monster.type, false).map((option) => (
                       <SelectItem key={option} value={option}>
-                        {option || 'None'}
+                        {option === 'none' ? 'None' : option}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -338,7 +338,7 @@ ${monsterData.notes ? `Notes: ${monsterData.notes}` : ''}`
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     <SelectItem value="d4">d4 (Hide/Natural)</SelectItem>
                     <SelectItem value="d6">d6 (Leather/Scales)</SelectItem>
                     <SelectItem value="d8">d8 (Chain/Plates)</SelectItem>
