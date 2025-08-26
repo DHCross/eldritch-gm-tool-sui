@@ -21,14 +21,14 @@ function App() {
           <TabsList className="grid w-full grid-cols-2 mb-8 h-16 bg-card border-2 border-primary/20">
             <TabsTrigger 
               value="gm" 
-              className="horizontal-tab text-lg px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
+              className="horizontal-tab text-lg px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200 flex items-center justify-center"
             >
               <Crown size={24} />
               <span className="font-medium">Game Master Tools</span>
             </TabsTrigger>
             <TabsTrigger 
               value="player" 
-              className="horizontal-tab text-lg px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
+              className="horizontal-tab text-lg px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200 flex items-center justify-center"
             >
               <UserFocus size={24} />
               <span className="font-medium">Player Tools</span>
