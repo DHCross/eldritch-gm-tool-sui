@@ -20,6 +20,11 @@ interface Combatant {
   defeated: boolean
   reactionFocus?: number
   spiritPoints?: number
+  // QSB-specific fields
+  threatDice?: string
+  size?: string
+  nature?: string
+  creatureType?: string
 }
 
 export default function BattleCalculator() {
@@ -31,7 +36,12 @@ export default function BattleCalculator() {
     adp: 22,
     pdp: 18,
     reactionFocus: 0,
-    spiritPoints: 10
+    spiritPoints: 10,
+    // QSB fields
+    threatDice: '',
+    size: 'Medium',
+    nature: 'Mundane',
+    creatureType: 'Standard'
   })
 
   const battlePhaseMap: Record<number, number> = {
@@ -42,24 +52,103 @@ export default function BattleCalculator() {
     4: 5
   }
 
+  const sizeModifiers: Record<string, number> = {
+    'Minuscule': 0,
+    'Tiny': 0,
+    'Small': 1,
+    'Medium': 1,
+    'Large': 2,
+    'Huge': 3,
+    'Gargantuan': 4
+  }
+
+  const natureModifiers: Record<string, number> = {
+    'Mundane': 0,
+    'Magical': 1,
+    'Preternatural': 2,
+    'Supernatural': 3
+  }
+
+  const calculateQSBHitPoints = (threatDice: string, size: string, nature: string, creatureType: string) => {
+    if (!threatDice) return { total: 0, adp: 0, pdp: 0 }
+
+    // Extract base HP from threat dice (Maximum Value)
+    const match = threatDice.match(/(\d+)d(\d+)/)
+    if (!match) return { total: 0, adp: 0, pdp: 0 }
+
+    const [, numDice, dieSize] = match
+    const baseHP = parseInt(numDice) * parseInt(dieSize)
+
+    // Calculate modifiers
+    const sizeModifier = sizeModifiers[size] || 1
+    const natureModifier = natureModifiers[nature] || 0
+
+    // HP Multiplier calculation: (Size Modifier + Nature Modifier) ÷ 2
+    const multiplier = (sizeModifier + natureModifier) / 2
+    
+    // Total HP = ceil(Base HP × multiplier)
+    const totalHP = Math.ceil(baseHP * multiplier)
+
+    // Defense split based on creature type
+    let adp: number, pdp: number
+    switch (creatureType) {
+      case 'Fast':
+        adp = Math.round(totalHP * 0.75)
+        pdp = totalHP - adp
+        break
+      case 'Tough':
+        adp = Math.round(totalHP * 0.25)
+        pdp = totalHP - adp
+        break
+      default: // Standard
+        adp = Math.round(totalHP * 0.5)
+        pdp = totalHP - adp
+        break
+    }
+
+    return { total: totalHP, adp, pdp }
+  }
+
   const addCombatant = () => {
     if (!formData.name.trim()) return
 
     const battlePhase = battlePhaseMap[formData.prowess] || 5
+    
+    // Calculate hit points for QSB creatures
+    let adp = formData.adp
+    let pdp = formData.pdp
+    
+    if (formData.type === 'qsb' && formData.threatDice) {
+      const hitPoints = calculateQSBHitPoints(
+        formData.threatDice, 
+        formData.size, 
+        formData.nature, 
+        formData.creatureType
+      )
+      adp = hitPoints.adp
+      pdp = hitPoints.pdp
+    }
+
     const newCombatant: Combatant = {
       id: Date.now().toString(),
       name: formData.name,
       type: formData.type,
       prowess: formData.prowess,
-      adp: formData.adp,
-      pdp: formData.pdp,
-      maxAdp: formData.adp,
-      maxPdp: formData.pdp,
+      adp,
+      pdp,
+      maxAdp: adp,
+      maxPdp: pdp,
       battlePhase,
       defeated: false,
       ...(formData.type === 'pa' && {
         reactionFocus: formData.reactionFocus,
         spiritPoints: formData.spiritPoints
+      }),
+      ...(formData.type === 'qsb' && {
+        threatDice: formData.threatDice,
+        size: formData.size,
+        nature: formData.nature,
+        creatureType: formData.creatureType
       })
     }
 
@@ -71,7 +160,11 @@ export default function BattleCalculator() {
       adp: 22,
       pdp: 18,
       reactionFocus: 0,
-      spiritPoints: 10
+      spiritPoints: 10,
+      threatDice: '',
+      size: 'Medium',
+      nature: 'Mundane',
+      creatureType: 'Standard'
     })
   }
 
@@ -163,25 +256,110 @@ export default function BattleCalculator() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="adp">Active Defense Pool (ADP)</Label>
-                <Input
-                  id="adp"
-                  type="number"
-                  value={formData.adp}
-                  onChange={(e) => setFormData(prev => ({ ...prev, adp: parseInt(e.target.value) || 0 }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="pdp">Passive Defense Pool (PDP)</Label>
-                <Input
-                  id="pdp"
-                  type="number"
-                  value={formData.pdp}
-                  onChange={(e) => setFormData(prev => ({ ...prev, pdp: parseInt(e.target.value) || 0 }))}
-                />
-              </div>
+              {formData.type !== 'qsb' && (
+                <>
+                  <div>
+                    <Label htmlFor="adp">Active Defense Pool (ADP)</Label>
+                    <Input
+                      id="adp"
+                      type="number"
+                      value={formData.adp}
+                      onChange={(e) => setFormData(prev => ({ ...prev, adp: parseInt(e.target.value) || 0 }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="pdp">Passive Defense Pool (PDP)</Label>
+                    <Input
+                      id="pdp"
+                      type="number"
+                      value={formData.pdp}
+                      onChange={(e) => setFormData(prev => ({ ...prev, pdp: parseInt(e.target.value) || 0 }))}
+                    />
+                  </div>
+                </>
+              )}
             </div>
+
+            {formData.type === 'qsb' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="threat-dice">Threat Dice (e.g., "2d8")</Label>
+                    <Input
+                      id="threat-dice"
+                      value={formData.threatDice}
+                      onChange={(e) => setFormData(prev => ({ ...prev, threatDice: e.target.value }))}
+                      placeholder="e.g., 2d8, 3d6, 1d12"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="creature-type">Creature Type</Label>
+                    <Select 
+                      value={formData.creatureType} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, creatureType: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Standard">Standard (50/50 split)</SelectItem>
+                        <SelectItem value="Fast">Fast (75% ADP / 25% PDP)</SelectItem>
+                        <SelectItem value="Tough">Tough (25% ADP / 75% PDP)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="size">Size</Label>
+                    <Select 
+                      value={formData.size} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, size: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Minuscule">Minuscule (+0)</SelectItem>
+                        <SelectItem value="Tiny">Tiny (+0)</SelectItem>
+                        <SelectItem value="Small">Small (+1)</SelectItem>
+                        <SelectItem value="Medium">Medium (+1)</SelectItem>
+                        <SelectItem value="Large">Large (+2)</SelectItem>
+                        <SelectItem value="Huge">Huge (+3)</SelectItem>
+                        <SelectItem value="Gargantuan">Gargantuan (+4)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="nature">Nature</Label>
+                    <Select 
+                      value={formData.nature} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, nature: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Mundane">Mundane (+0)</SelectItem>
+                        <SelectItem value="Magical">Magical (+1)</SelectItem>
+                        <SelectItem value="Preternatural">Preternatural (+2)</SelectItem>
+                        <SelectItem value="Supernatural">Supernatural (+3)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                {formData.threatDice && (
+                  <div className="p-3 bg-muted rounded-lg">
+                    <div className="text-sm">
+                      <strong>Calculated Hit Points:</strong> {(() => {
+                        const hp = calculateQSBHitPoints(formData.threatDice, formData.size, formData.nature, formData.creatureType)
+                        return `${hp.total} (${hp.adp} ADP / ${hp.pdp} PDP)`
+                      })()}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {formData.type === 'pa' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -235,8 +413,19 @@ export default function BattleCalculator() {
                         <span className="text-sm bg-secondary text-secondary-foreground px-2 py-1 rounded">
                           d{combatant.prowess}
                         </span>
+                        {combatant.type === 'qsb' && (
+                          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">
+                            QSB
+                          </span>
+                        )}
                       </div>
                     </div>
+
+                    {combatant.type === 'qsb' && combatant.threatDice && (
+                      <div className="text-xs text-muted-foreground mb-2">
+                        {combatant.threatDice} • {combatant.size} {combatant.nature} {combatant.creatureType}
+                      </div>
+                    )}
                     
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
                       <div>
@@ -330,10 +519,10 @@ export default function BattleCalculator() {
         {/* Battle Phase Reference */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Battle Phase Reference</CardTitle>
+            <CardTitle className="text-lg">Reference</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <h4 className="font-semibold mb-2">Initiative Phases</h4>
                 <div className="space-y-1 text-sm">
@@ -350,6 +539,16 @@ export default function BattleCalculator() {
                   <div><strong>ADP:</strong> Active Defense Pool (dodge/parry)</div>
                   <div><strong>PDP:</strong> Passive Defense Pool (toughness)</div>
                   <div><strong>SP:</strong> Spirit Points (mental/magical defense)</div>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-2">QSB Hit Points</h4>
+                <div className="space-y-1 text-sm">
+                  <div><strong>Base HP:</strong> Max Value of Threat Dice</div>
+                  <div><strong>Formula:</strong> ceil(Base × ((Size + Nature) ÷ 2))</div>
+                  <div><strong>Standard:</strong> 50% ADP / 50% PDP</div>
+                  <div><strong>Fast:</strong> 75% ADP / 25% PDP</div>
+                  <div><strong>Tough:</strong> 25% ADP / 75% PDP</div>
                 </div>
               </div>
             </div>
