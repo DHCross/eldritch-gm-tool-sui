@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Eldritch GM Tool Suite</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* General Body and Theming */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a2327;
+            color: #e0e0e0;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #4CAF50;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            overflow: hidden;
+            background-color: #2c3e50;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .tab-nav button {
+            background-color: inherit;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            color: #e0e0e0;
+            font-size: 1em;
+            flex-grow: 1;
+        }
+
+        .tab-nav button:hover {
+            background-color: #45a049;
+        }
+
+        .tab-nav button.active {
+            background-color: #4CAF50;
+        }
+
+        /* Tab Content Panes */
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #4CAF50;
+            border-radius: 8px;
+            background-color: #2c3e50;
+        }
+
+        /* General Form Styling */
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        select, input[type="text"], input[type="number"], button {
+            font-size: 1em;
+            padding: 10px;
+            margin: 5px 0 15px 0;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #4CAF50;
+            border-radius: 5px;
+            background-color: #1a2327;
+            color: #e0e0e0;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Sliders */
+        .slider-container {
+            margin-bottom: 20px;
+        }
+        .slider {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 15px;
+            border-radius: 5px;
+            background: #5a6b7c;
+            outline: none;
+            opacity: 0.8;
+            transition: opacity .2s;
+        }
+        .slider:hover {
+            opacity: 1;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+
+        /* Checkboxes */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .checkbox-container input {
+            width: auto;
+            margin-right: 10px;
+        }
+        .checkbox-container label {
+            font-weight: normal;
+            margin: 0;
+        }
+
+        /* Output Areas */
+        #encounterOutput, #character, #battlePhaseOutput, #monsterHPOutput {
+            white-space: pre-wrap;
+            font-family: 'Courier New', Courier, monospace;
+            border: 1px solid #4CAF50;
+            padding: 15px;
+            margin-top: 20px;
+            background-color: #0a0f0d;
+            color: #e0e0e0;
+            border-radius: 8px;
+            line-height: 1.6;
+            min-height: 100px;
+        }
+        
+        /* Battle Phase Specific */
+        .combatant-list ul, .defeated-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .combatant-list li, .defeated-list li {
+            background-color: #1a2327;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+        }
+        .defeated-list li {
+            background-color: #4a2c2c;
+            border-left-color: #a04545;
+        }
+        .input-group-half {
+            width: 48%;
+            display: inline-block;
+        }
+        .input-group-half:first-child {
+            margin-right: 4%;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Eldritch GM Tool Suite</h1>
+
+    <div class="tab-nav">
+    <button class="tab-link active" onclick="openTool(event, 'EncounterGenerator')">Encounter Generator</button>
+    <button class="tab-link" onclick="openTool(event, 'NPCGenerator')">NPC Generator</button>
+    <button class="tab-link" onclick="openTool(event, 'CharacterGenerator')">Character Generator</button>
+    <button class="tab-link" onclick="openTool(event, 'BattleCalculator')">Battle Calculator</button>
+    <button class="tab-link" onclick="openTool(event, 'MonsterHP')">Monster HP</button>
+    <div id="CharacterGenerator" class="tab-content">
+                <h2>Eldritch RPG 2nd Edition Character Generator</h2>
+                <div class="bg-gray-900 p-6 rounded-2xl shadow-lg mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+                        <div>
+                            <label for="cg-race" class="block text-sm font-medium text-green-400 mb-1">Race</label>
+                            <select id="cg-race" class="w-full bg-gray-800 border border-green-400 text-gray-100 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block p-2.5"></select>
+                        </div>
+                        <div>
+                            <label for="cg-class" class="block text-sm font-medium text-green-400 mb-1">Class</label>
+                            <select id="cg-class" class="w-full bg-gray-800 border border-green-400 text-gray-100 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block p-2.5"></select>
+                        </div>
+                        <div>
+                            <label for="cg-level" class="block text-sm font-medium text-green-400 mb-1">Level</label>
+                            <select id="cg-level" class="w-full bg-gray-800 border border-green-400 text-gray-100 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block p-2.5"></select>
+                        </div>
+                        <div id="cg-magic-path-container" style="display:none;">
+                            <label for="cg-magic-path" class="block text-sm font-medium text-green-400 mb-1">Chosen Magic Path</label>
+                            <select id="cg-magic-path" class="w-full bg-gray-800 border border-green-400 text-gray-100 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block p-2.5"></select>
+                        </div>
+                    </div>
+                    <div class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="cg-magical-item-checkbox" class="h-4 w-4 text-green-500 border-gray-300 rounded focus:ring-green-500">
+                            <label for="cg-magical-item-checkbox" class="ml-2 block text-sm text-gray-100">Iconic Arcane Inheritance (Costs 4 CP)</label>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button id="cg-generate-btn" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-md">Generate Character</button>
+                            <button id="cg-export-md-btn" class="w-full sm:w-auto bg-white hover:bg-gray-100 text-green-600 font-semibold py-2 px-4 border border-green-600 rounded-lg shadow-sm transition-colors">Export Markdown</button>
+                            <button id="cg-copy-md-btn" class="w-full sm:w-auto bg-white hover:bg-gray-100 text-green-600 font-semibold py-2 px-4 border border-green-600 rounded-lg shadow-sm transition-colors">Copy Markdown</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="cg-character-output"></div>
+                <div id="cg-custom-alert" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+                    <div style="background:white; padding:2rem; border-radius:1rem; box-shadow:0 10px 25px rgba(0,0,0,0.1); text-align:center; max-width:90%; width:400px;">
+                        <p id="cg-custom-alert-message"></p>
+                        <button id="cg-custom-alert-close" style="margin-top:1.5rem; padding:0.75rem 1.5rem; border:none; background-color:#4CAF50; color:white; border-radius:0.5rem; cursor:pointer; font-weight:600;">OK</button>
+                    </div>
+                </div>
+    </div>
+    </div>
+
+    <div id="EncounterGenerator" class="tab-content" style="display: block;">
+        <h2>Eldritch RPG Encounter Generator</h2>
+        
+        <div class="slider-container">
+            <label for="partySize">Party Size: <span id="partySizeValue">4</span></label>
+            <input type="range" id="partySize" min="1" max="4" value="4" class="slider">
+        </div>
+
+        <div class="slider-container">
+            <label for="defenseLevel">Party Defense Level: <span id="defenseLevelValue">Practitioner</span></label>
+            <input type="range" id="defenseLevel" min="1" max="5" value="1" class="slider">
+        </div>
+
+        <div class="slider-container">
+            <label for="difficulty">Desired Difficulty: <span id="difficultyValue">Moderate</span></label>
+            <input type="range" id="difficulty" min="1" max="6" value="2" class="slider">
+        </div>
+
+        <div class="slider-container">
+            <label for="nonMediumPercentage">Non-Medium Size Percentage: <span id="nonMediumPercentageValue">10</span>%</label>
+            <input type="range" id="nonMediumPercentage" min="0" max="100" value="10" class="slider">
+        </div>
+
+        <div class="slider-container">
+            <label for="nonMundanePercentage">Non-Mundane Nature Percentage: <span id="nonMundanePercentageValue">20</span>%</label>
+            <input type="range" id="nonMundanePercentage" min="0" max="100" value="20" class="slider">
+        </div>
+
+        <div class="slider-container">
+            <label for="specialTypePercentage">Fast/Tough Creature Percentage: <span id="specialTypePercentageValue">30</span>%</label>
+            <input type="range" id="specialTypePercentage" min="0" max="100" value="30" class="slider">
+        </div>
+
+        <div class="checkbox-container">
+            <label><input type="checkbox" name="creatureTypes" value="Minor" checked> Minor</label>
+            <label><input type="checkbox" name="creatureTypes" value="Standard" checked> Standard</label>
+            <label><input type="checkbox" name="creatureTypes" value="Exceptional" checked> Exceptional</label>
+            <label><input type="checkbox" name="creatureTypes" value="Legendary"> Legendary</label>
+        </div>
+
+        <button onclick="generateEncounter()">Generate Encounter</button>
+
+        <div id="encounterOutput"></div>
+    </div>
+
+    <div id="NPCGenerator" class="tab-content">
+        <h2>Eldritch RPG NPC Generator</h2>
+        <div>
+            <label for="gender">Choose Gender:</label>
+            <select id="gender">
+                <option value="Random">Random</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+        </div>
+        <div>
+            <label for="race">Choose Race:</label>
+            <select id="race"></select>
+        </div>
+        <div>
+            <label for="class">Choose Role:</label>
+            <select id="class"></select>
+        </div>
+        <div>
+            <label for="level">Select Level:</label>
+            <select id="level"></select>
+        </div>
+        <div class="checkbox-container">
+            <input type="checkbox" id="includeMagic" />
+            <label for="includeMagic">Include Magical Properties for Iconic Items</label>
+        </div>
+        <button onclick="generateCharacter()">Generate Character</button>
+        <div id="character"></div>
+    </div>
+
+    <div id="BattleCalculator" class="tab-content">
+        <h2>Eldritch RPG Battle Phase Calculator</h2>
+        
+        <div class="combatant-form">
+            <h3>Add Combatant</h3>
+
+            <div class="checkbox-container">
+                <input type="checkbox" id="autoRollToggle" onchange="toggleAutoRoll()">
+                <label for="autoRollToggle">Enable Auto-Roll Armor Dice</label>
+            </div>
+
+            <label for="combatantType">Combatant Type:</label>
+            <select id="combatantType" onchange="toggleFields()">
+                <option value="pa">Player Adventurer (PA)</option>
+                <option value="npc">Non-Player Character (NPC)</option>
+                <option value="qsb">Quick Stat Block (QSB) Creature</option>
+            </select>
+
+            <label for="combatantName">Name:</label>
+            <input type="text" id="combatantName" placeholder="Enter combatant name">
+
+            <label for="prowess" id="prowessLabel">Prowess Die:</label>
+            <select id="prowess">
+                <option value="4" selected>d4</option>
+                <option value="6">d6</option>
+                <option value="8">d8</option>
+                <option value="10">d10</option>
+                <option value="12">d12</option>
+            </select>
+
+            <div id="reactionFocusGroup">
+                <label for="reactionFocus">Reaction Focus Bonus:</label>
+                <input type="text" id="reactionFocus" placeholder="Enter Reaction Focus Bonus">
+            </div>
+
+            <div id="spiritPointsGroup">
+                <label for="spiritPoints">Spirit Points (SP):</label>
+                <input type="text" id="spiritPoints" placeholder="Enter Spirit Points">
+            </div>
+            
+            <button onclick="addCombatant()">Add Combatant</button>
+        </div>
+
+        <div class="combatant-list">
+            <h3>Active Combatants</h3>
+            <ul id="turnOrder"></ul>
+        </div>
+
+        <div class="defeated-list">
+            <h3>Defeated Combatants</h3>
+            <ul id="defeatedList"></ul>
+        </div>
+    </div>
+
+    <div id="MonsterHP" class="tab-content">
+        <h2>Eldritch RPG Monster HP Calculator</h2>
+        
+        <label for="monsterType">Monster Nature:</label>
+        <select id="monsterType" name="monsterType">
+            <option value="1">Mundane</option>
+            <option value="2">Magical</option>
+            <option value="3">Preternatural</option>
+            <option value="4">Supernatural</option>
+        </select>
+    
+        <label for="monsterSize">Monster Size:</label>
+        <select id="monsterSize" name="monsterSize">
+            <option value="1">Small or Medium</option>
+            <option value="2">Large</option>
+            <option value="3">Huge</option>
+            <option value="4">Gargantuan</option>
+            <option value="0">Minuscule or Tiny</option>
+        </select>
+
+        <label for="Tier1Threat">Threat Tier 1 (MV):</label>
+        <select id="Tier1Threat" name="minor">
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+            <option value="14">d14</option>
+            <option value="16">d16</option>
+            <option value="18">d18</option>
+            <option value="20">d20</option>
+        </select>
+
+        <label for="Tier2Threat">Threat Tier 2 (MV):</label>
+        <select id="Tier2Threat" name="standard">
+            <option value="0">None</option>
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+            <option value="14">d14</option>
+            <option value="16">d16</option>
+            <option value="18">d18</option>
+            <option value="20">d20</option>
+        </select>
+
+        <label for="Tier3Threat">Threat Tier 3 (MV):</label>
+        <select id="Tier3Threat" name="exceptional">
+            <option value="0">None</option>
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+            <option value="14">d14</option>
+            <option value="16">d16</option>
+            <option value="18">d18</option>
+            <option value="20">d20</option>
+        </select>
+
+        <label for="monsterArmor">Monster Armor:</label>
+        <select id="monsterArmor" name="monsterArmor">
+            <option value="0">None</option>
+            <option value="2">Hide</option>
+            <option value="3">Leather</option>
+            <option value="4">Chain</option>
+            <option value="5">Plate</option>
+            <option value="6">Magical</option>
+        </select>
+
+        <button onclick="calculateMonsterHP()">Calculate Hit Points</button>
+        <div id="monsterHPOutput"></div>
+    </div>
+
+
+    <script>
+        // Tab functionality
+        function openTool(evt, toolName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tab-link");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(toolName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        // --- Encounter Generator JS ---
+        const difficultyLevels = ['Easy', 'Moderate', 'Difficult', 'Demanding', 'Formidable', 'Deadly'];
+        const defenseLevels = ['Practitioner', 'Competent', 'Proficient', 'Advanced', 'Elite'];
+        const encounterDifficultyTable = {
+            1: { Practitioner: [7,10,12,14,16,18], Competent: [14,20,24,28,32,36], Proficient: [21,29,36,42,48,55], Advanced: [28,39,48,56,64,73], Elite: [35,49,60,70,80,110] },
+            2: { Practitioner: [14,20,24,28,32,36], Competent: [28,39,48,56,64,73], Proficient: [42,59,72,84,96,108], Advanced: [56,77,96,112,128,144], Elite: [70,95,120,140,160,190] },
+            3: { Practitioner: [21,30,36,42,48,54], Competent: [42,59,72,84,96,108], Proficient: [63,84,108,126,144,162], Advanced: [84,111,144,168,192,216], Elite: [105,140,180,210,240,270] },
+            4: { Practitioner: [28,42,50,56,64,72], Competent: [56,77,96,112,128,144], Proficient: [84,111,144,168,192,216], Advanced: [112,147,180,224,256,288], Elite: [140,185,228,280,320,360] }
+        };
+        const threatDiceByCategory = {
+            Minor: ['1d4','1d6','1d8','1d10','1d12'],
+            Standard: ['2d4','2d6','2d8','2d10','2d12'],
+            Exceptional: ['3d4','3d6','3d8','3d10','3d12'],
+            Legendary: ['3d12','3d14','3d16','3d18','3d20']
+        };
+        const hpMultipliers = {
+            'Minuscule': {'Mundane': 0.5, 'Magical': 1, 'Preternatural': 1.5, 'Supernatural': 2},
+            'Tiny': {'Mundane': 0.5, 'Magical': 1, 'Preternatural': 1.5, 'Supernatural': 2},
+            'Small': {'Mundane': 1, 'Magical': 1.5, 'Preternatural': 2, 'Supernatural': 2.5},
+            'Medium': {'Mundane': 1, 'Magical': 1.5, 'Preternatural': 2, 'Supernatural': 2.5},
+            'Large': {'Mundane': 1.5, 'Magical': 2, 'Preternatural': 2.5, 'Supernatural': 3},
+            'Huge': {'Mundane': 2, 'Magical': 2.5, 'Preternatural': 3, 'Supernatural': 3.5},
+            'Gargantuan': {'Mundane': 2.5, 'Magical': 3, 'Preternatural': 3.5, 'Supernatural': 4}
+        };
+
+        function updateSliderValues() {
+            document.getElementById('partySizeValue').textContent = document.getElementById('partySize').value;
+            document.getElementById('defenseLevelValue').textContent = defenseLevels[document.getElementById('defenseLevel').value - 1];
+            document.getElementById('difficultyValue').textContent = difficultyLevels[document.getElementById('difficulty').value - 1];
+            document.getElementById('nonMediumPercentageValue').textContent = document.getElementById('nonMediumPercentage').value;
+            document.getElementById('nonMundanePercentageValue').textContent = document.getElementById('nonMundanePercentage').value;
+            document.getElementById('specialTypePercentageValue').textContent = document.getElementById('specialTypePercentage').value;
+        }
+
+        document.querySelectorAll('.slider').forEach(slider => {
+            slider.addEventListener('input', updateSliderValues);
+        });
+
+        function generateEncounter() {
+            const partySize = parseInt(document.getElementById('partySize').value);
+            const defenseLevel = defenseLevels[document.getElementById('defenseLevel').value - 1];
+            const difficulty = parseInt(document.getElementById('difficulty').value);
+            const nonMediumPercentage = parseInt(document.getElementById('nonMediumPercentage').value);
+            const nonMundanePercentage = parseInt(document.getElementById('nonMundanePercentage').value);
+            const specialTypePercentage = parseInt(document.getElementById('specialTypePercentage').value);
+            const selectedTypes = Array.from(document.querySelectorAll('input[name="creatureTypes"]:checked')).map(checkbox => checkbox.value);
+
+            if (selectedTypes.length === 0) {
+                alert("Please select at least one creature type.");
+                return;
+            }
+
+            const threatScore = encounterDifficultyTable[partySize][defenseLevel][difficulty - 1];
+            let output = `Eldritch RPG Encounter\n=========================\n`;
+            output += `Party Size: ${partySize}\n`;
+            output += `Defense Level: ${defenseLevel}\n`;
+            output += `Difficulty: ${difficultyLevels[difficulty - 1]}\n`;
+            output += `Total Threat Score: ${threatScore}\n\n`;
+            output += `Creatures:\n=========================\n`;
+
+            let remainingThreat = threatScore;
+            let monsters = [];
+
+            while (remainingThreat > 0) {
+                const monster = generateMonsterForEncounter(remainingThreat, selectedTypes, nonMediumPercentage, nonMundanePercentage, specialTypePercentage);
+                monsters.push(monster);
+                remainingThreat -= monster.threatMV;
+                if (monster.threatMV === 0) break; 
+            }
+
+            monsters.forEach((monster, index) => {
+                output += `Monster ${index + 1}\n`;
+                output += `Type: ${monster.category} | TD: ${monster.threatDice} | `;
+                output += `HP: ${monster.hitPoints} (${monster.activeDefense}/${monster.passiveDefense}) `;
+                output += `[${monster.size}, ${monster.nature}; ×${monster.multiplier}] ${monster.creatureType}\n`;
+                output += `ST: ${monster.savingThrow} | BP: ${monster.battlePhase}\n\n`;
+            });
+
+            document.getElementById('encounterOutput').textContent = output;
+        }
+
+        function generateMonsterForEncounter(maxThreat, selectedTypes, nonMediumPercentage, nonMundanePercentage, specialTypePercentage) {
+            const category = selectedTypes[Math.floor(Math.random() * selectedTypes.length)];
+            const threatDice = threatDiceByCategory[category][Math.floor(Math.random() * threatDiceByCategory[category].length)];
+            const threatMV = parseInt(threatDice.split('d')[0]) * parseInt(threatDice.split('d')[1]);
+            
+            const sizes = ['Minuscule', 'Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan'];
+            let size = 'Medium';
+            if (Math.random() * 100 < nonMediumPercentage) {
+                const nonMediumSizes = sizes.filter(s => s !== 'Medium');
+                size = nonMediumSizes[Math.floor(Math.random() * nonMediumSizes.length)];
+            }
+
+            const natures = ['Mundane', 'Magical', 'Preternatural', 'Supernatural'];
+            let nature = 'Mundane';
+            if (Math.random() * 100 < nonMundanePercentage) {
+                const nonMundaneNatures = natures.filter(n => n !== 'Mundane');
+                nature = nonMundaneNatures[Math.floor(Math.random() * nonMundaneNatures.length)];
+            }
+
+            let creatureType = 'Normal';
+            if (Math.random() * 100 < specialTypePercentage) {
+                creatureType = Math.random() < 0.5 ? 'Fast' : 'Tough';
+            }
+            
+            const { hitPoints, multiplier } = calculateHitPoints(threatMV, size, nature);
+            
+            let activeDefense, passiveDefense;
+            if (creatureType === 'Fast') {
+                activeDefense = Math.round(hitPoints * 0.75);
+                passiveDefense = hitPoints - activeDefense;
+            } else if (creatureType === 'Tough') {
+                passiveDefense = Math.round(hitPoints * 0.75);
+                activeDefense = hitPoints - passiveDefense;
+            } else {
+                activeDefense = Math.round(hitPoints / 2);
+                passiveDefense = hitPoints - activeDefense;
+            }
+
+            const prowessDie = parseInt(threatDice.split('d')[1]);
+            const battlePhase = calculateBattlePhase(prowessDie);
+            const savingThrow = `d${4 * (['Minor', 'Standard', 'Exceptional', 'Legendary'].indexOf(category) + 1)}`;
+            
+            return {
+                category, threatDice, threatMV, size, nature, creatureType,
+                hitPoints, multiplier, activeDefense, passiveDefense,
+                savingThrow, battlePhase
+            };
+        }
+
+        function calculateHitPoints(baseHP, size, nature) {
+            const multiplier = hpMultipliers[size][nature];
+            return {
+                hitPoints: Math.round(baseHP * multiplier),
+                multiplier: multiplier
+            };
+        }
+        
+        function calculateBattlePhase(prowessDie) {
+            if (prowessDie >= 12) return 1;
+            if (prowessDie >= 10) return 2;
+            if (prowessDie >= 8) return 3;
+            if (prowessDie >= 6) return 4;
+            return 5;
+        }
+
+        // --- NPC Generator JS ---
+        const npcRaces = ["Human", "Elf", "Dwarf", "Gnome", "Half-Elf", "Half-Orc", "Halfling"];
+        const npcRoles = ["Warrior", "Rogue", "Adept", "Mage", "Mystic", "Theurgist", "Barbarian"];
+        const npcLevels = [1, 2, 3, 4, 5];
+        
+        function populateNPCDropdowns() {
+            const raceSelect = document.getElementById('race');
+            const classSelect = document.getElementById('class');
+            const levelSelect = document.getElementById('level');
+
+            npcRaces.forEach(race => {
+                raceSelect.innerHTML += `<option value="${race}">${race}</option>`;
+            });
+            npcRoles.forEach(role => {
+                classSelect.innerHTML += `<option value="${role}">${role}</option>`;
+            });
+            npcLevels.forEach(level => {
+                levelSelect.innerHTML += `<option value="${level}">${level}</option>`;
+            });
+        }
+        
+        function generateCharacter() {
+            // Advanced NPC generation logic
+            const genders = ["Male", "Female"];
+            const races = ["Human", "Elf", "Dwarf", "Gnome", "Half-Elf", "Half-Orc", "Halfling"];
+            const roles = ["Warrior", "Rogue", "Adept", "Mage", "Mystic", "Theurgist", "Barbarian"];
+            const levels = [1, 2, 3, 4, 5];
+            const abilities = ["Competence", "Prowess", "Fortitude"];
+            const dieRanks = ["d4", "d6", "d8", "d10", "d12"];
+            const dieValues = {"d4": 4, "d6": 6, "d8": 8, "d10": 10, "d12": 12};
+            const specialties = {
+                Competence: ["Adroitness", "Expertise", "Perception"],
+                Prowess: ["Agility", "Melee", "Precision"],
+                Fortitude: ["Endurance", "Strength", "Willpower"]
+            };
+            const focuses = {
+                Adroitness: ["Skulduggery", "Cleverness"],
+                Expertise: ["Wizardry", "Theurgy"],
+                Perception: ["Alertness", "Perspicacity"],
+                Agility: ["Speed", "Reaction"],
+                Melee: ["Threat", "Finesse"],
+                Precision: ["Ranged Threat", "Ranged Finesse"],
+                Endurance: ["Vitality", "Resilience"],
+                Strength: ["Ferocity", "Might"],
+                Willpower: ["Courage", "Resistance"]
+            };
+            const rarities = ["Common", "Uncommon", "Esoteric", "Occult", "Legendary"];
+            const energyPointsByRarity = {
+                "Common": 8,
+                "Uncommon": 12,
+                "Esoteric": 16,
+                "Occult": 20,
+                "Legendary": 30
+            };
+
+            function randomChoice(arr) {
+                return arr[Math.floor(Math.random() * arr.length)];
+            }
+
+            // Get selections
+            let gender = document.getElementById('gender').value;
+            if (gender === "Random") gender = randomChoice(genders);
+            const race = document.getElementById('race').value;
+            const role = document.getElementById('class').value;
+            const level = parseInt(document.getElementById('level').value);
+            const includeMagic = document.getElementById('includeMagic').checked;
+
+            // Generate ability scores
+            let abilityBlock = "";
+            abilities.forEach(ability => {
+                const die = dieRanks[Math.min(level - 1, dieRanks.length - 1)];
+                abilityBlock += `${ability}: ${die}  `;
+                specialties[ability].forEach(spec => {
+                    const focus = randomChoice(focuses[spec]);
+                    abilityBlock += `\n  - ${spec}: ${focus}`;
+                });
+                abilityBlock += "\n";
+            });
+
+            // Generate iconic item
+            let itemBlock = "";
+            if (includeMagic) {
+                const rarity = randomChoice(rarities);
+                const energy = energyPointsByRarity[rarity];
+                itemBlock = `Iconic Item: ${rarity} rarity, ${energy} Energy Points`;
+            } else {
+                itemBlock = "Iconic Item: Mundane";
+            }
+
+            // Output
+            let output = `--- Generated NPC ---\n`;
+            output += `Gender: ${gender}\n`;
+            output += `Race: ${race}\n`;
+            output += `Role: ${role}\n`;
+            output += `Level: ${level}\n`;
+            output += `\nAbilities:\n${abilityBlock}`;
+            output += `\n${itemBlock}`;
+
+            document.getElementById('character').textContent = output;
+        }
+        
+        // --- Battle Calculator JS ---
+        let combatants = [];
+    let autoRollEnabled = false;
+    let defeatedCombatants = [];
+
+        function addCombatant() {
+            const name = document.getElementById('combatantName').value || 'Unnamed';
+            const prowess = document.getElementById('prowess').value;
+            const type = document.getElementById('combatantType').value;
+            combatants.push({ name, prowess, type });
+            displayTurnOrder();
+        }
+        
+        function displayTurnOrder() {
+            combatants.sort((a, b) => b.prowess - a.prowess);
+            const turnOrderList = document.getElementById('turnOrder');
+            turnOrderList.innerHTML = '';
+            combatants.forEach((c, idx) => {
+                turnOrderList.innerHTML += `<li>${c.name} (Prowess: d${c.prowess}, Type: ${c.type.toUpperCase()}) <button onclick="defeatCombatant(${idx})">Defeat</button></li>`;
+            });
+            displayDefeatedList();
+        }
+        
+        function toggleAutoRoll() {
+            autoRollEnabled = document.getElementById('autoRollToggle').checked;
+        }
+        
+        function toggleFields() {
+            // Placeholder for field toggling logic
+        }
+
+        // --- Monster HP Calculator JS ---
+        function defeatCombatant(idx) {
+            defeatedCombatants.push(combatants[idx]);
+            combatants.splice(idx, 1);
+            displayTurnOrder();
+        }
+
+        function displayDefeatedList() {
+            const defeatedList = document.getElementById('defeatedList');
+            defeatedList.innerHTML = '';
+            defeatedCombatants.forEach(c => {
+                defeatedList.innerHTML += `<li>${c.name} (Prowess: d${c.prowess}, Type: ${c.type.toUpperCase()})</li>`;
+            });
+        }
+        function calculateMonsterHP() {
+            // Advanced Monster HP logic
+            const nature = parseFloat(document.getElementById('monsterType').value);
+            const size = parseFloat(document.getElementById('monsterSize').value);
+            const minor = parseInt(document.getElementById('Tier1Threat').value);
+            const standard = parseInt(document.getElementById('Tier2Threat').value);
+            const exceptional = parseInt(document.getElementById('Tier3Threat').value);
+            const armorBonus = parseFloat(document.getElementById('monsterArmor').value);
+
+            let totalModifier = (size + nature) / 2;
+            let totalHitPoints = minor + standard + exceptional;
+            let finalHitPoints = Math.ceil(totalHitPoints * totalModifier);
+            finalHitPoints += armorBonus;
+
+            let threat = "";
+            if (minor !== 0 && standard === 0 && exceptional === 0) {
+                threat = "a Minor";
+            } else if (standard !== 0 && exceptional === 0) {
+                threat = "a Standard";
+            } else if (exceptional !== 0) {
+                threat = "an Exceptional";
+            } else {
+                threat = "a Minor";
+            }
+
+            document.getElementById('monsterHPOutput').innerHTML = `Final hit points (after applying size, nature, and armor modifiers) is ${finalHitPoints}.<br>This creature is ${threat} threat (MV ${totalHitPoints}).`;
+        }
+
+
+        // --- Initializations ---
+        document.addEventListener('DOMContentLoaded', () => {
+            updateSliderValues();
+            populateNPCDropdowns();
+            toggleFields();
+        });
+
+    </script>
+</body>
+</html>
