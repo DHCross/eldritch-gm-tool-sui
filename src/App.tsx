@@ -21,14 +21,14 @@ function App() {
           <TabsList className="grid w-full grid-cols-2 mb-8 h-16 bg-card border-2 border-primary/20">
             <TabsTrigger 
               value="gm" 
-              className="horizontal-tab text-lg px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200 flex items-center justify-center"
+              className="text-lg px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200 flex items-center justify-center gap-3"
             >
               <Crown size={24} />
               <span className="font-medium">Game Master Tools</span>
             </TabsTrigger>
             <TabsTrigger 
               value="player" 
-              className="horizontal-tab text-lg px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200 flex items-center justify-center"
+              className="text-lg px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200 flex items-center justify-center gap-3"
             >
               <UserFocus size={24} />
               <span className="font-medium">Player Tools</span>
@@ -37,42 +37,34 @@ function App() {
 
           <TabsContent value="gm" className="space-y-6">
             <Tabs defaultValue="encounter" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-6 h-16 bg-card/50">
+              <TabsList className="grid w-full grid-cols-4 mb-6 h-14 bg-card/50">
                 <TabsTrigger 
                   value="encounter" 
-                  className="px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+                  className="px-2 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground flex flex-col items-center justify-center gap-1"
                 >
-                  <div className="flex flex-col items-center justify-center gap-1">
-                    <Dice6 size={20} />
-                    <span className="text-sm font-medium leading-tight">Encounter</span>
-                  </div>
+                  <Dice6 size={20} />
+                  <span className="text-sm font-medium leading-tight">Encounter</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="npc" 
-                  className="px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+                  className="px-2 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground flex flex-col items-center justify-center gap-1"
                 >
-                  <div className="flex flex-col items-center justify-center gap-1">
-                    <User size={20} />
-                    <span className="text-sm font-medium leading-tight">NPC</span>
-                  </div>
+                  <User size={20} />
+                  <span className="text-sm font-medium leading-tight">NPC</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="battle" 
-                  className="px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+                  className="px-2 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground flex flex-col items-center justify-center gap-1"
                 >
-                  <div className="flex flex-col items-center justify-center gap-1">
-                    <Swords size={20} />
-                    <span className="text-sm font-medium leading-tight">Battle</span>
-                  </div>
+                  <Swords size={20} />
+                  <span className="text-sm font-medium leading-tight">Battle</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="monster" 
-                  className="px-2 h-full text-center data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+                  className="px-2 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground flex flex-col items-center justify-center gap-1"
                 >
-                  <div className="flex flex-col items-center justify-center gap-1">
-                    <Heart size={20} />
-                    <span className="text-sm font-medium leading-tight">Monster</span>
-                  </div>
+                  <Heart size={20} />
+                  <span className="text-sm font-medium leading-tight">Monster</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -96,24 +88,20 @@ function App() {
           
           <TabsContent value="player" className="space-y-6">
             <Tabs defaultValue="character" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6 h-16 bg-card/50">
+              <TabsList className="grid w-full grid-cols-2 mb-6 h-14 bg-card/50">
                 <TabsTrigger 
                   value="character" 
-                  className="px-4 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+                  className="px-4 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground flex flex-col items-center justify-center gap-1"
                 >
-                  <div className="flex flex-col items-center justify-center gap-1">
-                    <UserFocus size={24} />
-                    <span className="text-sm font-medium">Character</span>
-                  </div>
+                  <UserFocus size={24} />
+                  <span className="text-sm font-medium">Character</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="spells" 
-                  className="px-4 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+                  className="px-4 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground flex flex-col items-center justify-center gap-1"
                 >
-                  <div className="flex flex-col items-center justify-center gap-1">
-                    <Sparkles size={24} />
-                    <span className="text-sm font-medium">Spells</span>
-                  </div>
+                  <Sparkles size={24} />
+                  <span className="text-sm font-medium">Spells</span>
                 </TabsTrigger>
               </TabsList>
 
