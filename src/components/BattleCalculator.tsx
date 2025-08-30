@@ -22,6 +22,7 @@ interface Combatant {
   spiritPoints?: number
   // QSB-specific fields
   threatDice?: string
+  monsterType?: string
   size?: string
   nature?: string
   creatureType?: string
@@ -39,6 +40,7 @@ export default function BattleCalculator() {
     spiritPoints: 10,
     // QSB fields
     threatDice: '',
+    monsterType: '',
     size: 'Medium',
     nature: 'Mundane',
     creatureType: 'Standard'
@@ -67,6 +69,22 @@ export default function BattleCalculator() {
     'Magical': 1,
     'Preternatural': 2,
     'Supernatural': 3
+  }
+
+  // Get available threat dice based on monster type
+  const getThreatDiceOptions = (monsterType: string) => {
+    switch (monsterType) {
+      case 'Minor':
+        return ['1d4', '1d6', '1d8', '1d10', '1d12']
+      case 'Standard':
+        return ['2d4', '2d6', '2d8', '2d10', '2d12']
+      case 'Exceptional':
+        return ['3d4', '3d6', '3d8', '3d10', '3d12']
+      case 'Legendary':
+        return ['3d4', '3d6', '3d8', '3d10', '3d12', '3d14', '3d16', '3d18', '3d20', '4d12', '5d12']
+      default:
+        return []
+    }
   }
 
   const calculateQSBHitPoints = (threatDice: string, size: string, nature: string, creatureType: string) => {
@@ -146,6 +164,7 @@ export default function BattleCalculator() {
       }),
       ...(formData.type === 'qsb' && {
         threatDice: formData.threatDice,
+        monsterType: formData.monsterType,
         size: formData.size,
         nature: formData.nature,
         creatureType: formData.creatureType
@@ -162,6 +181,7 @@ export default function BattleCalculator() {
       reactionFocus: 0,
       spiritPoints: 10,
       threatDice: '',
+      monsterType: '',
       size: 'Medium',
       nature: 'Mundane',
       creatureType: 'Standard'
@@ -284,14 +304,47 @@ export default function BattleCalculator() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="threat-dice">Threat Dice (e.g., "2d8")</Label>
-                    <Input
-                      id="threat-dice"
-                      value={formData.threatDice}
-                      onChange={(e) => setFormData(prev => ({ ...prev, threatDice: e.target.value }))}
-                      placeholder="e.g., 2d8, 3d6, 1d12"
-                    />
+                    <Label htmlFor="monster-type">Monster Type</Label>
+                    <Select 
+                      value={formData.monsterType} 
+                      onValueChange={(value) => setFormData(prev => ({ 
+                        ...prev, 
+                        monsterType: value,
+                        threatDice: '' // Reset threat dice when type changes
+                      }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select monster type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Minor">Minor (1 die)</SelectItem>
+                        <SelectItem value="Standard">Standard (2 dice)</SelectItem>
+                        <SelectItem value="Exceptional">Exceptional (3 dice)</SelectItem>
+                        <SelectItem value="Legendary">Legendary (3+ dice, higher ranks)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
+                  <div>
+                    <Label htmlFor="threat-dice">Primary Attack Threat Dice</Label>
+                    <Select 
+                      value={formData.threatDice} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, threatDice: value }))}
+                      disabled={!formData.monsterType}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={formData.monsterType ? "Select threat dice" : "Select monster type first"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getThreatDiceOptions(formData.monsterType).map((dice) => (
+                          <SelectItem key={dice} value={dice}>
+                            {dice}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="creature-type">Creature Type</Label>
                     <Select 
@@ -308,8 +361,6 @@ export default function BattleCalculator() {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="size">Size</Label>
                     <Select 
@@ -330,6 +381,8 @@ export default function BattleCalculator() {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="nature">Nature</Label>
                     <Select 
@@ -423,7 +476,7 @@ export default function BattleCalculator() {
 
                     {combatant.type === 'qsb' && combatant.threatDice && (
                       <div className="text-xs text-muted-foreground mb-2">
-                        {combatant.threatDice} • {combatant.size} {combatant.nature} {combatant.creatureType}
+                        {combatant.monsterType} • {combatant.threatDice} • {combatant.size} {combatant.nature} {combatant.creatureType}
                       </div>
                     )}
                     
