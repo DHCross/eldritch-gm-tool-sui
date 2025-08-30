@@ -725,6 +725,7 @@
               <div><strong>Perception:</strong> ${ch.actions.perceptionCheck}</div>
               ${casterClasses.includes(ch.class) ? `<div><strong>Magic Attack:</strong> ${ch.actions.magicAttack}</div>` : ''}
               <div><strong>Mastery Die:</strong> ${ch.masteryDie}</div>
+              <div><strong>Mastery Die Uses Per Day:</strong> ${levelInfo[ch.level - 1].usesPerDay}</div>
             </div>
           </div>
         </div>
@@ -759,6 +760,15 @@
               ${ch.spellcasting.knownSpells.map(s => `<div>• ${s.name} <span style="color: #94a3b8;">(${s.rarity})</span></div>`).join('')}
             </div>
           </div>
+          ` : ch.advantages.includes('Gift of Magic') ? `
+          <div style="margin-bottom: 20px;">
+            <h3 style="color: #a78bfa; font-weight: bold; margin-bottom: 8px;">Spellcasting (Gift of Magic)</h3>
+            <div style="color: #e5e7eb; font-size: 14px; margin-bottom: 12px;">
+              <div><strong>Can cast spells from:</strong> Any magic path</div>
+              <div><strong>Spell Learning:</strong> Based on Competence + Expertise dice</div>
+              <div><strong>Level ${ch.level} Bonus:</strong> ${ch.level >= 3 ? 'Esoteric spell available' : ch.level >= 2 ? 'Uncommon spells available' : 'Common spells only'}</div>
+            </div>
+          </div>
           ` : ''}
 
           <div>
@@ -776,6 +786,51 @@
             </div>
           </div>
           ` : ''}
+        </div>
+
+        <!-- CHARACTER PROGRESSION TAB -->
+        <div style="background: #1a1a2e; border-radius: 12px; padding: 20px;">
+          <h2 style="color: #10b981; font-size: 18px; font-weight: bold; margin-bottom: 16px; border-bottom: 2px solid #10b981; padding-bottom: 8px;">📈 CHARACTER PROGRESSION</h2>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div style="background: #374151; border-radius: 8px; padding: 16px;">
+              <h3 style="color: #fbbf24; font-weight: bold; margin-bottom: 12px;">Current Level Status</h3>
+              <div style="color: #e5e7eb; font-size: 14px; line-height: 1.6;">
+                <div><strong>Current Level:</strong> ${ch.level}</div>
+                <div><strong>Total Character Points:</strong> ${window.lastCharacter.spentTotals.total + 10} CP</div>
+                <div><strong>Level Range:</strong> ${levelInfo[ch.level - 1].cp_range} CP</div>
+                <div><strong>Mastery Die:</strong> ${ch.masteryDie}</div>
+                <div><strong>Uses Per Day:</strong> ${levelInfo[ch.level - 1].usesPerDay}</div>
+              </div>
+            </div>
+            
+            <div style="background: #374151; border-radius: 8px; padding: 16px;">
+              <h3 style="color: #34d399; font-weight: bold; margin-bottom: 12px;">CP Breakdown</h3>
+              <div style="color: #e5e7eb; font-size: 14px; line-height: 1.6;">
+                <div><strong>Base CP:</strong> 10</div>
+                <div><strong>Spent on Abilities:</strong> ${window.lastCharacter.spentTotals.abilities}</div>
+                <div><strong>Spent on Specialties:</strong> ${window.lastCharacter.spentTotals.specialties}</div>
+                <div><strong>Spent on Focuses:</strong> ${window.lastCharacter.spentTotals.focuses}</div>
+                <div><strong>Spent on Advantages:</strong> ${window.lastCharacter.spentTotals.advantages}</div>
+                <div style="border-top: 1px solid #6b7280; margin-top: 8px; padding-top: 8px;"><strong>Total CP Value:</strong> ${window.lastCharacter.spentTotals.total + 10}</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background: #374151; border-radius: 8px; padding: 16px;">
+            <h3 style="color: #a78bfa; font-weight: bold; margin-bottom: 12px;">Level Advancement (Earned CP)</h3>
+            <div style="color: #e5e7eb; font-size: 14px; line-height: 1.8;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div><strong>Level 2:</strong> 100 Earned CP</div>
+                <div><strong>Level 3:</strong> 200 Earned CP</div>
+                <div><strong>Level 4:</strong> 300 Earned CP</div>
+                <div><strong>Level 5:</strong> 500 Earned CP</div>
+              </div>
+              <div style="margin-top: 12px; padding: 8px; background: #1f2937; border-radius: 4px; font-size: 12px; color: #94a3b8;">
+                Note: Earned CP (for advancement) is separate from Total CP (character build value)
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     `;
