@@ -557,4 +557,10 @@ export default function BattleCalculator() {
       </CardContent>
     </Card>
   )
+}            </div>
+          </CardContent>
+        </Card>
+      </CardContent>
+    </Card>
+  )
 }
