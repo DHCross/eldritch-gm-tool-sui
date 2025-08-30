@@ -82,35 +82,35 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Custom tab styling for better alignment */
 [data-radix-collection-item] {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  height: 100%;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  height: 100% !important;
 }
 
 /* Ensure tab content is properly centered */
 [role="tab"] {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  padding: 0.75rem;
-  height: 100%;
-  text-align: center;
-  min-height: 4rem; /* Ensure minimum height for proper centering */
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.25rem !important;
+  padding: 0.75rem !important;
+  height: 100% !important;
+  text-align: center !important;
+  min-height: 4rem !important; /* Ensure minimum height for proper centering */
 }
 
 /* Fix tab trigger alignment for nested tabs */
 .tab-trigger-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  width: 100%;
-  height: 100%;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.25rem !important;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 /* Specific styling for TabsTrigger to ensure proper centering */
@@ -172,4 +172,24 @@ button[role="tab"] > div {
   justify-content: center !important;
   width: 100% !important;
   height: 100% !important;
+}
+
+/* Additional centering for nested tab content */
+button[role="tab"] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  min-height: 4rem !important;
+}
+
+/* Override for content within tabs that should be centered */
+button[role="tab"] > * {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.25rem !important;
+  height: 100% !important;
+  width: 100% !important;
 }

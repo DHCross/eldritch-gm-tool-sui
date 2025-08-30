@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Trash2, Plus } from "@phosphor-icons/react"
-import { calculateBattlePhase } from '@/utils/gameUtils'
+import { calculateBattlePhase, parseThreatDice } from '@/utils/gameUtils'
+import { CREATURE_SIZES, CREATURE_NATURES, HP_MULTIPLIERS } from '@/data/gameData'
 
 interface Combatant {
   id: string
@@ -21,6 +22,11 @@ interface Combatant {
   spiritPoints?: number
   reactionFocus?: number
   isDefeated: boolean
+  // QSB specific fields
+  threatDice?: string
+  size?: string
+  nature?: string
+  creatureType?: 'Normal' | 'Fast' | 'Tough'
 }
 
 const BattleCalculator: React.FC = () => {
@@ -32,8 +38,59 @@ const BattleCalculator: React.FC = () => {
     adp: 20,
     pdp: 18,
     spiritPoints: 10,
-    reactionFocus: 0
+    reactionFocus: 0,
+    // QSB specific fields
+    threatDice: '2d6',
+    size: 'Medium',
+    nature: 'Mundane',
+    creatureType: 'Normal' as 'Normal' | 'Fast' | 'Tough'
   })
+
+  // Calculate QSB hit points when relevant fields change
+  useEffect(() => {
+    if (newCombatant.type === 'qsb') {
+      const { mv } = parseThreatDice(newCombatant.threatDice)
+      const sizeModifier = ['Minuscule', 'Tiny'].includes(newCombatant.size) ? 0 :
+                          ['Small', 'Medium'].includes(newCombatant.size) ? 1 :
+                          newCombatant.size === 'Large' ? 2 :
+                          newCombatant.size === 'Huge' ? 3 :
+                          newCombatant.size === 'Gargantuan' ? 4 : 1
+      
+      const natureModifier = newCombatant.nature === 'Mundane' ? 0 :
+                            newCombatant.nature === 'Magical' ? 1 :
+                            newCombatant.nature === 'Preternatural' ? 2 :
+                            newCombatant.nature === 'Supernatural' ? 3 : 0
+      
+      const totalModifier = (sizeModifier + natureModifier) / 2
+      const totalHP = Math.ceil(mv * totalModifier) || mv
+      
+      // Calculate defense split based on creature type
+      let activeHP, passiveHP
+      if (newCombatant.creatureType === 'Fast') {
+        activeHP = Math.round(totalHP * 0.75)
+        passiveHP = totalHP - activeHP
+      } else if (newCombatant.creatureType === 'Tough') {
+        passiveHP = Math.round(totalHP * 0.75)
+        activeHP = totalHP - passiveHP
+      } else { // Normal
+        activeHP = Math.round(totalHP / 2)
+        passiveHP = totalHP - activeHP
+      }
+      
+      setNewCombatant(prev => ({
+        ...prev,
+        adp: activeHP,
+        pdp: passiveHP
+      }))
+    } else if (newCombatant.type !== 'qsb' && (newCombatant.adp !== 20 || newCombatant.pdp !== 18)) {
+      // Reset to default values for non-QSB types
+      setNewCombatant(prev => ({
+        ...prev,
+        adp: 20,
+        pdp: 18
+      }))
+    }
+  }, [newCombatant.type, newCombatant.threatDice, newCombatant.size, newCombatant.nature, newCombatant.creatureType])
 
   const addCombatant = () => {
     if (!newCombatant.name.trim()) {
@@ -57,6 +114,14 @@ const BattleCalculator: React.FC = () => {
       isDefeated: false
     }
 
+    // Add QSB-specific data
+    if (newCombatant.type === 'qsb') {
+      combatant.threatDice = newCombatant.threatDice
+      combatant.size = newCombatant.size
+      combatant.nature = newCombatant.nature
+      combatant.creatureType = newCombatant.creatureType
+    }
+
     setCombatants(prev => [...prev, combatant].sort((a, b) => a.battlePhase - b.battlePhase))
     
     // Reset form
@@ -67,7 +132,11 @@ const BattleCalculator: React.FC = () => {
       adp: 20,
       pdp: 18,
       spiritPoints: 10,
-      reactionFocus: 0
+      reactionFocus: 0,
+      threatDice: '2d6',
+      size: 'Medium',
+      nature: 'Mundane',
+      creatureType: 'Normal'
     })
   }
 
@@ -214,6 +283,72 @@ const BattleCalculator: React.FC = () => {
               </div>
             )}
 
+            {newCombatant.type === 'qsb' && (
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
+                <h4 className="font-semibold text-sm">QSB Creature Details</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="threatDice">Threat Dice</Label>
+                    <Input
+                      id="threatDice"
+                      value={newCombatant.threatDice}
+                      onChange={(e) => setNewCombatant({ ...newCombatant, threatDice: e.target.value })}
+                      placeholder="e.g., 2d6, 3d8"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="creatureType">Creature Type</Label>
+                    <Select value={newCombatant.creatureType} onValueChange={(value: 'Normal' | 'Fast' | 'Tough') => setNewCombatant({ ...newCombatant, creatureType: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Normal">Normal (50/50 split)</SelectItem>
+                        <SelectItem value="Fast">Fast (75% Active / 25% Passive)</SelectItem>
+                        <SelectItem value="Tough">Tough (25% Active / 75% Passive)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="size">Size</Label>
+                    <Select value={newCombatant.size} onValueChange={(value) => setNewCombatant({ ...newCombatant, size: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CREATURE_SIZES.map(size => (
+                          <SelectItem key={size} value={size}>{size}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="nature">Nature</Label>
+                    <Select value={newCombatant.nature} onValueChange={(value) => setNewCombatant({ ...newCombatant, nature: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CREATURE_NATURES.map(nature => (
+                          <SelectItem key={nature} value={nature}>{nature}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="text-xs text-muted-foreground">
+                  HP calculated automatically based on Threat Dice MV, Size, and Nature modifiers.
+                </div>
+              </div>
+            )}
+
             <Button onClick={addCombatant} className="w-full">
               <Plus size={16} className="mr-2" />
               Add Combatant
@@ -240,6 +375,16 @@ const BattleCalculator: React.FC = () => {
                         <Badge variant="outline">
                           {combatant.prowess} ({getInitiativeRange(combatant.prowess)})
                         </Badge>
+                        {combatant.type === 'qsb' && combatant.threatDice && (
+                          <Badge variant="secondary">
+                            TD: {combatant.threatDice}
+                          </Badge>
+                        )}
+                        {combatant.type === 'qsb' && combatant.creatureType !== 'Normal' && (
+                          <Badge variant="outline">
+                            {combatant.creatureType}
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex gap-2">
                         <Button
@@ -258,6 +403,16 @@ const BattleCalculator: React.FC = () => {
                         </Button>
                       </div>
                     </div>
+                    
+                    {combatant.type === 'qsb' && (combatant.size || combatant.nature) && (
+                      <div className="text-xs text-muted-foreground mb-3">
+                        {combatant.size} {combatant.nature} creature
+                        {combatant.threatDice && (() => {
+                          const { mv } = parseThreatDice(combatant.threatDice)
+                          return ` (Base MV: ${mv})`
+                        })()}
+                      </div>
+                    )}
                     
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div>
