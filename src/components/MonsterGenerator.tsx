@@ -133,8 +133,8 @@ export default function MonsterGenerator() {
     nature: 'mundane',
     constitution: 'normal',
     primaryAttack: '',
-    secondaryAttack: '',
-    tertiaryAttack: '',
+    secondaryAttack: 'none',
+    tertiaryAttack: 'none',
     damageReduction: '',
     baseHP: 0,
     totalHP: 0,
@@ -169,8 +169,8 @@ export default function MonsterGenerator() {
       
       // Reset secondary attacks if type or primary changes
       if (field === 'type' || field === 'primaryAttack') {
-        updated.secondaryAttack = ''
-        updated.tertiaryAttack = ''
+        updated.secondaryAttack = 'none'
+        updated.tertiaryAttack = 'none'
       }
       
       return updated
@@ -184,7 +184,7 @@ export default function MonsterGenerator() {
 **${monster.name || 'Unnamed Creature'}**
 Type: ${monster.type.charAt(0).toUpperCase() + monster.type.slice(1)} ${monster.size} ${monster.nature} creature
 HP: ${monster.totalHP} (${monster.activeDefense}A/${monster.passiveDefense}P) [${monster.constitution}, ${monster.size}, ${monster.nature}; HP multiplier ×${(hpMultipliers[monster.size as keyof typeof hpMultipliers]?.[monster.nature as keyof typeof hpMultipliers['medium']] * constitutionModifiers[monster.constitution as keyof typeof constitutionModifiers]).toFixed(1)}]
-TD: Primary ${monster.primaryAttack} (MV: ${monster.baseHP})${monster.secondaryAttack ? `, Secondary ${monster.secondaryAttack} (MV: ${calculateMaxValue(monster.secondaryAttack)})` : ''}${monster.tertiaryAttack ? `, Tertiary ${monster.tertiaryAttack} (MV: ${calculateMaxValue(monster.tertiaryAttack)})` : ''}
+TD: Primary ${monster.primaryAttack} (MV: ${monster.baseHP})${monster.secondaryAttack && monster.secondaryAttack !== 'none' ? `, Secondary ${monster.secondaryAttack} (MV: ${calculateMaxValue(monster.secondaryAttack)})` : ''}${monster.tertiaryAttack && monster.tertiaryAttack !== 'none' ? `, Tertiary ${monster.tertiaryAttack} (MV: ${calculateMaxValue(monster.tertiaryAttack)})` : ''}
 ${monster.damageReduction ? `DR: ${monster.damageReduction}` : 'DR: None'}
 ST: ${monster.savingThrow} (${monster.type} threat)
 BP: ${monster.battlePhase}
@@ -310,14 +310,14 @@ ${monster.notes ? `\nNotes: ${monster.notes}` : ''}
               <Label htmlFor="secondary-attack">Secondary Attack (Optional)</Label>
               <Select 
                 value={monster.secondaryAttack} 
-                onValueChange={(value) => updateMonster('secondaryAttack', value)}
+                onValueChange={(value) => updateMonster('secondaryAttack', value === 'none' ? '' : value)}
                 disabled={!monster.primaryAttack}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="None" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {availableSecondaryAttacks.map((form) => (
                     <SelectItem key={form} value={form}>
                       {form} (MV: {calculateMaxValue(form)})
@@ -331,14 +331,14 @@ ${monster.notes ? `\nNotes: ${monster.notes}` : ''}
               <Label htmlFor="tertiary-attack">Tertiary Attack (Optional)</Label>
               <Select 
                 value={monster.tertiaryAttack} 
-                onValueChange={(value) => updateMonster('tertiaryAttack', value)}
+                onValueChange={(value) => updateMonster('tertiaryAttack', value === 'none' ? '' : value)}
                 disabled={!monster.primaryAttack}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="None" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {availableSecondaryAttacks.map((form) => (
                     <SelectItem key={form} value={form}>
                       {form} (MV: {calculateMaxValue(form)})
@@ -403,7 +403,7 @@ ${monster.notes ? `\nNotes: ${monster.notes}` : ''}
               <strong>{monster.name || 'Unnamed Creature'}</strong>{'\n'}
               Type: {monster.type.charAt(0).toUpperCase() + monster.type.slice(1)} {monster.size} {monster.nature} creature{'\n'}
               HP: {monster.totalHP} ({monster.activeDefense}A/{monster.passiveDefense}P) [{monster.constitution}, {monster.size}, {monster.nature}; HP multiplier ×{(hpMultipliers[monster.size as keyof typeof hpMultipliers]?.[monster.nature as keyof typeof hpMultipliers['medium']] * constitutionModifiers[monster.constitution as keyof typeof constitutionModifiers]).toFixed(1)}]{'\n'}
-              TD: Primary {monster.primaryAttack} (MV: {monster.baseHP}){monster.secondaryAttack ? `, Secondary ${monster.secondaryAttack} (MV: ${calculateMaxValue(monster.secondaryAttack)})` : ''}{monster.tertiaryAttack ? `, Tertiary ${monster.tertiaryAttack} (MV: ${calculateMaxValue(monster.tertiaryAttack)})` : ''}{'\n'}
+              TD: Primary {monster.primaryAttack} (MV: {monster.baseHP}){monster.secondaryAttack && monster.secondaryAttack !== 'none' ? `, Secondary ${monster.secondaryAttack} (MV: ${calculateMaxValue(monster.secondaryAttack)})` : ''}{monster.tertiaryAttack && monster.tertiaryAttack !== 'none' ? `, Tertiary ${monster.tertiaryAttack} (MV: ${calculateMaxValue(monster.tertiaryAttack)})` : ''}{'\n'}
               {monster.damageReduction ? `DR: ${monster.damageReduction}` : 'DR: None'}{'\n'}
               ST: {monster.savingThrow} ({monster.type} threat){'\n'}
               BP: {monster.battlePhase}{monster.notes ? `\n\nNotes: ${monster.notes}` : ''}

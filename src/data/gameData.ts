@@ -79,7 +79,7 @@ export const CREATURE_SIZES = ['Minuscule', 'Tiny', 'Small', 'Medium', 'Large', 
 export const CREATURE_NATURES = ['Mundane', 'Magical', 'Preternatural', 'Supernatural'] as const
 export const CREATURE_TYPES = ['Minor', 'Standard', 'Exceptional', 'Legendary'] as const
 
-export const HP_MULTIPLIERS = {
+export const HIT_POINT_MODIFIERS = {
   'Minuscule': {'Mundane': 0.5, 'Magical': 1, 'Preternatural': 1.5, 'Supernatural': 2},
   'Tiny': {'Mundane': 0.5, 'Magical': 1, 'Preternatural': 1.5, 'Supernatural': 2},
   'Small': {'Mundane': 1, 'Magical': 1.5, 'Preternatural': 2, 'Supernatural': 2.5},
@@ -88,6 +88,9 @@ export const HP_MULTIPLIERS = {
   'Huge': {'Mundane': 2, 'Magical': 2.5, 'Preternatural': 3, 'Supernatural': 3.5},
   'Gargantuan': {'Mundane': 2.5, 'Magical': 3, 'Preternatural': 3.5, 'Supernatural': 4}
 } as const
+
+// Also keep the original name for backwards compatibility
+export const HP_MULTIPLIERS = HIT_POINT_MODIFIERS
 
 // Character creation data
 export const RACE_MINIMA = {
