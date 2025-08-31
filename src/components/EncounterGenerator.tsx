@@ -6,7 +6,9 @@ import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Dice6, RefreshCw } from "@phosphor-icons/react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Progress } from "@/components/ui/progress"
+import { Dice6, RefreshCw, TrendUp, Warning, CheckCircle, Info } from "@phosphor-icons/react"
 
 // Encounter difficulty table based on party size and defense level
 const encounterDifficultyTable = {
@@ -82,6 +84,18 @@ interface Creature {
   multiplier: number
 }
 
+interface EncounterAnalysis {
+  threatDistribution: { [key: string]: number }
+  avgBattlePhase: number
+  totalHP: number
+  avgHP: number
+  balanceScore: number
+  recommendations: string[]
+  warnings: string[]
+  difficultyActual: string
+  efficiencyRating: 'Poor' | 'Fair' | 'Good' | 'Excellent'
+}
+
 export default function EncounterGenerator() {
   const [partySize, setPartySize] = useState([4])
   const [defenseLevel, setDefenseLevel] = useState([1])
@@ -92,6 +106,7 @@ export default function EncounterGenerator() {
   const [selectedTypes, setSelectedTypes] = useState(['Minor', 'Standard', 'Exceptional'])
   const [creatures, setCreatures] = useState<Creature[]>([])
   const [encounterStats, setEncounterStats] = useState<any>(null)
+  const [encounterAnalysis, setEncounterAnalysis] = useState<EncounterAnalysis | null>(null)
 
   const getRandomElement = <T,>(array: T[]): T => {
     return array[Math.floor(Math.random() * array.length)]
@@ -111,6 +126,121 @@ export default function EncounterGenerator() {
     if (prowessDie >= 8) return 3
     if (prowessDie >= 6) return 4
     return 5
+  }
+
+  const analyzeEncounter = (creatures: Creature[], encounterStats: any): EncounterAnalysis => {
+    if (creatures.length === 0) {
+      return {
+        threatDistribution: {},
+        avgBattlePhase: 0,
+        totalHP: 0,
+        avgHP: 0,
+        balanceScore: 0,
+        recommendations: [],
+        warnings: [],
+        difficultyActual: 'None',
+        efficiencyRating: 'Poor'
+      }
+    }
+
+    // Calculate threat distribution
+    const threatDistribution = creatures.reduce((acc, creature) => {
+      acc[creature.category] = (acc[creature.category] || 0) + 1
+      return acc
+    }, {} as { [key: string]: number })
+
+    // Calculate average battle phase (weighted by threat)
+    const totalThreatWeight = creatures.reduce((sum, c) => sum + c.threatMV, 0)
+    const avgBattlePhase = creatures.reduce((sum, c) => sum + (c.battlePhase * c.threatMV), 0) / totalThreatWeight
+
+    // Calculate HP statistics
+    const totalHP = creatures.reduce((sum, c) => sum + c.hitPoints, 0)
+    const avgHP = totalHP / creatures.length
+
+    // Calculate balance score (0-100)
+    const targetThreat = encounterStats.totalThreatScore
+    const actualThreat = encounterStats.actualThreatUsed
+    const threatEfficiency = Math.min(actualThreat / targetThreat, 1) * 100
+
+    // Diversity score (better with mixed creature types)
+    const diversityScore = Math.min(Object.keys(threatDistribution).length * 25, 100)
+    
+    // Phase distribution score (avoid all creatures in same phase)
+    const phaseDistribution = creatures.reduce((acc, c) => {
+      acc[c.battlePhase] = (acc[c.battlePhase] || 0) + 1
+      return acc
+    }, {} as { [key: number]: number })
+    const phaseSpread = Object.keys(phaseDistribution).length
+    const phaseScore = Math.min(phaseSpread * 20, 100)
+
+    const balanceScore = Math.round((threatEfficiency * 0.4 + diversityScore * 0.3 + phaseScore * 0.3))
+
+    // Generate recommendations
+    const recommendations: string[] = []
+    const warnings: string[] = []
+
+    if (threatEfficiency < 85) {
+      recommendations.push(`Consider adding smaller creatures to use remaining threat (${encounterStats.remainingThreat} unused)`)
+    }
+
+    if (Object.keys(threatDistribution).length === 1) {
+      recommendations.push('Mix different creature categories for more dynamic combat')
+    }
+
+    if (phaseSpread === 1) {
+      warnings.push('All creatures act in the same battle phase - consider varying prowess levels')
+    }
+
+    if (avgBattlePhase <= 2) {
+      warnings.push('Most creatures act early - party may be overwhelmed in opening rounds')
+    }
+
+    if (creatures.length === 1 && creatures[0].category === 'Legendary') {
+      recommendations.push('Single powerful foe encounters work best with environmental hazards or minions')
+    }
+
+    if (creatures.length > 8) {
+      warnings.push('Large creature counts can slow combat - consider consolidating some into groups')
+    }
+
+    // Determine actual difficulty based on analysis
+    let difficultyActual = encounterStats.difficulty
+    if (balanceScore >= 85) difficultyActual += ' (Well-Balanced)'
+    else if (balanceScore >= 70) difficultyActual += ' (Adequate)'
+    else if (balanceScore >= 55) difficultyActual += ' (Uneven)'
+    else difficultyActual += ' (Problematic)'
+
+    // Efficiency rating
+    let efficiencyRating: 'Poor' | 'Fair' | 'Good' | 'Excellent'
+    if (threatEfficiency >= 95) efficiencyRating = 'Excellent'
+    else if (threatEfficiency >= 85) efficiencyRating = 'Good'
+    else if (threatEfficiency >= 70) efficiencyRating = 'Fair'
+    else efficiencyRating = 'Poor'
+
+    // Additional strategic recommendations
+    if (creatures.some(c => c.nature !== 'Mundane')) {
+      recommendations.push('Magical/supernatural creatures may require special tactics or equipment')
+    }
+
+    if (creatures.some(c => c.creatureType === 'Fast')) {
+      recommendations.push('Fast creatures excel at harassing spellcasters and ranged combatants')
+    }
+
+    if (creatures.some(c => c.creatureType === 'Tough')) {
+      recommendations.push('Tough creatures work well as damage sponges protecting weaker allies')
+    }
+
+    return {
+      threatDistribution,
+      avgBattlePhase: Math.round(avgBattlePhase * 10) / 10,
+      totalHP,
+      avgHP: Math.round(avgHP),
+      balanceScore,
+      recommendations,
+      warnings,
+      difficultyActual,
+      efficiencyRating
+    }
   }
 
   const generateMonsterForEncounter = (maxThreat: number, selectedTypes: string[], nonMediumPercentage: number, nonMundanePercentage: number, specialTypePercentage: number): Creature | null => {
@@ -214,14 +344,18 @@ export default function EncounterGenerator() {
     }
 
     setCreatures(newCreatures)
-    setEncounterStats({
+    
+    const stats = {
       partySize: partyCount,
       defenseLevel: defLevel,
       difficulty: difficultyLevels[diffLevel - 1],
       totalThreatScore: threatScore,
       remainingThreat: remainingThreat,
       actualThreatUsed: threatScore - remainingThreat
-    })
+    }
+    
+    setEncounterStats(stats)
+    setEncounterAnalysis(analyzeEncounter(newCreatures, stats))
   }
 
   const handleTypeToggle = (type: string, checked: boolean) => {
@@ -395,6 +529,93 @@ export default function EncounterGenerator() {
                 </div>
               )}
             </div>
+
+            {/* Encounter Analysis */}
+            {encounterAnalysis && (
+              <div className="bg-card border rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <TrendUp size={20} />
+                  Encounter Analysis
+                </h3>
+                
+                {/* Balance Score */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Balance Score</span>
+                    <span className="text-sm font-mono">{encounterAnalysis.balanceScore}/100</span>
+                  </div>
+                  <Progress value={encounterAnalysis.balanceScore} className="h-2" />
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>Poor</span>
+                    <span>Fair</span>
+                    <span>Good</span>
+                    <span>Excellent</span>
+                  </div>
+                </div>
+
+                {/* Key Metrics */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Actual Difficulty:</span>
+                    <div className="font-medium">{encounterAnalysis.difficultyActual}</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Threat Efficiency:</span>
+                    <div className="font-medium">{encounterAnalysis.efficiencyRating}</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Avg Battle Phase:</span>
+                    <div className="font-medium">{encounterAnalysis.avgBattlePhase}</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Total HP:</span>
+                    <div className="font-medium">{encounterAnalysis.totalHP}</div>
+                  </div>
+                </div>
+
+                {/* Threat Distribution */}
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium mb-2">Threat Distribution</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(encounterAnalysis.threatDistribution).map(([category, count]) => (
+                      <Badge key={category} variant="outline">
+                        {category}: {count}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Warnings */}
+                {encounterAnalysis.warnings.length > 0 && (
+                  <Alert className="mb-4">
+                    <Warning size={16} />
+                    <AlertTitle>Balance Warnings</AlertTitle>
+                    <AlertDescription>
+                      <ul className="list-disc list-inside space-y-1 mt-2">
+                        {encounterAnalysis.warnings.map((warning, index) => (
+                          <li key={index} className="text-sm">{warning}</li>
+                        ))}
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Recommendations */}
+                {encounterAnalysis.recommendations.length > 0 && (
+                  <Alert>
+                    <Info size={16} />
+                    <AlertTitle>Strategic Recommendations</AlertTitle>
+                    <AlertDescription>
+                      <ul className="list-disc list-inside space-y-1 mt-2">
+                        {encounterAnalysis.recommendations.map((rec, index) => (
+                          <li key={index} className="text-sm">{rec}</li>
+                        ))}
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            )}
 
             {creatures.length > 0 && (
               <div>
