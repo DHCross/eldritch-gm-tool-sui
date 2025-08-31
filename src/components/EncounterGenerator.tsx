@@ -358,10 +358,6 @@ export default function EncounterGenerator() {
     if (checked) {
       setSelectedTypes([...selectedTypes, type])
     } else {
-  const handleTypeToggle = (type: string, checked: boolean) => {
-    if (checked) {
-      setSelectedTypes([...selectedTypes, type])
-    } else {
       setSelectedTypes(selectedTypes.filter(t => t !== type))
     }
   }
