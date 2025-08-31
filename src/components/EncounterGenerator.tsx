@@ -344,20 +344,20 @@ export default function EncounterGenerator() {
     }
 
     setCreatures(newCreatures)
-    
-    const stats = {
+    setEncounterStats({
       partySize: partyCount,
       defenseLevel: defLevel,
       difficulty: difficultyLevels[diffLevel - 1],
       totalThreatScore: threatScore,
       remainingThreat: remainingThreat,
       actualThreatUsed: threatScore - remainingThreat
-    }
-    
-    setEncounterStats(stats)
-    setEncounterAnalysis(analyzeEncounter(newCreatures, stats))
+    })
   }
 
+  const handleTypeToggle = (type: string, checked: boolean) => {
+    if (checked) {
+      setSelectedTypes([...selectedTypes, type])
+    } else {
   const handleTypeToggle = (type: string, checked: boolean) => {
     if (checked) {
       setSelectedTypes([...selectedTypes, type])
