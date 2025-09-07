@@ -10,136 +10,136 @@ import { toast } from "sonner"
 import { Download, Copy, Sparkles } from "@phosphor-icons/react"
 
 // Game data
-const dieRanks = ['d4', 'd6', 'd8', 'd10', 'd12']
-const abilities = ['Competence', 'Prowess', 'Fortitude']
+const dieRanks = ["d4", "d6", "d8", "d10", "d12"]
+const abilities = ["Competence", "Prowess", "Fortitude"]
 const specialties = {
-  Competence: ['Adroitness', 'Expertise', 'Perception'],
-  Prowess: ['Agility', 'Melee', 'Precision'],
-  Fortitude: ['Endurance', 'Strength', 'Willpower']
+  Competence: ["Adroitness", "Expertise", "Perception"],
+  Prowess: ["Agility", "Melee", "Precision"],
+  Fortitude: ["Endurance", "Strength", "Willpower"]
 }
 const focuses = {
-  Adroitness: ['Skulduggery', 'Cleverness'],
-  Expertise: ['Wizardry', 'Theurgy'],
-  Perception: ['Alertness', 'Perspicacity'],
-  Agility: ['Speed', 'Reaction'],
-  Melee: ['Threat', 'Finesse'],
-  Precision: ['Ranged Threat', 'Ranged Finesse'],
-  Endurance: ['Vitality', 'Resilience'],
-  Strength: ['Ferocity', 'Might'],
-  Willpower: ['Courage', 'Resistance']
+  Adroitness: ["Skulduggery", "Cleverness"],
+  Expertise: ["Wizardry", "Theurgy"],
+  Perception: ["Alertness", "Perspicacity"],
+  Agility: ["Speed", "Reaction"],
+  Melee: ["Threat", "Finesse"],
+  Precision: ["Ranged Threat", "Ranged Finesse"],
+  Endurance: ["Vitality", "Resilience"],
+  Strength: ["Ferocity", "Might"],
+  Willpower: ["Courage", "Resistance"]
 }
 
-const races = ['Human', 'Elf', 'Dwarf', 'Gnome', 'Half-Elf', 'Half-Orc', 'Halfling', 'Drakkin']
-const classes = ['Adept', 'Assassin', 'Barbarian', 'Mage', 'Mystic', 'Rogue', 'Theurgist', 'Warrior']
+const races = ["Human", "Elf", "Dwarf", "Gnome", "Half-Elf", "Half-Orc", "Halfling", "Drakkin"]
+const classes = ["Adept", "Assassin", "Barbarian", "Mage", "Mystic", "Rogue", "Theurgist", "Warrior"]
 const levels = [1, 2, 3, 4, 5]
-const buildStyles = ['balanced', 'hybrid', 'specialist']
-const rookieProfiles = ['off', 'pure', 'balanced', 'specialist']
+const buildStyles = ["balanced", "hybrid", "specialist"]
+const rookieProfiles = ["off", "pure", "balanced", "specialist"]
 
-const casterClasses = ['Adept', 'Mage', 'Mystic', 'Theurgist']
+const casterClasses = ["Adept", "Mage", "Mystic", "Theurgist"]
 const magicPathsByClass = {
-  Adept: ['Thaumaturgy', 'Elementalism', 'Sorcery'],
-  Mage: ['Thaumaturgy', 'Elementalism', 'Sorcery'],
-  Mystic: ['Mysticism'],
-  Theurgist: ['Druidry', 'Hieraticism']
+  Adept: ["Thaumaturgy", "Elementalism", "Sorcery"],
+  Mage: ["Thaumaturgy", "Elementalism", "Sorcery"],
+  Mystic: ["Mysticism"],
+  Theurgist: ["Druidry", "Hieraticism"]
 }
 
 const levelInfo = [
-  { level: 1, masteryDie: 'd4', cpBand: [10, 100] },
-  { level: 2, masteryDie: 'd6', cpBand: [101, 199] },
-  { level: 3, masteryDie: 'd8', cpBand: [200, 299] },
-  { level: 4, masteryDie: 'd10', cpBand: [300, 399] },
-  { level: 5, masteryDie: 'd12', cpBand: [400, 999] }
+  { level: 1, masteryDie: "d4", cpBand: [10, 100] },
+  { level: 2, masteryDie: "d6", cpBand: [101, 199] },
+  { level: 3, masteryDie: "d8", cpBand: [200, 299] },
+  { level: 4, masteryDie: "d10", cpBand: [300, 399] },
+  { level: 5, masteryDie: "d12", cpBand: [400, 999] }
 ]
 
 const raceMinima = {
-  Drakkin: { Competence: 'd6', Prowess: 'd6', Fortitude: 'd6', Endurance: 'd6', Strength: 'd4' },
-  Dwarf: { Fortitude: 'd8', Endurance: 'd4', Prowess: 'd6', Melee: 'd6' },
-  Elf: { Competence: 'd6', Expertise: 'd6', Wizardry: '+1', Prowess: 'd4', Agility: 'd4', Reaction: '+1' },
-  Gnome: { Competence: 'd4', Adroitness: 'd6', Expertise: 'd6', Perception: 'd4', Perspicacity: '+1' },
-  'Half-Elf': { Competence: 'd6', Prowess: 'd6', Agility: 'd4', Fortitude: 'd4', Endurance: 'd4', Willpower: 'd4' },
-  'Half-Orc': { Fortitude: 'd6', Strength: 'd8', Ferocity: '+1', Endurance: 'd6' },
-  Halfling: { Competence: 'd6', Adroitness: 'd6', Cleverness: '+1', Fortitude: 'd6', Willpower: 'd4', Courage: '+1' },
-  Human: { Competence: 'd6', Prowess: 'd6', Melee: 'd4', Threat: '+1', Fortitude: 'd4', Willpower: 'd6' }
+  Drakkin: { Competence: "d6", Prowess: "d6", Fortitude: "d6", Endurance: "d6", Strength: "d4" },
+  Dwarf: { Fortitude: "d8", Endurance: "d4", Prowess: "d6", Melee: "d6" },
+  Elf: { Competence: "d6", Expertise: "d6", Wizardry: "+1", Prowess: "d4", Agility: "d4", Reaction: "+1" },
+  Gnome: { Competence: "d4", Adroitness: "d6", Expertise: "d6", Perception: "d4", Perspicacity: "+1" },
+  "Half-Elf": { Competence: "d6", Prowess: "d6", Agility: "d4", Fortitude: "d4", Endurance: "d4", Willpower: "d4" },
+  "Half-Orc": { Fortitude: "d6", Strength: "d8", Ferocity: "+1", Endurance: "d6" },
+  Halfling: { Competence: "d6", Adroitness: "d6", Cleverness: "+1", Fortitude: "d6", Willpower: "d4", Courage: "+1" },
+  Human: { Competence: "d6", Prowess: "d6", Melee: "d4", Threat: "+1", Fortitude: "d4", Willpower: "d6" }
 }
 
 const classMinima = {
-  Adept: { Competence: 'd6', Adroitness: 'd4', Cleverness: '+1', Expertise: 'd6', Wizardry: '+1', Perception: 'd4', Perspicacity: '+1' },
-  Assassin: { Competence: 'd4', Adroitness: 'd6', Perception: 'd4', Prowess: 'd4', Agility: 'd4', Endurance: 'd6', Melee: 'd4', Finesse: '+1' },
-  Barbarian: { Prowess: 'd6', Melee: 'd8', Fortitude: 'd4', Strength: 'd4', Ferocity: '+1' },
-  Mage: { Competence: 'd6', Expertise: 'd8', Wizardry: '+1', Fortitude: 'd4', Willpower: 'd6', Resistance: '+1' },
-  Mystic: { Competence: 'd6', Expertise: 'd6', Wizardry: '+1', Prowess: 'd4', Melee: 'd4', Fortitude: 'd4', Endurance: 'd6', Resilience: '+1', Vitality: '+2' },
-  Rogue: { Competence: 'd4', Adroitness: 'd4', Skulduggery: '+1', Perception: 'd4', Prowess: 'd6', Agility: 'd8' },
-  Theurgist: { Competence: 'd8', Expertise: 'd4', Theurgy: '+1', Fortitude: 'd6', Willpower: 'd4' },
-  Warrior: { Prowess: 'd8', Melee: 'd6', Threat: '+1', Fortitude: 'd6' }
+  Adept: { Competence: "d6", Adroitness: "d4", Cleverness: "+1", Expertise: "d6", Wizardry: "+1", Perception: "d4", Perspicacity: "+1" },
+  Assassin: { Competence: "d4", Adroitness: "d6", Perception: "d4", Prowess: "d4", Agility: "d4", Endurance: "d6", Melee: "d4", Finesse: "+1" },
+  Barbarian: { Prowess: "d6", Melee: "d8", Fortitude: "d4", Strength: "d4", Ferocity: "+1" },
+  Mage: { Competence: "d6", Expertise: "d8", Wizardry: "+1", Fortitude: "d4", Willpower: "d6", Resistance: "+1" },
+  Mystic: { Competence: "d6", Expertise: "d6", Wizardry: "+1", Prowess: "d4", Melee: "d4", Fortitude: "d4", Endurance: "d6", Resilience: "+1", Vitality: "+2" },
+  Rogue: { Competence: "d4", Adroitness: "d4", Skulduggery: "+1", Perception: "d4", Prowess: "d6", Agility: "d8" },
+  Theurgist: { Competence: "d8", Expertise: "d4", Theurgy: "+1", Fortitude: "d6", Willpower: "d4" },
+  Warrior: { Prowess: "d8", Melee: "d6", Threat: "+1", Fortitude: "d6" }
 }
 
-const stepCost = { 'd4': 6, 'd6': 8, 'd8': 10, 'd10': 12, 'd12': Infinity }
-const cumulativeDieCost = { 'd4': 4, 'd6': 10, 'd8': 18, 'd10': 28, 'd12': 40 }
+const stepCost = { "d4": 6, "d6": 8, "d8": 10, "d10": 12, "d12": Infinity }
+const cumulativeDieCost = { "d4": 4, "d6": 10, "d8": 18, "d10": 28, "d12": 40 }
 const focusStepCost = 4
 
 const classAxes = {
-  Warrior: ['Prowess', 'Melee', 'Strength', 'Fortitude', 'Endurance', 'Threat', 'Agility', 'Might'],
-  Barbarian: ['Prowess', 'Melee', 'Strength', 'Fortitude', 'Endurance', 'Ferocity', 'Might', 'Vitality'],
-  Rogue: ['Prowess', 'Agility', 'Competence', 'Adroitness', 'Perception', 'Skulduggery', 'Cleverness', 'Speed'],
-  Assassin: ['Prowess', 'Agility', 'Melee', 'Competence', 'Adroitness', 'Finesse', 'Speed', 'Perception'],
-  Mage: ['Competence', 'Expertise', 'Wizardry', 'Fortitude', 'Willpower', 'Resistance', 'Perception'],
-  Mystic: ['Fortitude', 'Willpower', 'Competence', 'Expertise', 'Endurance', 'Prowess', 'Melee', 'Resilience', 'Vitality'],
-  Adept: ['Competence', 'Expertise', 'Adroitness', 'Perception', 'Cleverness', 'Wizardry', 'Perspicacity'],
-  Theurgist: ['Competence', 'Expertise', 'Theurgy', 'Fortitude', 'Willpower', 'Endurance', 'Courage']
+  Warrior: ["Prowess", "Melee", "Strength", "Fortitude", "Endurance", "Threat", "Agility", "Might"],
+  Barbarian: ["Prowess", "Melee", "Strength", "Fortitude", "Endurance", "Ferocity", "Might", "Vitality"],
+  Rogue: ["Prowess", "Agility", "Competence", "Adroitness", "Perception", "Skulduggery", "Cleverness", "Speed"],
+  Assassin: ["Prowess", "Agility", "Melee", "Competence", "Adroitness", "Finesse", "Speed", "Perception"],
+  Mage: ["Competence", "Expertise", "Wizardry", "Fortitude", "Willpower", "Resistance", "Perception"],
+  Mystic: ["Fortitude", "Willpower", "Competence", "Expertise", "Endurance", "Prowess", "Melee", "Resilience", "Vitality"],
+  Adept: ["Competence", "Expertise", "Adroitness", "Perception", "Cleverness", "Wizardry", "Perspicacity"],
+  Theurgist: ["Competence", "Expertise", "Theurgy", "Fortitude", "Willpower", "Endurance", "Courage"]
 }
 
 const allAdvantages = {
-  Human: ['Fortunate', 'Survival'],
-  Elf: ['Night Vision', 'Gift of Magic', 'Magic Resistance (+1)'],
-  Dwarf: ['Night Vision', 'Strong-willed', 'Sense of Direction'],
-  Gnome: ['Eidetic Memory', 'Low-Light Vision', 'Observant'],
-  'Half-Elf': ['Heightened Senses', 'Low-Light Vision', 'Magic Resistance (+1)'],
-  'Half-Orc': ['Low-light Vision', 'Intimidation', 'Menacing'],
-  Halfling: ['Low Light Vision', 'Read Emotions', 'Resilient'],
-  Drakkin: ['Natural Armor', 'Breath Weapon', 'Night Vision'],
-  Adept: ['Arcanum', 'Gift of Magic', 'Literacy', 'Scholar'],
-  Assassin: ['Expeditious', 'Heightened Senses (hearing)', 'Observant', 'Read Emotions'],
-  Barbarian: ['Animal Affinity', 'Brutishness', 'Menacing', 'Resilient'],
-  Mage: ['Arcanum', 'Gift of Magic', 'Magic Defense', 'Scholar'],
-  Mystic: ['Empathic', 'Gift of Magic', 'Intuitive', 'Magic Resistance (Lesser)', 'Strong-Willed'],
-  Rogue: ['Expeditious', 'Fortunate', 'Streetwise', 'Underworld Contacts'],
-  Theurgist: ['Gift of Magic', 'Magic Defense', 'Religion', 'Strong-Willed'],
-  Warrior: ['Commanding', 'Intimidation', 'Magic Resistance (+1)', 'Tactician']
+  Human: ["Fortunate", "Survival"],
+  Elf: ["Night Vision", "Gift of Magic", "Magic Resistance (+1)"],
+  Dwarf: ["Night Vision", "Strong-willed", "Sense of Direction"],
+  Gnome: ["Eidetic Memory", "Low-Light Vision", "Observant"],
+  "Half-Elf": ["Heightened Senses", "Low-Light Vision", "Magic Resistance (+1)"],
+  "Half-Orc": ["Low-light Vision", "Intimidation", "Menacing"],
+  Halfling: ["Low Light Vision", "Read Emotions", "Resilient"],
+  Drakkin: ["Natural Armor", "Breath Weapon", "Night Vision"],
+  Adept: ["Arcanum", "Gift of Magic", "Literacy", "Scholar"],
+  Assassin: ["Expeditious", "Heightened Senses (hearing)", "Observant", "Read Emotions"],
+  Barbarian: ["Animal Affinity", "Brutishness", "Menacing", "Resilient"],
+  Mage: ["Arcanum", "Gift of Magic", "Magic Defense", "Scholar"],
+  Mystic: ["Empathic", "Gift of Magic", "Intuitive", "Magic Resistance (Lesser)", "Strong-Willed"],
+  Rogue: ["Expeditious", "Fortunate", "Streetwise", "Underworld Contacts"],
+  Theurgist: ["Gift of Magic", "Magic Defense", "Religion", "Strong-Willed"],
+  Warrior: ["Commanding", "Intimidation", "Magic Resistance (+1)", "Tactician"]
 }
 
 const classFeats = {
-  Adept: ['Guile', 'Lore', 'Ritual Magic', 'Quick-witted'],
-  Assassin: ['Death Strike', 'Lethal Exploit', 'Ranged Ambush', 'Shadow Walk'],
-  Barbarian: ['Berserk', 'Brawl', 'Feat of Strength', 'Grapple'],
-  Mage: ['Arcane Finesse', 'Dweomers', 'Intangible Threat', 'Path Mastery'],
-  Mystic: ['Iron Mind', 'Path Mastery', 'Premonition', 'Psychic Powers'],
-  Rogue: ['Backstab', 'Evasion', 'Roguish Charm', 'Stealth'],
-  Theurgist: ['Divine Healing', 'Path Mastery', 'Spiritual Smite', 'Supernatural Intervention'],
-  Warrior: ['Battle Savvy', 'Maneuvers', 'Stunning Reversal', 'Sunder Foe']
+  Adept: ["Guile", "Lore", "Ritual Magic", "Quick-witted"],
+  Assassin: ["Death Strike", "Lethal Exploit", "Ranged Ambush", "Shadow Walk"],
+  Barbarian: ["Berserk", "Brawl", "Feat of Strength", "Grapple"],
+  Mage: ["Arcane Finesse", "Dweomers", "Intangible Threat", "Path Mastery"],
+  Mystic: ["Iron Mind", "Path Mastery", "Premonition", "Psychic Powers"],
+  Rogue: ["Backstab", "Evasion", "Roguish Charm", "Stealth"],
+  Theurgist: ["Divine Healing", "Path Mastery", "Spiritual Smite", "Supernatural Intervention"],
+  Warrior: ["Battle Savvy", "Maneuvers", "Stunning Reversal", "Sunder Foe"]
 }
 
 const startingEquipment = {
-  common: ['Set of ordinary clothes', 'Purse of 5 gold coins', 'Backpack', 'Small dagger', 'Week's rations', 'Waterskin', 'Tinderbox', '50\' rope', 'Iron spikes', 'Small hammer', '6\' traveling staff or 10\' pole', 'Hooded lantern and 2 oil flasks or d4+1 torches'],
-  Adept: ['Book of knowledge (area of expertise)'],
-  Assassin: ['Assassin hood, jacket, cape, robe, or tunic'],
-  Barbarian: ['Garments of woven wool or linen', 'Tunic', 'Overcoat or cloak'],
-  Mage: ['Spellbook', 'Staff or focus item'],
-  Mystic: ['Robes or shawl', 'Cloak', 'Armor up to leather'],
-  Rogue: ['Set of thieves\' tools', 'Light armor (up to leather)', 'One weapon'],
-  Theurgist: ['Prayer book', 'Holy relic or symbol', 'Focus item', 'Armor up to chain'],
-  Warrior: ['One weapon of choice', 'Armor up to chain', 'Small to large shield', 'Steed']
+  common: ["Set of ordinary clothes", "Purse of 5 gold coins", "Backpack", "Small dagger", "Week's rations", "Waterskin", "Tinderbox", "50' rope", "Iron spikes", "Small hammer", "6' traveling staff or 10' pole", "Hooded lantern and 2 oil flasks or d4+1 torches"],
+  Adept: ["Book of knowledge (area of expertise)"],
+  Assassin: ["Assassin hood, jacket, cape, robe, or tunic"],
+  Barbarian: ["Garments of woven wool or linen", "Tunic", "Overcoat or cloak"],
+  Mage: ["Spellbook", "Staff or focus item"],
+  Mystic: ["Robes or shawl", "Cloak", "Armor up to leather"],
+  Rogue: ["Set of thieves' tools", "Light armor (up to leather)", "One weapon"],
+  Theurgist: ["Prayer book", "Holy relic or symbol", "Focus item", "Armor up to chain"],
+  Warrior: ["One weapon of choice", "Armor up to chain", "Small to large shield", "Steed"]
 }
 
 const raceFlaws = {
-  Gnome: ['Restriction: small weapons only'],
-  Halfling: ['Restriction: small weapons only'],
-  'Half-Orc': ['Ugliness']
+  Gnome: ["Restriction: small weapons only"],
+  Halfling: ["Restriction: small weapons only"],
+  "Half-Orc": ["Ugliness"]
 }
 
 // Helper functions
 const idx = (r: string) => dieRanks.indexOf(r)
-const mv = (r: string) => r && r.startsWith('d') ? parseInt(r.slice(1), 10) : 0
-const fnum = (v: string) => v ? parseInt(String(v).replace('+', ''), 10) : 0
+const mv = (r: string) => r && r.startsWith("d") ? parseInt(r.slice(1), 10) : 0
+const fnum = (v: string) => v ? parseInt(String(v).replace("+", ""), 10) : 0
 
 interface Character {
   race: string
@@ -198,24 +198,24 @@ export default function PlayerCharacterGenerator() {
   }
 
   const rookieCaps = (profile: string) => {
-    if (profile === 'pure') return { abilityMax: 'd6', specMax: 'd6', focusMax: 1 }
-    if (profile === 'balanced') return { abilityMax: 'd8', specMax: 'd8', focusMax: 2 }
-    if (profile === 'specialist') return { abilityMax: 'd8', specMax: 'd10', focusMax: 3 }
+    if (profile === "pure") return { abilityMax: "d6", specMax: "d6", focusMax: 1 }
+    if (profile === "balanced") return { abilityMax: "d8", specMax: "d8", focusMax: 2 }
+    if (profile === "specialist") return { abilityMax: "d8", specMax: "d10", focusMax: 3 }
     return null
   }
 
   const softCaps = (level: number, style: string) => {
-    const sc = { abilityMax: 'd12', specMax: 'd12', focusMax: 5 }
-    if (style === 'balanced') {
+    const sc = { abilityMax: "d12", specMax: "d12", focusMax: 5 }
+    if (style === "balanced") {
       if (level <= 3) {
-        sc.abilityMax = 'd10'
-        sc.specMax = 'd10'
+        sc.abilityMax = "d10"
+        sc.specMax = "d10"
         sc.focusMax = 3
       }
       if (level === 4) sc.focusMax = 4
     }
-    if (style === 'hybrid' && level <= 3) sc.focusMax = 4
-    if (style === 'specialist' && level <= 3) sc.focusMax = 5
+    if (style === "hybrid" && level <= 3) sc.focusMax = 4
+    if (style === "specialist" && level <= 3) sc.focusMax = 5
     return sc
   }
 
@@ -251,7 +251,7 @@ export default function PlayerCharacterGenerator() {
       if (pa) cur = ch.specialties[pa][key]
     }
     
-    const order = { 'd4': 0, 'd6': 1, 'd8': 2, 'd10': 3, 'd12': 4 }
+    const order = { "d4": 0, "d6": 1, "d8": 2, "d10": 3, "d12": 4 }
     return order[cur as keyof typeof order] < order[maxDie as keyof typeof order]
   }
 
@@ -261,8 +261,8 @@ export default function PlayerCharacterGenerator() {
     const tryUpgrade = (key: string): boolean => {
       if (abilities.includes(key)) {
         const cur = ch.abilities[key]
-        if (cur === 'd12') return false
-        if (!canUpgrade(ch, key, 'ability', level, style)) return false
+        if (cur === "d12") return false
+        if (!canUpgrade(ch, key, "ability", level, style)) return false
         const cost = stepCost[cur as keyof typeof stepCost]
         if (cpBudget.value < cost) return false
         ch.abilities[key] = dieRanks[idx(cur) + 1]
@@ -273,8 +273,8 @@ export default function PlayerCharacterGenerator() {
       const pa = Object.keys(specialties).find(a => specialties[a as keyof typeof specialties].includes(key))
       if (pa) {
         const cur = ch.specialties[pa][key]
-        if (cur === 'd12') return false
-        if (!canUpgrade(ch, key, 'spec', level, style)) return false
+        if (cur === "d12") return false
+        if (!canUpgrade(ch, key, "spec", level, style)) return false
         const cost = stepCost[cur as keyof typeof stepCost]
         if (cpBudget.value < cost) return false
         ch.specialties[pa][key] = dieRanks[idx(cur) + 1]
@@ -327,12 +327,12 @@ export default function PlayerCharacterGenerator() {
     const { active, passive, spirit } = computePools(ch)
     const flags = []
     if (spirit <= 12) flags.push('Low Spirit Points (mental/arcane pressure will hurt).')
-    if (active < 24) flags.push('Low Active DP (poor agility/parry).')
-    if (passive < 24) flags.push('Low Passive DP (fragile to heavy blows).')
-    if (idx(ch.abilities.Competence) <= 1) flags.push('Low Competence (poor perception/social/planning).')
-    if (idx(ch.specialties.Competence.Perception) <= 1) flags.push('Low Perception branch (traps/ambush risk).')
-    if (idx(ch.specialties.Fortitude.Willpower) <= 1) flags.push('Low Willpower (charms/fear/illusions).')
-    if (idx(ch.specialties.Prowess.Precision) <= 1) flags.push('Weak ranged capability.')
+    if (active < 24) flags.push("Low Active DP (poor agility/parry).")
+    if (passive < 24) flags.push("Low Passive DP (fragile to heavy blows).")
+    if (idx(ch.abilities.Competence) <= 1) flags.push("Low Competence (poor perception/social/planning).")
+    if (idx(ch.specialties.Competence.Perception) <= 1) flags.push("Low Perception branch (traps/ambush risk).")
+    if (idx(ch.specialties.Fortitude.Willpower) <= 1) flags.push("Low Willpower (charms/fear/illusions).")
+    if (idx(ch.specialties.Prowess.Precision) <= 1) flags.push("Weak ranged capability.")
     return flags
   }
 
@@ -364,7 +364,7 @@ export default function PlayerCharacterGenerator() {
 
   const generate = () => {
     if (!race || !characterClass || !level) {
-      toast.error('Please select race, class, and level')
+      toast.error("Please select race, class, and level")
       return
     }
 
@@ -377,7 +377,7 @@ export default function PlayerCharacterGenerator() {
       specialties: {},
       focuses: {},
       pools: { active: 0, passive: 0, spirit: 0 },
-      masteryDie: 'd4',
+      masteryDie: "d4",
       actions: {},
       advantages: [],
       flaws: [],
@@ -387,13 +387,13 @@ export default function PlayerCharacterGenerator() {
 
     // Initialize character structure
     for (const a of abilities) {
-      ch.abilities[a] = 'd4'
+      ch.abilities[a] = "d4"
       ch.specialties[a] = {}
       ch.focuses[a] = {}
       for (const s of specialties[a as keyof typeof specialties]) {
-        ch.specialties[a][s] = 'd4'
+        ch.specialties[a][s] = "d4"
         for (const fx of focuses[s as keyof typeof focuses]) {
-          ch.focuses[a][fx] = '+0'
+          ch.focuses[a][fx] = "+0"
         }
       }
     }
