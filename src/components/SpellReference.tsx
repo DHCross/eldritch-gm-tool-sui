@@ -4,7 +4,10 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { MagnifyingGlass, Sparkles, Lightning, Shield, Heart } from "@phosphor-icons/react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Separator } from "@/components/ui/separator"
+import { useKV } from '@github/spark/hooks'
+import { MagnifyingGlass, Sparkles, Lightning, Shield, Heart, Plus, Minus, BookOpen, Star } from "@phosphor-icons/react"
 
 // Comprehensive spell database
 const spellDatabase = {
@@ -904,6 +907,9 @@ export default function SpellReference() {
   const [selectedPath, setSelectedPath] = useState('all')
   const [selectedRarity, setSelectedRarity] = useState('all')
   const [selectedCategory, setSelectedCategory] = useState('all')
+  const [selectedSpells, setSelectedSpells] = useKV('selected-spells', [] as any[])
+  const [spellListName, setSpellListName] = useState('')
+  const [savedSpellLists, setSavedSpellLists] = useKV('saved-spell-lists', {} as Record<string, any[]>)
 
   const allSpells = useMemo(() => {
     const spells: any[] = []
@@ -914,7 +920,8 @@ export default function SpellReference() {
           spells.push({
             ...spell,
             path: pathName,
-            rarity
+            rarity,
+            id: `${pathName}-${spell.name}-${rarity}`
           })
         })
       })
@@ -939,149 +946,423 @@ export default function SpellReference() {
   const rarities = ['all', 'Common', 'Uncommon', 'Esoteric', 'Occult', 'Legendary']
   const categories = ['all', 'Activate', 'Harm', 'Protect', 'Restore', 'Modify', 'Afflict']
 
+  const addSpellToSelection = (spell: any) => {
+    setSelectedSpells(current => {
+      if (current.find(s => s.id === spell.id)) return current
+      return [...current, spell]
+    })
+  }
+
+  const removeSpellFromSelection = (spellId: string) => {
+    setSelectedSpells(current => current.filter(s => s.id !== spellId))
+  }
+
+  const clearSelection = () => {
+    setSelectedSpells([])
+  }
+
+  const saveSpellList = () => {
+    if (!spellListName.trim() || selectedSpells.length === 0) return
+    
+    setSavedSpellLists(current => ({
+      ...current,
+      [spellListName]: [...selectedSpells]
+    }))
+    
+    setSpellListName('')
+    clearSelection()
+  }
+
+  const loadSpellList = (listName: string) => {
+    const list = savedSpellLists[listName]
+    if (list) {
+      setSelectedSpells([...list])
+    }
+  }
+
+  const deleteSpellList = (listName: string) => {
+    setSavedSpellLists(current => {
+      const updated = { ...current }
+      delete updated[listName]
+      return updated
+    })
+  }
+
+  const getSpellsByPath = (pathName: string) => {
+    return selectedSpells.filter(spell => spell.path === pathName)
+  }
+
+  const getSpellCountsByRarity = (pathSpells: any[]) => {
+    const counts = { Common: 0, Uncommon: 0, Esoteric: 0, Occult: 0, Legendary: 0 }
+    pathSpells.forEach(spell => {
+      counts[spell.rarity as keyof typeof counts]++
+    })
+    return counts
+  }
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-primary" />
-            Spell Reference
+            Spell Reference & Selection
           </CardTitle>
           <CardDescription>
-            Browse and search the complete Eldritch RPG spell library. Contains {allSpells.length} spells across all magical paths.
+            Browse and search the complete Eldritch RPG spell library. Contains {allSpells.length} spells across all magical paths. Build spell lists for your characters.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Search and Filter Controls */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="relative">
-              <MagnifyingGlass className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder="Search spells..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            <Select value={selectedPath} onValueChange={setSelectedPath}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Paths" />
-              </SelectTrigger>
-              <SelectContent>
-                {paths.map(path => (
-                  <SelectItem key={path} value={path}>
-                    {path === 'all' ? 'All Paths' : path}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedRarity} onValueChange={setSelectedRarity}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Rarities" />
-              </SelectTrigger>
-              <SelectContent>
-                {rarities.map(rarity => (
-                  <SelectItem key={rarity} value={rarity}>
-                    {rarity === 'all' ? 'All Rarities' : rarity}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map(category => (
-                  <SelectItem key={category} value={category}>
-                    {category === 'all' ? 'All Categories' : category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Clear Filters */}
-          {(searchTerm || selectedPath !== 'all' || selectedRarity !== 'all' || selectedCategory !== 'all') && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Active filters:</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSearchTerm('')
-                  setSelectedPath('all')
-                  setSelectedRarity('all')
-                  setSelectedCategory('all')
-                }}
-              >
-                Clear all
-              </Button>
-            </div>
-          )}
-
-          {/* Results Count */}
-          <div className="text-sm text-muted-foreground">
-            Showing {filteredSpells.length} of {allSpells.length} spells
-          </div>
-        </CardContent>
       </Card>
 
-      {/* Spell List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredSpells.map((spell, index) => (
-          <Card key={`${spell.path}-${spell.name}-${index}`} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between gap-2">
-                <CardTitle className="text-lg leading-tight">{spell.name}</CardTitle>
-                <div className="flex flex-col gap-1">
-                  <Badge className={`${rarityColors[spell.rarity]} border text-xs`}>
-                    {spell.rarity}
-                  </Badge>
-                  <Badge variant="outline" className="text-xs">
-                    {spell.path}
-                  </Badge>
+      <Tabs defaultValue="browse" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="browse" className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            Browse Spells
+          </TabsTrigger>
+          <TabsTrigger value="selection" className="flex items-center gap-2">
+            <Star className="w-4 h-4" />
+            Current Selection ({selectedSpells.length})
+          </TabsTrigger>
+          <TabsTrigger value="saved" className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4" />
+            Saved Lists ({Object.keys(savedSpellLists).length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="browse" className="space-y-6">
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              {/* Search and Filter Controls */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="relative">
+                  <MagnifyingGlass className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Input
+                    placeholder="Search spells..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
+                
+                <Select value={selectedPath} onValueChange={setSelectedPath}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Paths" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {paths.map(path => (
+                      <SelectItem key={path} value={path}>
+                        {path === 'all' ? 'All Paths' : path}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedRarity} onValueChange={setSelectedRarity}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Rarities" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {rarities.map(rarity => (
+                      <SelectItem key={rarity} value={rarity}>
+                        {rarity === 'all' ? 'All Rarities' : rarity}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map(category => (
+                      <SelectItem key={category} value={category}>
+                        {category === 'all' ? 'All Categories' : category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                {categoryIcons[spell.category]}
-                <span>{spell.category}</span>
-                <span>•</span>
-                <span>Potency: {spell.potency}</span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm leading-relaxed">{spell.description}</p>
-              
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div>
-                  <span className="font-medium text-muted-foreground">Challenge:</span>
-                  <div className="text-foreground">{spell.challenge}</div>
+
+              {/* Clear Filters */}
+              {(searchTerm || selectedPath !== 'all' || selectedRarity !== 'all' || selectedCategory !== 'all') && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Active filters:</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSearchTerm('')
+                      setSelectedPath('all')
+                      setSelectedRarity('all')
+                      setSelectedCategory('all')
+                    }}
+                  >
+                    Clear all
+                  </Button>
                 </div>
-                <div>
-                  <span className="font-medium text-muted-foreground">Maintenance:</span>
-                  <div className="text-foreground">{spell.maintenance}</div>
-                </div>
-                <div className="col-span-2">
-                  <span className="font-medium text-muted-foreground">Failure:</span>
-                  <div className="text-foreground">{spell.failure}</div>
-                </div>
+              )}
+
+              {/* Results Count */}
+              <div className="text-sm text-muted-foreground">
+                Showing {filteredSpells.length} of {allSpells.length} spells
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
 
-      {filteredSpells.length === 0 && (
-        <Card>
-          <CardContent className="text-center py-8">
-            <p className="text-muted-foreground">No spells found matching your criteria.</p>
-          </CardContent>
-        </Card>
-      )}
+          {/* Spell List */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredSpells.map((spell, index) => {
+              const isSelected = selectedSpells.find(s => s.id === spell.id)
+              
+              return (
+                <Card key={`${spell.path}-${spell.name}-${index}`} className={`hover:shadow-md transition-shadow ${isSelected ? 'ring-2 ring-accent' : ''}`}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <CardTitle className="text-lg leading-tight">{spell.name}</CardTitle>
+                      <div className="flex flex-col gap-1">
+                        <Badge className={`${rarityColors[spell.rarity]} border text-xs`}>
+                          {spell.rarity}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {spell.path}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      {categoryIcons[spell.category]}
+                      <span>{spell.category}</span>
+                      <span>•</span>
+                      <span>Potency: {spell.potency}</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm leading-relaxed">{spell.description}</p>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div>
+                        <span className="font-medium text-muted-foreground">Challenge:</span>
+                        <div className="text-foreground">{spell.challenge}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-muted-foreground">Maintenance:</span>
+                        <div className="text-foreground">{spell.maintenance}</div>
+                      </div>
+                      <div className="col-span-2">
+                        <span className="font-medium text-muted-foreground">Failure:</span>
+                        <div className="text-foreground">{spell.failure}</div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex justify-end">
+                      {isSelected ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeSpellFromSelection(spell.id)}
+                          className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        >
+                          <Minus className="w-4 h-4 mr-1" />
+                          Remove
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addSpellToSelection(spell)}
+                          className="text-accent-foreground border-accent hover:bg-accent"
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Add to Selection
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+
+          {filteredSpells.length === 0 && (
+            <Card>
+              <CardContent className="text-center py-8">
+                <p className="text-muted-foreground">No spells found matching your criteria.</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="selection" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Current Spell Selection</CardTitle>
+              <CardDescription>
+                {selectedSpells.length} spells selected. Organize your selection by Mastery Path and save as a spell list.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {selectedSpells.length > 0 && (
+                <div className="flex items-center gap-4">
+                  <Input
+                    placeholder="Name your spell list..."
+                    value={spellListName}
+                    onChange={(e) => setSpellListName(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button
+                    onClick={saveSpellList}
+                    disabled={!spellListName.trim()}
+                    className="whitespace-nowrap"
+                  >
+                    Save List
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={clearSelection}
+                    className="whitespace-nowrap"
+                  >
+                    Clear All
+                  </Button>
+                </div>
+              )}
+
+              {selectedSpells.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No spells selected. Browse spells to build your selection.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Group spells by path */}
+                  {Object.keys(spellDatabase).map(pathName => {
+                    const pathSpells = getSpellsByPath(pathName)
+                    if (pathSpells.length === 0) return null
+
+                    const rarityCounts = getSpellCountsByRarity(pathSpells)
+
+                    return (
+                      <Card key={pathName}>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-lg">{pathName}</CardTitle>
+                          <div className="flex flex-wrap gap-2">
+                            {Object.entries(rarityCounts).map(([rarity, count]) => {
+                              if (count === 0) return null
+                              return (
+                                <Badge key={rarity} className={`${rarityColors[rarity]} text-xs`}>
+                                  {count} {rarity}
+                                </Badge>
+                              )
+                            })}
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid gap-3">
+                            {pathSpells.map(spell => (
+                              <div key={spell.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="font-medium">{spell.name}</span>
+                                    <Badge className={`${rarityColors[spell.rarity]} text-xs`}>
+                                      {spell.rarity}
+                                    </Badge>
+                                    <Badge variant="outline" className="text-xs">
+                                      {spell.category}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground line-clamp-2">{spell.description}</p>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeSpellFromSelection(spell.id)}
+                                  className="text-destructive hover:bg-destructive hover:text-destructive-foreground ml-2"
+                                >
+                                  <Minus className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="saved" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Saved Spell Lists</CardTitle>
+              <CardDescription>
+                Your saved spell lists. Load them to view or edit, or create new ones from your current selection.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {Object.keys(savedSpellLists).length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No saved spell lists yet. Create one from your current selection.</p>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {Object.entries(savedSpellLists).map(([listName, spells]) => {
+                    const pathCounts = Object.keys(spellDatabase).reduce((acc, path) => {
+                      acc[path] = spells.filter(s => s.path === path).length
+                      return acc
+                    }, {} as Record<string, number>)
+
+                    return (
+                      <Card key={listName} className="hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <CardTitle className="text-lg">{listName}</CardTitle>
+                              <CardDescription>{spells.length} spells total</CardDescription>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => loadSpellList(listName)}
+                              >
+                                Load
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => deleteSpellList(listName)}
+                                className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex flex-wrap gap-2">
+                            {Object.entries(pathCounts).map(([path, count]) => {
+                              if (count === 0) return null
+                              return (
+                                <Badge key={path} variant="outline" className="text-xs">
+                                  {path}: {count}
+                                </Badge>
+                              )
+                            })}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
