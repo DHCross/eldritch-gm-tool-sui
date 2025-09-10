@@ -7,7 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { useKV } from '@github/spark/hooks'
-import { MagnifyingGlass, Sparkles, Lightning, Shield, Heart, Plus, Minus, BookOpen, Star, Sword } from "@phosphor-icons/react"
+import { MagnifyingGlass, Sparkles, Lightning, Shield, Heart, Plus, Minus, BookOpen, Star, Sword, Check, X, Download } from "@phosphor-icons/react"
+import { Label } from "@/components/ui/label"
+import { cn } from "@/lib/utils"
 
 // Comprehensive spell database
 const spellDatabase = {
@@ -902,6 +904,46 @@ const categoryIcons = {
   Afflict: <Lightning className="w-4 h-4" />
 }
 
+// Character classes and their magic paths
+const characterClasses = ['Adept', 'Mage', 'Mystic', 'Theurgist']
+const magicPathsByClass = {
+  Adept: ['Thaumaturgy', 'Elementalism', 'Sorcery'],
+  Mage: ['Thaumaturgy', 'Elementalism', 'Sorcery'], 
+  Mystic: ['Mysticism'],
+  Theurgist: ['Druidry', 'Hieraticism']
+}
+
+// Helper function to calculate spell count based on competence and expertise
+const calculateSpellCount = (competence: string, expertise: string, characterClass: string) => {
+  const competenceValue = parseInt(competence.replace('d', ''))
+  const expertiseValue = parseInt(expertise.replace('d', ''))
+  const competenceSteps = Math.max(0, ['d4', 'd6', 'd8', 'd10', 'd12'].indexOf(competence))
+  const expertiseSteps = Math.max(0, ['d4', 'd6', 'd8', 'd10', 'd12'].indexOf(expertise))
+  
+  let spellCount = 2 * (competenceSteps + expertiseSteps)
+  
+  // Adepts get half the spells
+  if (characterClass === 'Adept') {
+    spellCount = Math.floor(spellCount / 2)
+  }
+  
+  return Math.max(2, spellCount) // Minimum 2 spells
+}
+
+// Helper function to get available paths for a character class
+const getAvailablePathsForClass = (characterClass: string) => {
+  if (characterClass === 'Adept') {
+    return ['Universal', 'Thaumaturgy', 'Elementalism', 'Sorcery']
+  } else if (characterClass === 'Mage') {
+    return ['Universal', 'Thaumaturgy', 'Elementalism', 'Sorcery'] 
+  } else if (characterClass === 'Mystic') {
+    return ['Universal', 'Mysticism']
+  } else if (characterClass === 'Theurgist') {
+    return ['Universal', 'Druidry', 'Hieraticism']
+  }
+  return ['Universal']
+}
+
 export default function SpellReference() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedPath, setSelectedPath] = useState('all')
@@ -910,6 +952,9 @@ export default function SpellReference() {
   const [selectedSpells, setSelectedSpells] = useKV('selected-spells', [] as any[])
   const [spellListName, setSpellListName] = useState('')
   const [savedSpellLists, setSavedSpellLists] = useKV('saved-spell-lists', {} as Record<string, any[]>)
+  const [selectedCharacterClass, setSelectedCharacterClass] = useState('')
+  const [selectedLevel, setSelectedLevel] = useState('')
+  const [showCharacterSuggestions, setShowCharacterSuggestions] = useState(false)
 
   const allSpells = useMemo(() => {
     const spells: any[] = []
@@ -1000,6 +1045,79 @@ export default function SpellReference() {
     return counts
   }
 
+  const exportSpellListAsMarkdown = () => {
+    if (selectedSpells.length === 0) {
+      toast.error('No spells selected to export')
+      return
+    }
+
+    let markdown = `# Spell List\n\n`
+    if (spellListName.trim()) {
+      markdown = `# ${spellListName}\n\n`
+    }
+
+    markdown += `**Total Spells:** ${selectedSpells.length}\n\n`
+
+    // Group by path
+    Object.keys(spellDatabase).forEach(pathName => {
+      const pathSpells = getSpellsByPath(pathName)
+      if (pathSpells.length === 0) return
+
+      markdown += `## ${pathName} (${pathSpells.length} spells)\n\n`
+      
+      // Group by rarity within each path
+      const rarities = ['Common', 'Uncommon', 'Esoteric', 'Occult', 'Legendary']
+      rarities.forEach(rarity => {
+        const raritySpells = pathSpells.filter(s => s.rarity === rarity)
+        if (raritySpells.length === 0) return
+
+        markdown += `### ${rarity} Spells\n\n`
+        raritySpells.forEach(spell => {
+          markdown += `**${spell.name}** _(${spell.category})_\n`
+          markdown += `- **Potency:** ${spell.potency} | **Challenge:** ${spell.challenge}\n`
+          markdown += `- **Maintenance:** ${spell.maintenance} | **Failure:** ${spell.failure}\n`
+          markdown += `- ${spell.description}\n\n`
+        })
+      })
+    })
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(markdown).then(() => {
+      toast.success('Spell list exported to clipboard as Markdown')
+    }).catch(() => {
+      toast.error('Failed to copy to clipboard')
+    })
+  }
+
+  const generateCharacterSuggestions = () => {
+    if (!selectedCharacterClass) return []
+
+    const availablePaths = getAvailablePathsForClass(selectedCharacterClass)
+    const level = parseInt(selectedLevel) || 1
+    const suggestions = []
+
+    // Calculate recommended spell counts based on level
+    const competence = level <= 2 ? 'd6' : level <= 4 ? 'd8' : 'd10'
+    const expertise = level <= 1 ? 'd6' : level <= 3 ? 'd8' : 'd10'
+    const recommendedCount = calculateSpellCount(competence, expertise, selectedCharacterClass)
+
+    suggestions.push(`**Recommended Total Spells:** ${recommendedCount}`)
+    suggestions.push(`**Available Paths:** ${availablePaths.join(', ')}`)
+    
+    if (selectedCharacterClass === 'Adept') {
+      suggestions.push('**Note:** Adepts receive half the normal spell count but excel at ritual magic and crafting.')
+    }
+
+    // Suggest spell distribution
+    suggestions.push(`**Suggested Distribution:** 70% Common, 30% Uncommon spells for starting characters`)
+    
+    if (level >= 3) {
+      suggestions.push('**Higher Level Note:** Characters level 3+ may access Esoteric spells with appropriate focus')
+    }
+
+    return suggestions
+  }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -1015,10 +1133,14 @@ export default function SpellReference() {
       </Card>
 
       <Tabs defaultValue="browse" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
+        <TabsList className="grid w-full grid-cols-4 mb-6">
           <TabsTrigger value="browse" className="flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
             Browse Spells
+          </TabsTrigger>
+          <TabsTrigger value="character" className="flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            Character Builder
           </TabsTrigger>
           <TabsTrigger value="selection" className="flex items-center gap-2">
             <Star className="w-4 h-4" />
@@ -1029,6 +1151,165 @@ export default function SpellReference() {
             Saved Lists ({Object.keys(savedSpellLists).length})
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="character" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Character Spell Builder</CardTitle>
+              <CardDescription>
+                Build spell lists for specific character classes and levels. Get recommendations for spell counts and distribution.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Character Details */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="char-class">Character Class</Label>
+                  <Select value={selectedCharacterClass} onValueChange={setSelectedCharacterClass}>
+                    <SelectTrigger id="char-class">
+                      <SelectValue placeholder="Select class" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {characterClasses.map(cls => (
+                        <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="char-level">Character Level</Label>
+                  <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+                    <SelectTrigger id="char-level">
+                      <SelectValue placeholder="Select level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5].map(level => (
+                        <SelectItem key={level} value={level.toString()}>{level}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-end">
+                  <Button
+                    onClick={() => setShowCharacterSuggestions(!showCharacterSuggestions)}
+                    variant="outline"
+                    disabled={!selectedCharacterClass}
+                    className="w-full"
+                  >
+                    {showCharacterSuggestions ? 'Hide' : 'Show'} Suggestions
+                  </Button>
+                </div>
+              </div>
+
+              {/* Character-specific Suggestions */}
+              {showCharacterSuggestions && selectedCharacterClass && (
+                <Card className="bg-accent/20">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Suggestions for {selectedCharacterClass} Level {selectedLevel || '1'}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {generateCharacterSuggestions().map((suggestion, index) => (
+                        <p key={index} className="text-sm" dangerouslySetInnerHTML={{ __html: suggestion }} />
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Path Filter for Character */}
+              {selectedCharacterClass && (
+                <div>
+                  <Label htmlFor="char-path">Filter by Available Paths</Label>
+                  <Select value={selectedPath} onValueChange={setSelectedPath}>
+                    <SelectTrigger id="char-path">
+                      <SelectValue placeholder="All available paths" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Available Paths</SelectItem>
+                      {getAvailablePathsForClass(selectedCharacterClass).map(path => (
+                        <SelectItem key={path} value={path}>{path}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Quick Actions */}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedRarity('Common')
+                    setSelectedCategory('all')
+                  }}
+                >
+                  Show Common Spells
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedRarity('Uncommon')
+                    setSelectedCategory('all')
+                  }}
+                >
+                  Show Uncommon Spells
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedRarity('all')
+                    setSelectedCategory('Harm')
+                  }}
+                >
+                  Show Combat Spells
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedRarity('all')
+                    setSelectedCategory('Restore')
+                  }}
+                >
+                  Show Healing Spells
+                </Button>
+              </div>
+
+              {/* Current Selection Summary for Character */}
+              {selectedSpells.length > 0 && (
+                <Card className="bg-muted/50">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Current Selection Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium">Total Spells:</span>
+                        <div className="text-lg font-bold">{selectedSpells.length}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium">Common:</span>
+                        <div className="text-lg font-bold">{selectedSpells.filter(s => s.rarity === 'Common').length}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium">Uncommon:</span>
+                        <div className="text-lg font-bold">{selectedSpells.filter(s => s.rarity === 'Uncommon').length}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium">Other:</span>
+                        <div className="text-lg font-bold">{selectedSpells.filter(s => !['Common', 'Uncommon'].includes(s.rarity)).length}</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="browse" className="space-y-6">
           <Card>
@@ -1205,12 +1486,12 @@ export default function SpellReference() {
             </CardHeader>
             <CardContent className="space-y-6">
               {selectedSpells.length > 0 && (
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-wrap">
                   <Input
                     placeholder="Name your spell list..."
                     value={spellListName}
                     onChange={(e) => setSpellListName(e.target.value)}
-                    className="flex-1"
+                    className="flex-1 min-w-64"
                   />
                   <Button
                     onClick={saveSpellList}
@@ -1218,6 +1499,14 @@ export default function SpellReference() {
                     className="whitespace-nowrap"
                   >
                     Save List
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={exportSpellListAsMarkdown}
+                    className="whitespace-nowrap"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export MD
                   </Button>
                   <Button
                     variant="outline"
@@ -1299,19 +1588,26 @@ export default function SpellReference() {
             <CardHeader>
               <CardTitle>Saved Spell Lists</CardTitle>
               <CardDescription>
-                Your saved spell lists. Load them to view or edit, or create new ones from your current selection.
+                Your saved spell lists. Load them to view or edit, export to Markdown, or prepare them for character integration.
               </CardDescription>
             </CardHeader>
             <CardContent>
               {Object.keys(savedSpellLists).length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground">No saved spell lists yet. Create one from your current selection.</p>
+                  <Sparkles className="mx-auto mb-4 opacity-50" size={48} />
+                  <p className="text-muted-foreground mb-2">No saved spell lists yet.</p>
+                  <p className="text-sm text-muted-foreground">Create one from your current selection or use the Character Builder.</p>
                 </div>
               ) : (
                 <div className="grid gap-4">
                   {Object.entries(savedSpellLists).map(([listName, spells]) => {
                     const pathCounts = Object.keys(spellDatabase).reduce((acc, path) => {
                       acc[path] = spells.filter(s => s.path === path).length
+                      return acc
+                    }, {} as Record<string, number>)
+
+                    const rarityCounts = ['Common', 'Uncommon', 'Esoteric', 'Occult', 'Legendary'].reduce((acc, rarity) => {
+                      acc[rarity] = spells.filter(s => s.rarity === rarity).length
                       return acc
                     }, {} as Record<string, number>)
 
@@ -1334,6 +1630,24 @@ export default function SpellReference() {
                               <Button
                                 variant="outline"
                                 size="sm"
+                                onClick={() => {
+                                  // Export this specific list
+                                  const tempSelection = selectedSpells
+                                  const tempName = spellListName
+                                  setSelectedSpells([...spells])
+                                  setSpellListName(listName)
+                                  setTimeout(() => {
+                                    exportSpellListAsMarkdown()
+                                    setSelectedSpells(tempSelection)
+                                    setSpellListName(tempName)
+                                  }, 100)
+                                }}
+                              >
+                                <Download className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
                                 onClick={() => deleteSpellList(listName)}
                                 className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
                               >
@@ -1342,16 +1656,35 @@ export default function SpellReference() {
                             </div>
                           </div>
                         </CardHeader>
-                        <CardContent>
-                          <div className="flex flex-wrap gap-2">
-                            {Object.entries(pathCounts).map(([path, count]) => {
-                              if (count === 0) return null
-                              return (
-                                <Badge key={path} variant="outline" className="text-xs">
-                                  {path}: {count}
-                                </Badge>
-                              )
-                            })}
+                        <CardContent className="space-y-3">
+                          {/* Path breakdown */}
+                          <div>
+                            <span className="text-sm font-medium text-muted-foreground">By Path:</span>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                              {Object.entries(pathCounts).map(([path, count]) => {
+                                if (count === 0) return null
+                                return (
+                                  <Badge key={path} variant="outline" className="text-xs">
+                                    {path}: {count}
+                                  </Badge>
+                                )
+                              })}
+                            </div>
+                          </div>
+                          
+                          {/* Rarity breakdown */}
+                          <div>
+                            <span className="text-sm font-medium text-muted-foreground">By Rarity:</span>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                              {Object.entries(rarityCounts).map(([rarity, count]) => {
+                                if (count === 0) return null
+                                return (
+                                  <Badge key={rarity} className={`${rarityColors[rarity]} text-xs`}>
+                                    {count} {rarity}
+                                  </Badge>
+                                )
+                              })}
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
