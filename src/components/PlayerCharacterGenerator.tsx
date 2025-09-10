@@ -932,7 +932,6 @@ export default function PlayerCharacterGenerator() {
                 </div>
               )}
             </div>
-          </div>
         </CardContent>
       </Card>
 
