@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { useKV } from '@github/spark/hooks'
-import { MagnifyingGlass, Sparkles, Lightning, Shield, Heart, Plus, Minus, BookOpen, Star, Sword, Check, X, Download } from "@phosphor-icons/react"
+import { MagnifyingGlass, Sparkles, Lightning, Shield, Heart, Plus, Minus, BookOpen, Star, Sword, Check, X, Download, Users, Save } from "@phosphor-icons/react"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -375,6 +375,8 @@ export default function SpellReference() {
   const [savedSpellLists, setSavedSpellLists] = useKV('saved-spell-lists', {} as Record<string, any[]>)
   const [selectedCharacterClass, setSelectedCharacterClass] = useState('')
   const [selectedLevel, setSelectedLevel] = useState('')
+  const [savedCharacters, setSavedCharacters] = useKV('saved-characters', {} as Record<string, any>)
+  const [selectedCharacterForSpells, setSelectedCharacterForSpells] = useState('')
 
   const allSpells = useMemo(() => {
     const spells: any[] = []
@@ -426,17 +428,42 @@ export default function SpellReference() {
     setSelectedSpells([])
   }
 
-  const saveSpellList = () => {
-    if (!spellListName.trim() || selectedSpells.length === 0) return
-    
-    setSavedSpellLists(current => ({
+  const saveSpellsToCharacter = () => {
+    if (!selectedCharacterForSpells || selectedSpells.length === 0) {
+      toast.error('Select a character and spells to save')
+      return
+    }
+
+    const character = savedCharacters[selectedCharacterForSpells]
+    if (!character) {
+      toast.error('Character not found')
+      return
+    }
+
+    const updatedCharacter = {
+      ...character,
+      spellbook: [...selectedSpells],
+      updatedAt: new Date().toISOString()
+    }
+
+    setSavedCharacters(current => ({
       ...current,
-      [spellListName]: [...selectedSpells]
+      [selectedCharacterForSpells]: updatedCharacter
     }))
-    
-    setSpellListName('')
-    clearSelection()
-    toast.success('Spell list saved!')
+
+    toast.success(`Saved ${selectedSpells.length} spells to ${character.name || `${character.race} ${character.class}`}`)
+    setSelectedSpells([])
+  }
+
+  const loadSpellsFromCharacter = (characterId: string) => {
+    const character = savedCharacters[characterId]
+    if (!character || !character.spellbook) {
+      toast.error('Character has no spells to load')
+      return
+    }
+
+    setSelectedSpells([...character.spellbook])
+    toast.success(`Loaded ${character.spellbook.length} spells from ${character.name || `${character.race} ${character.class}`}`)
   }
 
   const loadSpellList = (listName: string) => {
@@ -455,6 +482,11 @@ export default function SpellReference() {
     })
     toast.success(`Deleted spell list: ${listName}`)
   }
+
+  const characters = Object.values(savedCharacters)
+  const casterCharacters = characters.filter(char => 
+    ['Adept', 'Mage', 'Mystic', 'Theurgist'].includes(char.class)
+  )
 
   const getSpellsByPath = (pathName: string) => {
     return selectedSpells.filter(spell => spell.path === pathName)
@@ -556,7 +588,7 @@ export default function SpellReference() {
       </Card>
 
       <Tabs defaultValue="browse" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-6">
+        <TabsList className="grid w-full grid-cols-5 mb-6">
           <TabsTrigger value="browse" className="flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
             Browse Spells
@@ -572,6 +604,10 @@ export default function SpellReference() {
           <TabsTrigger value="saved" className="flex items-center gap-2">
             <Sparkles className="w-4 h-4" />
             Saved Lists ({Object.keys(savedSpellLists).length})
+          </TabsTrigger>
+          <TabsTrigger value="roster" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Character Roster ({casterCharacters.length})
           </TabsTrigger>
         </TabsList>
 
@@ -1101,6 +1137,159 @@ export default function SpellReference() {
                       </Card>
                     )
                   })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="roster" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Character Spell Integration</CardTitle>
+              <CardDescription>
+                Manage spells for your saved characters. Load existing spellbooks or save your current selection to a character.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {casterCharacters.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="mx-auto mb-4 opacity-50" size={48} />
+                  <p className="text-muted-foreground mb-2">No caster characters found.</p>
+                  <p className="text-sm text-muted-foreground">Generate Adept, Mage, Mystic, or Theurgist characters first.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Save Current Selection to Character */}
+                  {selectedSpells.length > 0 && (
+                    <Card className="bg-muted/50">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg">Save Current Selection to Character</CardTitle>
+                        <CardDescription>
+                          Save your {selectedSpells.length} selected spells to a character's spellbook.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1">
+                            <Select value={selectedCharacterForSpells} onValueChange={setSelectedCharacterForSpells}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select character to save spells to..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {casterCharacters.map(char => (
+                                  <SelectItem key={char.id} value={char.id}>
+                                    {char.name || `${char.race} ${char.class}`} (Level {char.displayLevel})
+                                    {char.spellbook && ` • ${char.spellbook.length} current spells`}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <Button 
+                            onClick={saveSpellsToCharacter}
+                            disabled={!selectedCharacterForSpells}
+                          >
+                            <Save className="w-4 h-4 mr-2" />
+                            Save Spells
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Character List with Spellbooks */}
+                  <div className="grid gap-4">
+                    {casterCharacters.map(character => {
+                      const spellCount = character.spellbook?.length || 0
+                      const spellsByPath = character.spellbook?.reduce((acc: any, spell: any) => {
+                        if (!acc[spell.path]) acc[spell.path] = []
+                        acc[spell.path].push(spell)
+                        return acc
+                      }, {}) || {}
+
+                      return (
+                        <Card key={character.id} className="hover:shadow-md transition-shadow">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <CardTitle className="text-lg">
+                                  {character.name || `${character.race} ${character.class}`}
+                                </CardTitle>
+                                <CardDescription>
+                                  Level {character.displayLevel} {character.race} {character.class}
+                                  {character.magicPath && ` • ${character.magicPath}`}
+                                </CardDescription>
+                              </div>
+                              <div className="flex flex-col items-end gap-2">
+                                <Badge variant="outline" className="text-xs">
+                                  {spellCount} spells
+                                </Badge>
+                                <div className="flex gap-2">
+                                  {spellCount > 0 && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => loadSpellsFromCharacter(character.id)}
+                                    >
+                                      Load Spells
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          
+                          {spellCount > 0 && (
+                            <CardContent className="space-y-3">
+                              {/* Spell breakdown by path */}
+                              <div>
+                                <span className="text-sm font-medium text-muted-foreground">Spells by Path:</span>
+                                <div className="flex flex-wrap gap-2 mt-1">
+                                  {Object.entries(spellsByPath).map(([path, spells]: [string, any]) => (
+                                    <Badge key={path} variant="outline" className="text-xs">
+                                      {path}: {spells.length}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Spell list preview */}
+                              <div>
+                                <span className="text-sm font-medium text-muted-foreground">Recent Spells:</span>
+                                <div className="mt-1 space-y-1">
+                                  {character.spellbook?.slice(0, 3).map((spell: any) => (
+                                    <div key={spell.id} className="flex items-center justify-between text-sm bg-muted/50 rounded p-2">
+                                      <span>{spell.name}</span>
+                                      <div className="flex gap-1">
+                                        <Badge className={`${rarityColors[spell.rarity]} text-xs`}>
+                                          {spell.rarity}
+                                        </Badge>
+                                        <Badge variant="outline" className="text-xs">
+                                          {spell.category}
+                                        </Badge>
+                                      </div>
+                                    </div>
+                                  ))}
+                                  {spellCount > 3 && (
+                                    <div className="text-xs text-muted-foreground text-center pt-1">
+                                      ... and {spellCount - 3} more spells
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </CardContent>
+                          )}
+                          
+                          {spellCount === 0 && (
+                            <CardContent className="text-center py-4">
+                              <p className="text-sm text-muted-foreground">No spells in spellbook</p>
+                            </CardContent>
+                          )}
+                        </Card>
+                      )
+                    })}
+                  </div>
                 </div>
               )}
             </CardContent>

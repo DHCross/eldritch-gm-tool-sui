@@ -7,7 +7,8 @@ import PlayerCharacterGenerator from './components/PlayerCharacterGenerator'
 import BattleCalculator from './components/BattleCalculator'
 import MonsterGenerator from './components/MonsterGenerator'
 import SpellReference from './components/SpellReference'
-import { Crown, UserFocus, Dice6, User, Sword, Heart, Sparkles } from "@phosphor-icons/react"
+import CharacterRoster from './components/CharacterRoster'
+import { Crown, UserFocus, Dice6, User, Sword, Heart, Sparkles, Users } from "@phosphor-icons/react"
 
 function App() {
   return (
@@ -88,7 +89,7 @@ function App() {
           
           <TabsContent value="player" className="space-y-6">
             <Tabs defaultValue="character" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6 h-14 bg-card/50">
+              <TabsList className="grid w-full grid-cols-3 mb-6 h-14 bg-card/50">
                 <TabsTrigger 
                   value="character" 
                   className="px-4 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground flex flex-col items-center justify-center gap-1"
@@ -103,6 +104,13 @@ function App() {
                   <Sparkles size={24} />
                   <span className="text-sm font-medium">Spells</span>
                 </TabsTrigger>
+                <TabsTrigger 
+                  value="roster" 
+                  className="px-4 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground flex flex-col items-center justify-center gap-1"
+                >
+                  <Users size={24} />
+                  <span className="text-sm font-medium">Roster</span>
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="character">
@@ -111,6 +119,10 @@ function App() {
               
               <TabsContent value="spells">
                 <SpellReference />
+              </TabsContent>
+              
+              <TabsContent value="roster">
+                <CharacterRoster />
               </TabsContent>
             </Tabs>
           </TabsContent>

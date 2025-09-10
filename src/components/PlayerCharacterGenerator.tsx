@@ -6,8 +6,10 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Input } from "@/components/ui/input"
+import { useKV } from '@github/spark/hooks'
 import { toast } from "sonner"
-import { Download, Copy, Sparkles } from "@phosphor-icons/react"
+import { Download, Copy, Sparkles, Save, Users } from "@phosphor-icons/react"
 
 // Game data
 const dieRanks = ["d4", "d6", "d8", "d10", "d12"]
@@ -142,6 +144,8 @@ const mv = (r: string) => r && r.startsWith("d") ? parseInt(r.slice(1), 10) : 0
 const fnum = (v: string) => v ? parseInt(String(v).replace("+", ""), 10) : 0
 
 interface Character {
+  id?: string
+  name?: string
   race: string
   class: string
   level: number
@@ -156,6 +160,10 @@ interface Character {
   flaws: string[]
   classFeats: string[]
   equipment: string[]
+  spellbook?: any[]
+  magicPath?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export default function PlayerCharacterGenerator() {
@@ -170,6 +178,9 @@ export default function PlayerCharacterGenerator() {
   const [enforceSoftcaps, setEnforceSoftcaps] = useState<boolean>(true)
   const [showWeakness, setShowWeakness] = useState<boolean>(true)
   const [character, setCharacter] = useState<Character | null>(null)
+  const [characterName, setCharacterName] = useState<string>('')
+  const [savedCharacters, setSavedCharacters] = useKV('saved-characters', {} as Record<string, Character>)
+  const [selectedSpells, setSelectedSpells] = useKV('selected-spells', [] as any[])
 
   const showMagicPath = characterClass && magicPathsByClass[characterClass as keyof typeof magicPathsByClass] && characterClass !== 'Adept' && characterClass !== 'Mystic'
   const canUseRookieProfile = level === 1
@@ -450,8 +461,40 @@ export default function PlayerCharacterGenerator() {
       }
     }
 
+    // Add spell information for casters
+    if (casterClasses.includes(characterClass)) {
+      ch.magicPath = magicPath
+    }
+
     setCharacter(ch)
     toast.success('Character generated successfully!')
+  }
+
+  const saveCharacter = () => {
+    if (!character) {
+      toast.error('No character to save!')
+      return
+    }
+
+    const characterId = character.id || `char_${Date.now()}`
+    const now = new Date().toISOString()
+    
+    const characterToSave: Character = {
+      ...character,
+      id: characterId,
+      name: characterName.trim() || `${character.race} ${character.class}`,
+      spellbook: casterClasses.includes(character.class) ? [...selectedSpells] : undefined,
+      createdAt: character.createdAt || now,
+      updatedAt: now
+    }
+
+    setSavedCharacters(current => ({
+      ...current,
+      [characterId]: characterToSave
+    }))
+
+    setCharacter(characterToSave)
+    toast.success(`Character "${characterToSave.name}" saved to roster!`)
   }
 
   const exportMarkdown = () => {
@@ -495,6 +538,28 @@ export default function PlayerCharacterGenerator() {
     md += `**Flaws:**\n${character.flaws.length ? character.flaws.map(f => `- ${f}`).join('\n') : '- None'}\n\n`
     
     md += `### Class Feats\n${character.classFeats.map(f => `- ${f}`).join('\n')}\n\n`
+    
+    // Add spellbook if character is a caster and has spells
+    if (casterClasses.includes(character.class) && selectedSpells.length > 0) {
+      md += `### Spellbook (${selectedSpells.length} spells)\n\n`
+      
+      // Group by path
+      const spellsByPath = selectedSpells.reduce((acc: any, spell: any) => {
+        if (!acc[spell.path]) acc[spell.path] = []
+        acc[spell.path].push(spell)
+        return acc
+      }, {})
+      
+      Object.entries(spellsByPath).forEach(([path, spells]: [string, any]) => {
+        md += `#### ${path} (${spells.length} spells)\n\n`
+        spells.forEach((spell: any) => {
+          md += `**${spell.name}** _(${spell.rarity}, ${spell.category})_\n`
+          md += `- **Potency:** ${spell.potency} | **Challenge:** ${spell.challenge}\n`
+          md += `- **Maintenance:** ${spell.maintenance} | **Failure:** ${spell.failure}\n`
+          md += `- ${spell.description}\n\n`
+        })
+      })
+    }
     
     md += `### Equipment\n${character.equipment.map(e => `- ${e}`).join('\n')}\n\n`
     
@@ -540,7 +605,78 @@ export default function PlayerCharacterGenerator() {
     const bandStr = `${band[0]} to ${band[1]}`
     
     let md = `# ${character.race} ${character.class} (Level ${character.displayLevel})\n\n`
-    // ... (same markdown generation as above)
+    md += `### Core Stats\n`
+    md += `- **SP:** ${character.pools.spirit} | **Active DP:** ${character.pools.active} | **Passive DP:** ${character.pools.passive}\n`
+    md += `- **Mastery Die:** ${character.masteryDie}\n`
+    md += `- **Total CP Value:** ${totals.total} (Expected Range for Level ${character.displayLevel}: ${bandStr})\n\n`
+    
+    md += `### Abilities\n`
+    for (const a of abilities) {
+      const sp = specialties[a as keyof typeof specialties].map(s => {
+        const fl = focuses[s as keyof typeof focuses].map(fx => {
+          const v = fnum(character.focuses[a][fx])
+          return v ? `${fx} +${v}` : null
+        }).filter(Boolean).join(', ')
+        return `${s} **${character.specialties[a][s]}**${fl ? ` (${fl})` : ''}`
+      }).join(', ')
+      md += `**${a} ${character.abilities[a]}** → ${sp}.\n`
+    }
+    
+    md += `\n### Actions\n`
+    md += `- **Melee Attack:** ${character.actions.meleeAttack}\n`
+    md += `- **Ranged Attack:** ${character.actions.rangedAttack}\n`
+    md += `- **Perception Check:** ${character.actions.perceptionCheck}\n`
+    if (casterClasses.includes(character.class)) {
+      md += `- **Magic Attack:** ${character.actions.magicAttack}\n`
+    }
+    
+    md += `\n### Advantages & Flaws\n`
+    md += `**Advantages:**\n${character.advantages.map(a => `- ${a}`).join('\n')}\n\n`
+    md += `**Flaws:**\n${character.flaws.length ? character.flaws.map(f => `- ${f}`).join('\n') : '- None'}\n\n`
+    
+    md += `### Class Feats\n${character.classFeats.map(f => `- ${f}`).join('\n')}\n\n`
+    
+    // Add spellbook if character is a caster and has spells
+    if (casterClasses.includes(character.class) && selectedSpells.length > 0) {
+      md += `### Spellbook (${selectedSpells.length} spells)\n\n`
+      
+      // Group by path
+      const spellsByPath = selectedSpells.reduce((acc: any, spell: any) => {
+        if (!acc[spell.path]) acc[spell.path] = []
+        acc[spell.path].push(spell)
+        return acc
+      }, {})
+      
+      Object.entries(spellsByPath).forEach(([path, spells]: [string, any]) => {
+        md += `#### ${path} (${spells.length} spells)\n\n`
+        spells.forEach((spell: any) => {
+          md += `**${spell.name}** _(${spell.rarity}, ${spell.category})_\n`
+          md += `- **Potency:** ${spell.potency} | **Challenge:** ${spell.challenge}\n`
+          md += `- **Maintenance:** ${spell.maintenance} | **Failure:** ${spell.failure}\n`
+          md += `- ${spell.description}\n\n`
+        })
+      })
+    }
+    
+    md += `### Equipment\n${character.equipment.map(e => `- ${e}`).join('\n')}\n\n`
+    
+    md += `### Character Points Breakdown (Total Value)\n`
+    md += `- **Base Customization:** ${totals.base}\n`
+    md += `- **From Abilities:** ${totals.abilities}\n`
+    md += `- **From Specialties:** ${totals.specialties}\n`
+    md += `- **From Focuses:** ${totals.focuses}\n`
+    md += `- **From Advantages:** ${totals.advantages}\n`
+    md += `- **Total CP Value:** ${totals.total}\n\n`
+    
+    md += `_Note: Total CP Value reflects the character's build balance. Advancement in-game is tracked separately via Earned CP, starting from 0._\n`
+    
+    md += `\n### Level Advancement (Earned CP)\n`
+    md += `| To Reach Level | Total Earned CP Required |\n`
+    md += `| :------------- | :----------------------- |\n`
+    md += `| Level 2        | 100                      |\n`
+    md += `| Level 3        | 200                      |\n`
+    md += `| Level 4        | 300                      |\n`
+    md += `| Level 5        | 500                      |\n`
     
     try {
       await navigator.clipboard.writeText(md)
@@ -750,6 +886,55 @@ export default function PlayerCharacterGenerator() {
               </div>
             </div>
           </div>
+
+          {/* Character Name and Save */}
+          {character && (
+            <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <Label htmlFor="character-name">Character Name (optional)</Label>
+                  <Input
+                    id="character-name"
+                    placeholder={`${character.race} ${character.class}`}
+                    value={characterName}
+                    onChange={(e) => setCharacterName(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Button 
+                    onClick={saveCharacter}
+                    className="flex items-center gap-2"
+                  >
+                    <Save size={16} />
+                    Save to Roster
+                  </Button>
+                  {character.id && (
+                    <Badge variant="outline" className="text-xs">
+                      <Users className="w-3 h-3 mr-1" />
+                      In Roster
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              
+              {/* Spell Integration Notice */}
+              {casterClasses.includes(character.class) && (
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded text-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Sparkles className="w-4 h-4 text-blue-600" />
+                    <span className="font-medium text-blue-900">Spell Integration</span>
+                  </div>
+                  <p className="text-blue-800">
+                    {selectedSpells.length > 0 
+                      ? `${selectedSpells.length} spells from your current selection will be saved with this character.`
+                      : 'No spells selected. Visit the Spells tab to add spells to this character\'s spellbook.'
+                    }
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -899,6 +1084,66 @@ export default function PlayerCharacterGenerator() {
                   ))}
                 </ul>
               </div>
+
+              {/* Spellbook for Casters */}
+              {casterClasses.includes(character.class) && (
+                <div className="lg:col-span-2">
+                  <h3 className="font-semibold mb-2">
+                    Spellbook ({selectedSpells.length} spells)
+                    {character.magicPath && <span className="text-muted-foreground"> • {character.magicPath}</span>}
+                  </h3>
+                  {selectedSpells.length > 0 ? (
+                    <div className="space-y-3">
+                      {(() => {
+                        // Group spells by path
+                        const spellsByPath = selectedSpells.reduce((acc: any, spell: any) => {
+                          if (!acc[spell.path]) acc[spell.path] = []
+                          acc[spell.path].push(spell)
+                          return acc
+                        }, {})
+
+                        return Object.entries(spellsByPath).map(([path, spells]: [string, any]) => (
+                          <div key={path}>
+                            <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                              {path} ({spells.length} spells)
+                            </h4>
+                            <div className="grid gap-2">
+                              {spells.map((spell: any) => (
+                                <div key={spell.id} className="flex items-center justify-between p-2 bg-muted/50 rounded text-sm">
+                                  <div>
+                                    <span className="font-medium">{spell.name}</span>
+                                    <span className="text-muted-foreground ml-2">({spell.category})</span>
+                                  </div>
+                                  <div className="flex gap-1">
+                                    <Badge className={
+                                      spell.rarity === 'Common' ? 'bg-gray-100 text-gray-800 border-gray-300' :
+                                      spell.rarity === 'Uncommon' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                                      spell.rarity === 'Esoteric' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                                      spell.rarity === 'Occult' ? 'bg-red-100 text-red-800 border-red-300' :
+                                      'bg-amber-100 text-amber-800 border-amber-300'
+                                    } border text-xs>
+                                      {spell.rarity}
+                                    </Badge>
+                                    <Badge variant="outline" className="text-xs">
+                                      {spell.potency}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))
+                      })()}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 bg-muted/30 rounded-lg">
+                      <Sparkles className="mx-auto mb-2 opacity-50" size={32} />
+                      <p className="text-sm text-muted-foreground">No spells selected</p>
+                      <p className="text-xs text-muted-foreground">Visit the Spells tab to add spells to this character</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Equipment */}
               <div className="lg:col-span-2">
