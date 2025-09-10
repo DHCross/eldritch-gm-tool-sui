@@ -474,6 +474,22 @@ export default function SpellReference() {
     }
   }
 
+  const saveSpellList = () => {
+    if (!spellListName.trim() || selectedSpells.length === 0) {
+      toast.error('Please enter a name and select spells to save')
+      return
+    }
+
+    setSavedSpellLists(current => ({
+      ...current,
+      [spellListName.trim()]: [...selectedSpells]
+    }))
+
+    toast.success(`Saved spell list: ${spellListName}`)
+    setSpellListName('')
+    setSelectedSpells([])
+  }
+
   const deleteSpellList = (listName: string) => {
     setSavedSpellLists(current => {
       const updated = { ...current }
