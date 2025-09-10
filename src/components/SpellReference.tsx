@@ -10,6 +10,7 @@ import { useKV } from '@github/spark/hooks'
 import { MagnifyingGlass, Sparkles, Lightning, Shield, Heart, Plus, Minus, BookOpen, Star, Sword, Check, X, Download } from "@phosphor-icons/react"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 // Comprehensive spell database
 const spellDatabase = {
@@ -77,24 +78,6 @@ const spellDatabase = {
         failure: "Next round spell fizzles"
       },
       {
-        name: "Boil Water",
-        category: "Modify",
-        description: "Rapidly heats water to boiling temperature. Useful for purification, cooking, or creating steam effects.",
-        potency: "d4",
-        challenge: "d4",
-        maintenance: "None",
-        failure: "Next round spell fizzles"
-      },
-      {
-        name: "Breeze",
-        category: "Activate",
-        description: "Generates a controlled wind current. Can cool areas, disperse gases, or provide gentle propulsion.",
-        potency: "d4",
-        challenge: "d4",
-        maintenance: "None",
-        failure: "Next round spell fizzles"
-      },
-      {
         name: "Fire Strike",
         category: "Harm",
         description: "Manipulates existing flames to attack a target. Requires a source of fire within range to function.",
@@ -140,84 +123,6 @@ const spellDatabase = {
         challenge: "d6",
         maintenance: "-2",
         failure: "2 rounds, -1 spirit point"
-      },
-      {
-        name: "Windwalk",
-        category: "Activate",
-        description: "Allows movement through the air on currents of wind. Provides limited flight capabilities.",
-        potency: "d6", 
-        challenge: "d6",
-        maintenance: "-2",
-        failure: "2 rounds, -1 spirit point"
-      }
-    ],
-    Esoteric: [
-      {
-        name: "Fire Elemental",
-        category: "Activate",
-        description: "Summons a being of living flame to serve the caster. The elemental follows commands and fights independently.",
-        potency: "d8",
-        challenge: "d8",
-        maintenance: "-3",
-        failure: "3 rounds, -3 spirit points"
-      },
-      {
-        name: "Stone Armor",
-        category: "Protect",
-        description: "Encases the target in a shell of protective stone. Provides significant damage reduction but reduces mobility.",
-        potency: "d8",
-        challenge: "d8", 
-        maintenance: "-3",
-        failure: "3 rounds, -3 spirit points"
-      },
-      {
-        name: "Whirlpool",
-        category: "Harm",
-        description: "Creates a dangerous vortex in a body of water that can trap and damage creatures caught within.",
-        potency: "d8",
-        challenge: "d8",
-        maintenance: "-3",
-        failure: "3 rounds, -3 spirit points"
-      }
-    ],
-    Occult: [
-      {
-        name: "Whirlwind",
-        category: "Harm",
-        description: "Conjures a powerful tornado that can lift and hurl objects and creatures with tremendous force.",
-        potency: "d10",
-        challenge: "d10",
-        maintenance: "-4",
-        failure: "4 rounds, -4 spirit points"
-      },
-      {
-        name: "Stone Golem",
-        category: "Activate", 
-        description: "Animates stone into a powerful construct that serves the caster. The golem is incredibly durable and strong.",
-        potency: "d10",
-        challenge: "d10",
-        maintenance: "-4",
-        failure: "4 rounds, -4 spirit points"
-      }
-    ],
-    Legendary: [
-      {
-        name: "Elemental Form",
-        category: "Modify",
-        description: "Transforms the caster into a being of pure elemental energy. Grants immunity to physical harm and elemental powers.",
-        potency: "d12",
-        challenge: "d12",
-        maintenance: "-5",
-        failure: "5 rounds, -5 spirit points"
-      },
-      {
-        name: "Tidal Surge",
-        category: "Harm",
-        description: "Summons a massive wave of water that can devastate large areas and sweep away everything in its path.",
-        potency: "d12",
-        challenge: "d12",
-        maintenance: "-5", 
-        failure: "5 rounds, -5 spirit points"
       }
     ]
   },
@@ -251,15 +156,6 @@ const spellDatabase = {
         challenge: "d4",
         maintenance: "None",
         failure: "Next round spell fizzles"
-      },
-      {
-        name: "Teleport Object",
-        category: "Activate",
-        description: "Instantly transports a small object from one location to another within range. Object must be unattended.",
-        potency: "d4",
-        challenge: "d4",
-        maintenance: "None",
-        failure: "Next round spell fizzles"
       }
     ],
     Uncommon: [
@@ -280,84 +176,6 @@ const spellDatabase = {
         challenge: "d6",
         maintenance: "-2",
         failure: "2 rounds, -1 spirit point"
-      },
-      {
-        name: "Summon Monster",
-        category: "Activate",
-        description: "Calls forth a hostile creature from another realm to attack the caster's enemies. The creature acts independently.",
-        potency: "d6",
-        challenge: "d6",
-        maintenance: "-2",
-        failure: "2 rounds, -1 spirit point"
-      },
-      {
-        name: "Phantom Blade",
-        category: "Activate",
-        description: "Conjures a weapon of pure force that can strike both physical and incorporeal targets with equal effectiveness.",
-        potency: "d6",
-        challenge: "d6",
-        maintenance: "-2",
-        failure: "2 rounds, -1 spirit point"
-      }
-    ],
-    Esoteric: [
-      {
-        name: "Dimensional Travel",
-        category: "Activate",
-        description: "Opens a portal to another location or plane of existence, allowing travel across vast distances instantly.",
-        potency: "d8",
-        challenge: "d8",
-        maintenance: "-3",
-        failure: "3 rounds, -3 spirit points"
-      },
-      {
-        name: "Full Body Illusion",
-        category: "Modify",
-        description: "Creates a complete sensory illusion affecting sight, sound, smell, and touch. Nearly indistinguishable from reality.",
-        potency: "d8",
-        challenge: "d8",
-        maintenance: "-3",
-        failure: "3 rounds, -3 spirit points"
-      }
-    ],
-    Occult: [
-      {
-        name: "Mirrored Opponent",
-        category: "Activate",
-        description: "Creates a perfect duplicate of an enemy that fights alongside the caster with all the original's abilities.",
-        potency: "d10",
-        challenge: "d10",
-        maintenance: "-4",
-        failure: "4 rounds, -4 spirit points"
-      },
-      {
-        name: "Waking Terror",
-        category: "Afflict",
-        description: "Manifests the target's deepest fears as a tangible threat that can cause both psychological and physical harm.",
-        potency: "d10",
-        challenge: "d10",
-        maintenance: "-4",
-        failure: "4 rounds, -4 spirit points"
-      }
-    ],
-    Legendary: [
-      {
-        name: "Mass Invisibility",
-        category: "Protect", 
-        description: "Renders a large group completely invisible to all forms of detection. Affects multiple targets simultaneously.",
-        potency: "d12",
-        challenge: "d12",
-        maintenance: "-5",
-        failure: "5 rounds, -5 spirit points"
-      },
-      {
-        name: "Dreamscape",
-        category: "Modify",
-        description: "Traps targets in a realm of living dreams where reality bends to the caster's will and imagination rules supreme.",
-        potency: "d12",
-        challenge: "d12",
-        maintenance: "-5",
-        failure: "5 rounds, -5 spirit points"
       }
     ]
   },
@@ -369,24 +187,6 @@ const spellDatabase = {
         name: "Banish",
         category: "Afflict",
         description: "Forces a creature to retreat or sends an unwilling target away from the caster's presence.",
-        potency: "d4",
-        challenge: "d4",
-        maintenance: "None",
-        failure: "Next round spell fizzles"
-      },
-      {
-        name: "Claw Growth",
-        category: "Modify",
-        description: "Extends and sharpens fingernails into claws, enhancing unarmed strikes with arcane cutting power.",
-        potency: "d4",
-        challenge: "d4",
-        maintenance: "None",
-        failure: "Next round spell fizzles"
-      },
-      {
-        name: "Conjure Weapon",
-        category: "Activate",
-        description: "Materializes a simple weapon from thin air. The weapon lasts until dismissed or the spell ends.",
         potency: "d4",
         challenge: "d4",
         maintenance: "None",
@@ -411,84 +211,6 @@ const spellDatabase = {
         challenge: "d6",
         maintenance: "-2",
         failure: "2 rounds, -1 spirit point"
-      },
-      {
-        name: "Quickened Reflexes",
-        category: "Modify",
-        description: "Dramatically increases the target's reaction time and movement speed, improving combat effectiveness.",
-        potency: "d6",
-        challenge: "d6",
-        maintenance: "-2",
-        failure: "2 rounds, -1 spirit point"
-      },
-      {
-        name: "Strengthen Creature",
-        category: "Modify",
-        description: "Enhances a target's physical capabilities, increasing their strength, endurance, and overall physical prowess.",
-        potency: "d6",
-        challenge: "d6",
-        maintenance: "-2",
-        failure: "2 rounds, -1 spirit point"
-      }
-    ],
-    Esoteric: [
-      {
-        name: "Levitation",
-        category: "Activate",
-        description: "Grants the ability to float and move through the air without need for physical support or propulsion.",
-        potency: "d8",
-        challenge: "d8",
-        maintenance: "-3",
-        failure: "3 rounds, -3 spirit points"
-      },
-      {
-        name: "Spatial Warp",
-        category: "Modify",
-        description: "Distorts space around the caster, making distances longer or shorter and confusing spatial relationships.",
-        potency: "d8",
-        challenge: "d8",
-        maintenance: "-3",
-        failure: "3 rounds, -3 spirit points"
-      }
-    ],
-    Occult: [
-      {
-        name: "Loop Time",
-        category: "Modify",
-        description: "Creates a temporal loop that repeats a brief period, allowing multiple attempts at the same action.",
-        potency: "d10",
-        challenge: "d10",
-        maintenance: "-4",
-        failure: "4 rounds, -4 spirit points"
-      },
-      {
-        name: "Monster Form",
-        category: "Modify",
-        description: "Transforms the caster into a powerful monstrous creature with enhanced abilities and natural weapons.",
-        potency: "d10",
-        challenge: "d10",
-        maintenance: "-4",
-        failure: "4 rounds, -4 spirit points"
-      }
-    ],
-    Legendary: [
-      {
-        name: "Time Halt",
-        category: "Modify",
-        description: "Stops the flow of time for everything except the caster, allowing actions while the world is frozen.",
-        potency: "d12",
-        challenge: "d12",
-        maintenance: "-5",
-        failure: "5 rounds, -5 spirit points"
-      },
-      {
-        name: "Petrify",
-        category: "Afflict",
-        description: "Transforms living creatures into stone, preserving them perfectly while rendering them completely immobile.",
-        potency: "d12",
-        challenge: "d12",
-        maintenance: "-5",
-        failure: "5 rounds, -5 spirit points"
       }
     ]
   },
@@ -513,24 +235,6 @@ const spellDatabase = {
         challenge: "d4",
         maintenance: "None",
         failure: "Next round spell fizzles"
-      },
-      {
-        name: "Ethereal Sight",
-        category: "Activate",
-        description: "Allows vision into the ethereal plane, revealing spirits, ghosts, and other incorporeal entities.",
-        potency: "d4",
-        challenge: "d4",
-        maintenance: "None",
-        failure: "Next round spell fizzles"
-      },
-      {
-        name: "Soothing Balm",
-        category: "Restore",
-        description: "Heals minor wounds and provides temporary immunity to fear effects through calming mental influence.",
-        potency: "d4",
-        challenge: "d4",
-        maintenance: "None",
-        failure: "Next round spell fizzles"
       }
     ],
     Uncommon: [
@@ -542,84 +246,6 @@ const spellDatabase = {
         challenge: "d6",
         maintenance: "-2",
         failure: "2 rounds, -1 spirit point"
-      },
-      {
-        name: "Mind Blade",
-        category: "Harm",
-        description: "Channels mental energy into a weapon of pure thought that can cut through both matter and spirit.",
-        potency: "d6",
-        challenge: "d6",
-        maintenance: "-2",
-        failure: "2 rounds, -1 spirit point"
-      },
-      {
-        name: "See Aura",
-        category: "Activate",
-        description: "Reveals the spiritual aura surrounding creatures, showing their emotional state and magical nature.",
-        potency: "d6",
-        challenge: "d6",
-        maintenance: "-2",
-        failure: "2 rounds, -1 spirit point"
-      }
-    ],
-    Esoteric: [
-      {
-        name: "Mind Read",
-        category: "Activate",
-        description: "Accesses the surface thoughts of a target, revealing their current intentions and immediate memories.",
-        potency: "d8",
-        challenge: "d8",
-        maintenance: "-3",
-        failure: "3 rounds, -3 spirit points"
-      },
-      {
-        name: "Shadow Walk",
-        category: "Activate",
-        description: "Allows movement through the shadow realm, enabling travel between distant locations via darkness.",
-        potency: "d8",
-        challenge: "d8",
-        maintenance: "-3",
-        failure: "3 rounds, -3 spirit points"
-      }
-    ],
-    Occult: [
-      {
-        name: "Dreamwalk",
-        category: "Activate",
-        description: "Enters the dreams of sleeping targets, allowing communication and influence within their subconscious.",
-        potency: "d10",
-        challenge: "d10",
-        maintenance: "-4",
-        failure: "4 rounds, -4 spirit points"
-      },
-      {
-        name: "Ethereal Projection",
-        category: "Activate",
-        description: "Separates the spirit from the body, allowing exploration as an incorporeal entity while the body remains protected.",
-        potency: "d10",
-        challenge: "d10",
-        maintenance: "-4",
-        failure: "4 rounds, -4 spirit points"
-      }
-    ],
-    Legendary: [
-      {
-        name: "Mind Control",
-        category: "Afflict",
-        description: "Takes complete control of a target's mind and actions, forcing them to obey the caster's will absolutely.",
-        potency: "d12",
-        challenge: "d12",
-        maintenance: "-5",
-        failure: "5 rounds, -5 spirit points"
-      },
-      {
-        name: "Form of Night",
-        category: "Modify",
-        description: "Transforms the caster into living shadow, granting immunity to physical attacks and the power of darkness.",
-        potency: "d12",
-        challenge: "d12",
-        maintenance: "-5",
-        failure: "5 rounds, -5 spirit points"
       }
     ]
   },
@@ -637,15 +263,6 @@ const spellDatabase = {
         failure: "Next round spell fizzles"
       },
       {
-        name: "Aura of Restoration",
-        category: "Restore",
-        description: "Creates a healing aura that continuously restores health to allies within range through divine blessing.",
-        potency: "d4",
-        challenge: "d4",
-        maintenance: "None",
-        failure: "Next round spell fizzles"
-      },
-      {
         name: "Repel Undead",
         category: "Protect",
         description: "Creates a divine barrier that forces undead creatures to flee or prevents them from approaching.",
@@ -653,104 +270,6 @@ const spellDatabase = {
         challenge: "d4",
         maintenance: "None",
         failure: "Next round spell fizzles"
-      },
-      {
-        name: "Word of Cleansing",
-        category: "Restore",
-        description: "Speaks a holy word that purifies the target, removing poisons, diseases, and minor curses.",
-        potency: "d4",
-        challenge: "d4",
-        maintenance: "None",
-        failure: "Next round spell fizzles"
-      }
-    ],
-    Uncommon: [
-      {
-        name: "Blessing of Health",
-        category: "Restore",
-        description: "Bestows divine protection that not only heals wounds but also grants resistance to disease and poison.",
-        potency: "d6",
-        challenge: "d6",
-        maintenance: "-2",
-        failure: "2 rounds, -1 spirit point"
-      },
-      {
-        name: "Consecrate Ground",
-        category: "Protect",
-        description: "Blesses an area with holy energy, making it painful for evil creatures and empowering divine magic.",
-        potency: "d6",
-        challenge: "d6",
-        maintenance: "-2",
-        failure: "2 rounds, -1 spirit point"
-      },
-      {
-        name: "Banish Undead",
-        category: "Harm",
-        description: "Channels holy power to destroy or banish undead creatures, causing them to flee back to their realm.",
-        potency: "d6",
-        challenge: "d6",
-        maintenance: "-2",
-        failure: "2 rounds, -1 spirit point"
-      }
-    ],
-    Esoteric: [
-      {
-        name: "Mystical Regeneration",
-        category: "Restore",
-        description: "Grants accelerated healing that can regrow lost limbs and restore the body to perfect health over time.",
-        potency: "d8",
-        challenge: "d8",
-        maintenance: "-3",
-        failure: "3 rounds, -3 spirit points"
-      },
-      {
-        name: "Remove Curse",
-        category: "Restore",
-        description: "Breaks powerful curses and magical compulsions through the intervention of divine power.",
-        potency: "d8",
-        challenge: "d8",
-        maintenance: "-3",
-        failure: "3 rounds, -3 spirit points"
-      }
-    ],
-    Occult: [
-      {
-        name: "Entreat Entity",
-        category: "Activate",
-        description: "Calls upon a divine being for aid, potentially gaining their direct intervention in mortal affairs.",
-        potency: "d10",
-        challenge: "d10",
-        maintenance: "-4",
-        failure: "4 rounds, -4 spirit points"
-      },
-      {
-        name: "Soul Transmutation",
-        category: "Modify",
-        description: "Alters the fundamental nature of a soul, potentially changing alignment, personality, or spiritual essence.",
-        potency: "d10",
-        challenge: "d10",
-        maintenance: "-4",
-        failure: "4 rounds, -4 spirit points"
-      }
-    ],
-    Legendary: [
-      {
-        name: "Regeneration",
-        category: "Restore",
-        description: "Grants permanent regenerative abilities that allow continuous healing and immunity to most forms of harm.",
-        potency: "d12",
-        challenge: "d12",
-        maintenance: "-5",
-        failure: "5 rounds, -5 spirit points"
-      },
-      {
-        name: "Commune with the Dead",
-        category: "Activate",
-        description: "Establishes communication with deceased souls, allowing conversation and knowledge gathering from beyond.",
-        potency: "d12",
-        challenge: "d12",
-        maintenance: "-5",
-        failure: "5 rounds, -5 spirit points"
       }
     ]
   },
@@ -775,45 +294,9 @@ const spellDatabase = {
         challenge: "d4",
         maintenance: "None",
         failure: "Next round spell fizzles"
-      },
-      {
-        name: "Summon Animal",
-        category: "Activate",
-        description: "Calls a natural animal to aid the caster. The animal arrives quickly and follows simple commands.",
-        potency: "d4",
-        challenge: "d4",
-        maintenance: "None",
-        failure: "Next round spell fizzles"
-      },
-      {
-        name: "Eyes of the Eagle",
-        category: "Modify",
-        description: "Grants supernatural visual acuity, allowing the target to see clearly at great distances like a bird of prey.",
-        potency: "d4",
-        challenge: "d4",
-        maintenance: "None",
-        failure: "Next round spell fizzles"
       }
     ],
     Uncommon: [
-      {
-        name: "Animate Flora",
-        category: "Activate",
-        description: "Brings plants to life, allowing them to move and act according to the druid's will while retaining their plant nature.",
-        potency: "d6",
-        challenge: "d6",
-        maintenance: "-2",
-        failure: "2 rounds, -1 spirit point"
-      },
-      {
-        name: "Control Animal",
-        category: "Afflict",
-        description: "Exerts direct mental control over a natural animal, forcing it to obey the caster's commands.",
-        potency: "d6",
-        challenge: "d6",
-        maintenance: "-2",
-        failure: "2 rounds, -1 spirit point"
-      },
       {
         name: "Shapeshift",
         category: "Modify",
@@ -822,66 +305,6 @@ const spellDatabase = {
         challenge: "d6",
         maintenance: "-2",
         failure: "2 rounds, -1 spirit point"
-      }
-    ],
-    Esoteric: [
-      {
-        name: "Plant Meld",
-        category: "Activate",
-        description: "Allows the caster to merge with large plants or trees, hiding within them and sharing their senses.",
-        potency: "d8",
-        challenge: "d8",
-        maintenance: "-3",
-        failure: "3 rounds, -3 spirit points"
-      },
-      {
-        name: "Speak with Nature",
-        category: "Activate",
-        description: "Enables communication with all forms of natural life, from the smallest insects to the mightiest trees.",
-        potency: "d8",
-        challenge: "d8",
-        maintenance: "-3",
-        failure: "3 rounds, -3 spirit points"
-      }
-    ],
-    Occult: [
-      {
-        name: "Animal Transformation",
-        category: "Modify",
-        description: "Permanently transforms a target into a natural animal, potentially reversible only with powerful magic.",
-        potency: "d10",
-        challenge: "d10",
-        maintenance: "-4",
-        failure: "4 rounds, -4 spirit points"
-      },
-      {
-        name: "Nature's Blessing",
-        category: "Restore",
-        description: "Calls upon the power of nature itself to provide healing, protection, and enhancement to allies.",
-        potency: "d10",
-        challenge: "d10",
-        maintenance: "-4",
-        failure: "4 rounds, -4 spirit points"
-      }
-    ],
-    Legendary: [
-      {
-        name: "Plant Mastery",
-        category: "Activate",
-        description: "Grants complete control over all plant life in a vast area, commanding forests and jungles like extensions of will.",
-        potency: "d12",
-        challenge: "d12",
-        maintenance: "-5",
-        failure: "5 rounds, -5 spirit points"
-      },
-      {
-        name: "Magical Transformation",
-        category: "Modify",
-        description: "Transforms targets into magical creatures or beings, potentially granting supernatural abilities permanently.",
-        potency: "d12",
-        challenge: "d12",
-        maintenance: "-5",
-        failure: "5 rounds, -5 spirit points"
       }
     ]
   }
@@ -915,8 +338,6 @@ const magicPathsByClass = {
 
 // Helper function to calculate spell count based on competence and expertise
 const calculateSpellCount = (competence: string, expertise: string, characterClass: string) => {
-  const competenceValue = parseInt(competence.replace('d', ''))
-  const expertiseValue = parseInt(expertise.replace('d', ''))
   const competenceSteps = Math.max(0, ['d4', 'd6', 'd8', 'd10', 'd12'].indexOf(competence))
   const expertiseSteps = Math.max(0, ['d4', 'd6', 'd8', 'd10', 'd12'].indexOf(expertise))
   
@@ -954,7 +375,6 @@ export default function SpellReference() {
   const [savedSpellLists, setSavedSpellLists] = useKV('saved-spell-lists', {} as Record<string, any[]>)
   const [selectedCharacterClass, setSelectedCharacterClass] = useState('')
   const [selectedLevel, setSelectedLevel] = useState('')
-  const [showCharacterSuggestions, setShowCharacterSuggestions] = useState(false)
 
   const allSpells = useMemo(() => {
     const spells: any[] = []
@@ -1016,12 +436,14 @@ export default function SpellReference() {
     
     setSpellListName('')
     clearSelection()
+    toast.success('Spell list saved!')
   }
 
   const loadSpellList = (listName: string) => {
     const list = savedSpellLists[listName]
     if (list) {
       setSelectedSpells([...list])
+      toast.success(`Loaded spell list: ${listName}`)
     }
   }
 
@@ -1031,6 +453,7 @@ export default function SpellReference() {
       delete updated[listName]
       return updated
     })
+    toast.success(`Deleted spell list: ${listName}`)
   }
 
   const getSpellsByPath = (pathName: string) => {
@@ -1166,8 +589,8 @@ export default function SpellReference() {
                 <div>
                   <Label htmlFor="char-class">Character Class</Label>
                   <Select value={selectedCharacterClass} onValueChange={setSelectedCharacterClass}>
-                    <SelectTrigger id="char-class">
-                      <SelectValue placeholder="Select class" />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Class" />
                     </SelectTrigger>
                     <SelectContent>
                       {characterClasses.map(cls => (
@@ -1176,11 +599,12 @@ export default function SpellReference() {
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div>
                   <Label htmlFor="char-level">Character Level</Label>
                   <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                    <SelectTrigger id="char-level">
-                      <SelectValue placeholder="Select level" />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Level" />
                     </SelectTrigger>
                     <SelectContent>
                       {[1, 2, 3, 4, 5].map(level => (
@@ -1189,53 +613,40 @@ export default function SpellReference() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex items-end">
-                  <Button
-                    onClick={() => setShowCharacterSuggestions(!showCharacterSuggestions)}
-                    variant="outline"
-                    disabled={!selectedCharacterClass}
-                    className="w-full"
-                  >
-                    {showCharacterSuggestions ? 'Hide' : 'Show'} Suggestions
-                  </Button>
+
+                <div>
+                  <Label htmlFor="char-path">Filter by Available Paths</Label>
+                  <Select value={selectedPath} onValueChange={setSelectedPath}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All available paths" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Available Paths</SelectItem>
+                      {selectedCharacterClass && getAvailablePathsForClass(selectedCharacterClass).map(path => (
+                        <SelectItem key={path} value={path}>{path}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
-              {/* Character-specific Suggestions */}
-              {showCharacterSuggestions && selectedCharacterClass && (
-                <Card className="bg-accent/20">
+              {/* Character Suggestions */}
+              {selectedCharacterClass && (
+                <Card className="bg-muted/50">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg">Suggestions for {selectedCharacterClass} Level {selectedLevel || '1'}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
                       {generateCharacterSuggestions().map((suggestion, index) => (
-                        <p key={index} className="text-sm" dangerouslySetInnerHTML={{ __html: suggestion }} />
+                        <div key={index} className="text-sm">{suggestion}</div>
                       ))}
                     </div>
                   </CardContent>
                 </Card>
               )}
 
-              {/* Path Filter for Character */}
-              {selectedCharacterClass && (
-                <div>
-                  <Label htmlFor="char-path">Filter by Available Paths</Label>
-                  <Select value={selectedPath} onValueChange={setSelectedPath}>
-                    <SelectTrigger id="char-path">
-                      <SelectValue placeholder="All available paths" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Available Paths</SelectItem>
-                      {getAvailablePathsForClass(selectedCharacterClass).map(path => (
-                        <SelectItem key={path} value={path}>{path}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              {/* Quick Actions */}
+              {/* Quick Filters for Character Building */}
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
