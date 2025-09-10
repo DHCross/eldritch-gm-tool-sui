@@ -605,8 +605,6 @@ export default function PlayerCharacterGenerator() {
     const bandStr = `${band[0]} to ${band[1]}`
     
     let md = `# ${character.race} ${character.class} (Level ${character.displayLevel})\n\n`
-                </SelectContent>
-              </Select>
     md += `- **Mastery Die:** ${character.masteryDie}\n`
     md += `- **Total CP Value:** ${totals.total} (Expected Range for Level ${character.displayLevel}: ${bandStr})\n\n`
     
