@@ -464,7 +464,6 @@ export default function PlayerCharacterGenerator() {
 
     // Add spell information for casters
     if (casterClasses.includes(characterClass)) {
-      ch.magicPath = magicPath || (characterClass === 'Adept' ? 'Arcanum' : characterClass === 'Mystic' ? 'Mysticism' : magicPath)
       
       // Calculate recommended spell count based on abilities
       const competenceSteps = Math.max(0, dieRanks.indexOf(ch.abilities.Competence))
@@ -478,6 +477,7 @@ export default function PlayerCharacterGenerator() {
       
       ch.recommendedSpellCount = Math.max(2, recommendedSpellCount)
     }
+    }
 
     setCharacter(ch)
     toast.success('Character generated successfully!')
@@ -490,7 +490,6 @@ export default function PlayerCharacterGenerator() {
     }
 
     const characterId = character.id || `char_${Date.now()}`
-    const now = new Date().toISOString()
     
     const characterToSave: Character = {
       ...character,
@@ -937,11 +936,12 @@ export default function PlayerCharacterGenerator() {
                     <span className="font-medium text-blue-900">Spell Integration</span>
                   </div>
                   <div className="space-y-2 text-blue-800">
-                    <p>
+                  <div className="space-y-2 text-blue-800">
+                    <p>recommendedSpellCount || 'Unknown'} 
                       <strong>Recommended Spells:</strong> {character.recommendedSpellCount || 'Unknown'} 
                       {character.magicPath && <span> • <strong>Magic Path:</strong> {character.magicPath}</span>}
                     </p>
-                    <p>
+                    <p>> 0 
                       {selectedSpells.length > 0 
                         ? `${selectedSpells.length} spells from your current selection will be saved with this character.`
                         : 'No spells selected. Visit the Spells tab to build this character\'s spellbook.'
@@ -952,8 +952,7 @@ export default function PlayerCharacterGenerator() {
                         Note: You have {selectedSpells.length} spells selected, but {character.recommendedSpellCount} are recommended for this character.
                       </p>
                     )}
-                    <div className="flex items-center gap-3 pt-2 border-t border-blue-200">
-                      <Button
+                  </div>
                         variant="outline"
                         size="sm"
                         onClick={() => {
@@ -961,23 +960,23 @@ export default function PlayerCharacterGenerator() {
                           toast.info('Visit the Spells tab and use the Character Builder to auto-select spells for this character.')
                         }}
                         className="flex items-center gap-2 text-blue-700 border-blue-300 hover:bg-blue-100"
-                      >
-                        <Sparkles className="w-4 h-4" />
-                        Auto-Select Spells
-                      </Button>
-                      <span className="text-xs text-blue-600">
-                        Get spell suggestions based on this character's class and level
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
       {/* Character Display */}
+      {character && ("w-4 h-4" />
+        <Card>
+          <CardHeader>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <CardTitle>sed on this character's class and level
+                {character.race} {character.class} — Level {character.displayLevel}
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">Style: {buildStyle}</Badge>
+                {level === 1 && rookieProfile !== 'off' && (
+                  <Badge variant="outline">Rookie: {rookieProfile}</Badge>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
       {character && (
         <Card>
           <CardHeader>
