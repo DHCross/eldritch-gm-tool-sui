@@ -162,6 +162,7 @@ interface Character {
   equipment: string[]
   spellbook?: any[]
   magicPath?: string
+  recommendedSpellCount?: number
   createdAt?: string
   updatedAt?: string
 }
@@ -463,7 +464,19 @@ export default function PlayerCharacterGenerator() {
 
     // Add spell information for casters
     if (casterClasses.includes(characterClass)) {
-      ch.magicPath = magicPath
+      ch.magicPath = magicPath || (characterClass === 'Adept' ? 'Arcanum' : characterClass === 'Mystic' ? 'Mysticism' : magicPath)
+      
+      // Calculate recommended spell count based on abilities
+      const competenceSteps = Math.max(0, dieRanks.indexOf(ch.abilities.Competence))
+      const expertiseSteps = Math.max(0, dieRanks.indexOf(ch.specialties.Competence.Expertise))
+      let recommendedSpellCount = 2 * (competenceSteps + expertiseSteps)
+      
+      // Adepts get half the spells
+      if (characterClass === 'Adept') {
+        recommendedSpellCount = Math.floor(recommendedSpellCount / 2)
+      }
+      
+      ch.recommendedSpellCount = Math.max(2, recommendedSpellCount)
     }
 
     setCharacter(ch)
@@ -923,12 +936,40 @@ export default function PlayerCharacterGenerator() {
                     <Sparkles className="w-4 h-4 text-blue-600" />
                     <span className="font-medium text-blue-900">Spell Integration</span>
                   </div>
-                  <p className="text-blue-800">
-                    {selectedSpells.length > 0 
-                      ? `${selectedSpells.length} spells from your current selection will be saved with this character.`
-                      : 'No spells selected. Visit the Spells tab to add spells to this character\'s spellbook.'
-                    }
-                  </p>
+                  <div className="space-y-2 text-blue-800">
+                    <p>
+                      <strong>Recommended Spells:</strong> {character.recommendedSpellCount || 'Unknown'} 
+                      {character.magicPath && <span> • <strong>Magic Path:</strong> {character.magicPath}</span>}
+                    </p>
+                    <p>
+                      {selectedSpells.length > 0 
+                        ? `${selectedSpells.length} spells from your current selection will be saved with this character.`
+                        : 'No spells selected. Visit the Spells tab to build this character\'s spellbook.'
+                      }
+                    </p>
+                    {character.recommendedSpellCount && selectedSpells.length !== character.recommendedSpellCount && (
+                      <p className="text-amber-700 font-medium">
+                        Note: You have {selectedSpells.length} spells selected, but {character.recommendedSpellCount} are recommended for this character.
+                      </p>
+                    )}
+                    <div className="flex items-center gap-3 pt-2 border-t border-blue-200">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          // Navigate to spell tab with character data
+                          toast.info('Visit the Spells tab and use the Character Builder to auto-select spells for this character.')
+                        }}
+                        className="flex items-center gap-2 text-blue-700 border-blue-300 hover:bg-blue-100"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        Auto-Select Spells
+                      </Button>
+                      <span className="text-xs text-blue-600">
+                        Get spell suggestions based on this character's class and level
+                      </span>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

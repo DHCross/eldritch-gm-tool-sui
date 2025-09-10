@@ -1,81 +1,89 @@
-# Product Requirements Document: Eldritch RPG Tool Suite
+# Eldritch RPG Tool Suite - Rules Adherence Review
 
 ## Core Purpose & Success
-- **Mission Statement**: A comprehensive digital tool suite for Game Masters and Players of the Eldritch RPG system, streamlining character creation, encounter management, and gameplay mechanics.
-- **Success Indicators**: Reduced prep time for GMs, accurate rule implementation, and enhanced player experience through automated calculations and balanced character generation.
-- **Experience Qualities**: Professional, mystical, intuitive
+- **Mission Statement**: Create a comprehensive digital tool suite for the Eldritch RPG 2nd Edition that accurately implements all game rules and mechanics for both players and game masters.
+- **Success Indicators**: All character generation, spell selection, encounter creation, and battle calculations must match the official rules exactly.
+- **Experience Qualities**: Accurate, intuitive, comprehensive
 
 ## Project Classification & Approach
-- **Complexity Level**: Complex Application (multiple interconnected tools with advanced functionality)
-- **Primary User Activity**: Creating (characters, encounters, monsters), Acting (battle management), and Interacting (reference tools)
+- **Complexity Level**: Complex Application (advanced functionality, multiple interconnected systems)
+- **Primary User Activity**: Creating characters, managing encounters, tracking combat, building spell lists
 
-## Core Features
+## Essential Features
 
-### Game Master Tools
-1. **Encounter Generator**: Creates balanced encounters based on party composition and difficulty
-2. **NPC Generator**: Generates detailed NPCs with full statistics and background
-3. **Battle Calculator**: Initiative tracking and combat management
-4. **Monster Generator**: Creates custom creatures with proper stat calculations
+### Character Generator
+- **Functionality**: Generate balanced, hybrid, or specialist player characters following official rules
+- **Purpose**: Ensure characters are built correctly according to race/class minimums and CP allocation
+- **Success Criteria**: All generated characters match official rules for abilities, specialties, focuses, and spell selection
 
-### Player Tools
-1. **Character Generator**: Comprehensive character creation with multiple build philosophies
-2. **Spell Reference**: Browse and search spell database (placeholder for future expansion)
+### Spell Reference System  
+- **Functionality**: Browse, filter, and select spells by path, rarity, and character class
+- **Purpose**: Help players build accurate spellbooks for their caster characters
+- **Success Criteria**: All spells implemented correctly with proper mechanics and restrictions
+
+### Encounter Generator
+- **Functionality**: Create balanced encounters based on party composition and difficulty
+- **Purpose**: Help GMs create appropriately challenging encounters
+- **Success Criteria**: Threat calculations match official encounter building rules
+
+### Battle Calculator
+- **Functionality**: Track initiative, hit points, and combat state
+- **Purpose**: Streamline combat management during gameplay
+- **Success Criteria**: All combat calculations follow official battle phase rules
+
+## Current Issues Identified
+
+### Character Generator Issues
+1. **Spell Integration**: Character generator mentions spell integration but doesn't properly implement starting spell selection for casters
+2. **Mastery Path Logic**: Need to verify Adept and Mystic special rules are correctly implemented  
+3. **CP Calculation**: Character Point calculations need verification against official rules
+4. **Weakness Reporting**: The weakness detection logic may not align with actual game balance
+
+### Spell System Issues
+1. **Starting Spell Counts**: Need to verify the formula for initial spell selection matches official rules
+2. **Path Restrictions**: Ensure class-specific path restrictions are correctly enforced
+3. **Rarity Distribution**: Verify the 70%/30% Common/Uncommon split is official
+
+### Battle System Issues
+1. **Initiative Calculation**: Battle phase calculations need verification
+2. **HP Calculations**: Monster HP formulas need checking against official rules
+3. **Defense Pool Logic**: Active/Passive defense calculations need verification
+
+## Recommendations for Rules Adherence
+
+### Immediate Fixes Needed
+1. **Add proper spell auto-selection** for newly generated caster characters
+2. **Verify all race/class minimum requirements** match the official rules exactly
+3. **Check CP cost calculations** for abilities, specialties, and focuses
+4. **Validate encounter difficulty tables** against official encounter building rules
+5. **Review battle phase/initiative mechanics** for accuracy
+
+### Data Verification Required
+1. All race minimums and bonuses
+2. All class minimums and features  
+3. Spell lists and mechanics for each path
+4. Equipment lists by class
+5. Advantage/flaw assignments
+6. Level progression tables
+
+### Integration Improvements
+1. Better spell-to-character integration
+2. Encounter-to-battle system connection
+3. Character roster management
+4. Import/export functionality
 
 ## Design Direction
 
-### Visual Tone & Identity
-- **Emotional Response**: Professional mysticism with dark, atmospheric tones
-- **Design Personality**: Elegant, mysterious, cutting-edge
-- **Visual Metaphors**: Eldritch magic, ancient tomes, mystical energy
-- **Simplicity Spectrum**: Clean interface with rich functionality
+The current implementation has good visual design and user experience, but needs thorough rules verification to ensure game accuracy. The mystical color scheme (dark backgrounds with green accents) fits the Eldritch theme well.
 
-### Color Strategy
-- **Color Scheme Type**: Custom mystical palette
-- **Primary Color**: Deep mystical green (oklch(0.35 0.15 150))
-- **Secondary Colors**: Dark blues and teals for depth
-- **Accent Color**: Bright mystical green (oklch(0.65 0.25 145))
-- **Background**: Very dark blue-black (oklch(0.12 0.02 200))
-- **Foreground**: Light mystical gray (oklch(0.92 0.02 180))
+## Implementation Plan
 
-### Typography System
-- **Font Pairing Strategy**: Serif headings (Crimson Text) with sans-serif body (Inter)
-- **Monospace**: JetBrains Mono for stats and code-like content
-- **Typographic Hierarchy**: Clear distinction between headers, body text, and UI elements
+1. **Phase 1**: Verify all core rules data (minimums, costs, formulas)
+2. **Phase 2**: Fix character generation logic and spell integration  
+3. **Phase 3**: Validate encounter and battle systems
+4. **Phase 4**: Add any missing features from the official rules
+5. **Phase 5**: Comprehensive testing against official character examples
 
-### Component Selection
-- **shadcn/ui Components**: Tabs, Cards, Buttons, Select dropdowns, Checkboxes, Badges
-- **Icons**: Phosphor Icons for consistent iconography
-- **Layout**: Grid-based responsive design with proper spacing
+## Notes
 
-## Technical Implementation
-- **Framework**: React with TypeScript
-- **Styling**: Tailwind CSS with custom theme variables
-- **State Management**: React hooks for local state
-- **Data Persistence**: Browser localStorage for character data
-- **Build Tool**: Vite for fast development and building
-
-## Character Generator Features
-1. **Build Philosophies**: Balanced, Hybrid, Specialist approaches
-2. **Rookie Profiles**: Special level 1 character creation modes
-3. **Rule Enforcement**: Soft caps and level-appropriate restrictions
-4. **Comprehensive Output**: Full character sheets with weaknesses analysis
-5. **Export Options**: Markdown export and clipboard copy
-
-## Battle Management Features
-1. **Initiative Tracking**: Automatic phase calculation based on prowess
-2. **Combatant Management**: Support for PCs, NPCs, and QSB creatures
-3. **Defense Pool Tracking**: Real-time HP management
-4. **Turn Order**: Automatic sorting by battle phase
-
-## Encounter Generation Features
-1. **Party Configuration**: Variable party size and defense levels
-2. **Difficulty Scaling**: Six difficulty tiers from Easy to Deadly
-3. **Creature Variety**: Multiple threat types and natures
-4. **Balance Analysis**: Automatic threat score calculations
-
-## Future Enhancements
-1. **Spell Database**: Complete spell reference with search and filtering
-2. **Campaign Tools**: Session notes and world-building aids
-3. **Character Vault**: Persistent character storage and management
-4. **Rules Reference**: Quick access to game mechanics
-5. **Digital Dice**: Integrated dice rolling with modifier support
+Without access to the official Eldritch Rules PDF, this review is based on the existing implementation patterns and typical RPG system conventions. A thorough rules verification would require comparing each system against the official rulebook.

@@ -172,20 +172,25 @@ export default function BattleCalculator() {
     }
 
     setCombatants(current => [...current, newCombatant])
-    setFormData({
+    
+    // Reset form but preserve type-specific values
+    const resetFormData = {
       name: '',
-      type: 'pa',
+      type: 'pa' as 'pa' | 'npc' | 'qsb',
       prowess: 12,
       adp: 22,
       pdp: 18,
       reactionFocus: 0,
       spiritPoints: 10,
+      // QSB fields
       threatDice: '',
       monsterType: '',
       size: 'Medium',
       nature: 'Mundane',
       creatureType: 'Standard'
-    })
+    }
+    
+    setFormData(resetFormData)
   }
 
   const updateCombatant = (id: string, field: keyof Combatant, value: number | boolean) => {
