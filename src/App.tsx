@@ -7,7 +7,7 @@ import PlayerCharacterGenerator from './components/PlayerCharacterGenerator'
 import BattleCalculator from './components/BattleCalculator'
 import MonsterGenerator from './components/MonsterGenerator'
 import SpellReference from './components/SpellReference'
-import { Crown, UserFocus, Dice6, User, Swords, Heart, Sparkles } from "@phosphor-icons/react"
+import { Crown, UserFocus, Dice6, User, Sword, Heart, Sparkles } from "@phosphor-icons/react"
 
 function App() {
   return (
@@ -56,7 +56,7 @@ function App() {
                   value="battle" 
                   className="px-2 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground flex flex-col items-center justify-center gap-1"
                 >
-                  <Swords size={20} />
+                  <Sword size={20} />
                   <span className="text-sm font-medium leading-tight">Battle</span>
                 </TabsTrigger>
                 <TabsTrigger 

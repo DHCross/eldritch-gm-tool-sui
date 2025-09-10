@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { useKV } from '@github/spark/hooks'
-import { MagnifyingGlass, Sparkles, Lightning, Shield, Heart, Plus, Minus, BookOpen, Star } from "@phosphor-icons/react"
+import { MagnifyingGlass, Sparkles, Lightning, Shield, Heart, Plus, Minus, BookOpen, Star, Sword } from "@phosphor-icons/react"
 
 // Comprehensive spell database
 const spellDatabase = {
@@ -895,7 +895,7 @@ const rarityColors = {
 
 const categoryIcons = {
   Activate: <Lightning className="w-4 h-4" />,
-  Harm: <Swords className="w-4 h-4" />,
+  Harm: <Sword className="w-4 h-4" />,
   Protect: <Shield className="w-4 h-4" />,
   Restore: <Heart className="w-4 h-4" />,
   Modify: <Sparkles className="w-4 h-4" />,
