@@ -167,6 +167,7 @@ interface Character {
   updatedAt?: string
 }
 
+function PlayerCharacterGenerator() {
   const [race, setRace] = useState<string>('')
   const [characterClass, setCharacterClass] = useState<string>('')
   const [level, setLevel] = useState<number>(1)
