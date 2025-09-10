@@ -167,7 +167,6 @@ interface Character {
   updatedAt?: string
 }
 
-export default function PlayerCharacterGenerator() {
   const [race, setRace] = useState<string>('')
   const [characterClass, setCharacterClass] = useState<string>('')
   const [level, setLevel] = useState<number>(1)
@@ -936,12 +935,11 @@ export default function PlayerCharacterGenerator() {
                     <span className="font-medium text-blue-900">Spell Integration</span>
                   </div>
                   <div className="space-y-2 text-blue-800">
-                  <div className="space-y-2 text-blue-800">
-                    <p>recommendedSpellCount || 'Unknown'} 
+                    <p>
                       <strong>Recommended Spells:</strong> {character.recommendedSpellCount || 'Unknown'} 
                       {character.magicPath && <span> • <strong>Magic Path:</strong> {character.magicPath}</span>}
                     </p>
-                    <p>> 0 
+                    <p>
                       {selectedSpells.length > 0 
                         ? `${selectedSpells.length} spells from your current selection will be saved with this character.`
                         : 'No spells selected. Visit the Spells tab to build this character\'s spellbook.'
@@ -952,32 +950,26 @@ export default function PlayerCharacterGenerator() {
                         Note: You have {selectedSpells.length} spells selected, but {character.recommendedSpellCount} are recommended for this character.
                       </p>
                     )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        // Navigate to spell tab with character data
+                        toast.info('Visit the Spells tab and use the Character Builder to auto-select spells for this character.')
+                      }}
+                      className="flex items-center gap-2 text-blue-700 border-blue-300 hover:bg-blue-100"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      Build Spellbook
+                    </Button>
                   </div>
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          // Navigate to spell tab with character data
-                          toast.info('Visit the Spells tab and use the Character Builder to auto-select spells for this character.')
-                        }}
-                        className="flex items-center gap-2 text-blue-700 border-blue-300 hover:bg-blue-100"
-      {/* Character Display */}
-      {character && ("w-4 h-4" />
-        <Card>
-          <CardHeader>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <CardTitle>sed on this character's class and level
-                {character.race} {character.class} — Level {character.displayLevel}
-              </CardTitle>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">Style: {buildStyle}</Badge>
-                {level === 1 && rookieProfile !== 'off' && (
-                  <Badge variant="outline">Rookie: {rookieProfile}</Badge>
-                )}
-              </div>
+                </div>
+              )}
             </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-      {character && (
+          )}
+
+          {/* Character Display */}
+          {character && (
         <Card>
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1222,3 +1214,5 @@ export default function PlayerCharacterGenerator() {
     </div>
   )
 }
+
+export default PlayerCharacterGenerator
