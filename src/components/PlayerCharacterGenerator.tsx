@@ -476,7 +476,6 @@ interface Character {
       
       ch.recommendedSpellCount = Math.max(2, recommendedSpellCount)
     }
-    }
 
     setCharacter(ch)
     toast.success('Character generated successfully!')
