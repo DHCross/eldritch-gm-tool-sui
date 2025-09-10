@@ -94,6 +94,24 @@ const spellDatabase = {
         challenge: "d4",
         maintenance: "None",
         failure: "Next round spell fizzles"
+      },
+      {
+        name: "Boil Water",
+        category: "Modify",
+        description: "Rapidly heats water to boiling point, useful for purification or creating steam.",
+        potency: "d4",
+        challenge: "d4",
+        maintenance: "None",
+        failure: "Next round spell fizzles"
+      },
+      {
+        name: "Extinguish Flames",
+        category: "Modify", 
+        description: "Snuffs out fires within range, from candles to small bonfires.",
+        potency: "d4",
+        challenge: "d4",
+        maintenance: "None",
+        failure: "Next round spell fizzles"
       }
     ],
     Uncommon: [
@@ -156,6 +174,24 @@ const spellDatabase = {
         challenge: "d4",
         maintenance: "None",
         failure: "Next round spell fizzles"
+      },
+      {
+        name: "Transmute Rock",
+        category: "Modify",
+        description: "Transforms one type of stone into another, allowing creation of valuable materials from common rock.",
+        potency: "d4",
+        challenge: "d4",
+        maintenance: "None",
+        failure: "Next round spell fizzles"
+      },
+      {
+        name: "Teleport Object",
+        category: "Activate",
+        description: "Instantly moves a small object from one location to another within sight range.",
+        potency: "d4",
+        challenge: "d4",
+        maintenance: "None",
+        failure: "Next round spell fizzles"
       }
     ],
     Uncommon: [
@@ -172,6 +208,24 @@ const spellDatabase = {
         name: "Illusory Disguise",
         category: "Modify",
         description: "Changes the appearance of the target to look like someone or something else. Affects visual perception only.",
+        potency: "d6",
+        challenge: "d6",
+        maintenance: "-2",
+        failure: "2 rounds, -1 spirit point"
+      },
+      {
+        name: "Summon Monster",
+        category: "Activate",
+        description: "Conjures a simple creature from chaotic energies to aid the caster in combat or tasks.",
+        potency: "d6",
+        challenge: "d6",
+        maintenance: "-2",
+        failure: "2 rounds, -1 spirit point"
+      },
+      {
+        name: "Phantom Blade",
+        category: "Activate",
+        description: "Creates a weapon of pure dimensional energy that can strike both physical and incorporeal targets.",
         potency: "d6",
         challenge: "d6",
         maintenance: "-2",
@@ -200,6 +254,24 @@ const spellDatabase = {
         challenge: "d4",
         maintenance: "None",
         failure: "Next round spell fizzles"
+      },
+      {
+        name: "Conjure Weapon",
+        category: "Activate",
+        description: "Creates a temporary weapon of pure magical energy that dissipates after combat.",
+        potency: "d4",
+        challenge: "d4",
+        maintenance: "None",
+        failure: "Next round spell fizzles"
+      },
+      {
+        name: "Weaken Object",
+        category: "Modify",
+        description: "Reduces the structural integrity of an object, making it easier to break or destroy.",
+        potency: "d4",
+        challenge: "d4",
+        maintenance: "None",
+        failure: "Next round spell fizzles"
       }
     ],
     Uncommon: [
@@ -207,6 +279,24 @@ const spellDatabase = {
         name: "Invisibility",
         category: "Protect",
         description: "Renders the target completely invisible to visual detection. Does not affect other senses or magical sight.",
+        potency: "d6",
+        challenge: "d6",
+        maintenance: "-2",
+        failure: "2 rounds, -1 spirit point"
+      },
+      {
+        name: "Quickened Reflexes",
+        category: "Modify",
+        description: "Enhances the target's reaction time and movement speed through temporal manipulation.",
+        potency: "d6",
+        challenge: "d6",
+        maintenance: "-2",
+        failure: "2 rounds, -1 spirit point"
+      },
+      {
+        name: "Strengthen Creature",
+        category: "Modify",
+        description: "Temporarily increases a target's physical capabilities and overall constitution.",
         potency: "d6",
         challenge: "d6",
         maintenance: "-2",
@@ -235,6 +325,24 @@ const spellDatabase = {
         challenge: "d4",
         maintenance: "None",
         failure: "Next round spell fizzles"
+      },
+      {
+        name: "Soothing Balm",
+        category: "Restore",
+        description: "Restores health and grants temporary immunity to fear through psychic healing.",
+        potency: "d4",
+        challenge: "d4",
+        maintenance: "None",
+        failure: "Next round spell fizzles"
+      },
+      {
+        name: "Phase Shift",
+        category: "Activate",
+        description: "Briefly shifts the caster slightly out of phase with reality, allowing passage through solid matter.",
+        potency: "d4",
+        challenge: "d4",
+        maintenance: "None",
+        failure: "Next round spell fizzles"
       }
     ],
     Uncommon: [
@@ -242,6 +350,24 @@ const spellDatabase = {
         name: "Mind Shield",
         category: "Protect",
         description: "Creates a barrier around the mind that blocks attempts at mental intrusion, telepathy, and mind reading.",
+        potency: "d6",
+        challenge: "d6",
+        maintenance: "-2",
+        failure: "2 rounds, -1 spirit point"
+      },
+      {
+        name: "Mind Blade",
+        category: "Harm",
+        description: "Channels mental energy into a shimmering blade of psychic force that cuts through both matter and spirit.",
+        potency: "d6",
+        challenge: "d6",
+        maintenance: "-2",
+        failure: "2 rounds, -1 spirit point"
+      },
+      {
+        name: "See Aura",
+        category: "Activate",
+        description: "Reveals a creature or object's psychic aura, showing their emotional state and magical nature.",
         potency: "d6",
         challenge: "d6",
         maintenance: "-2",
@@ -270,6 +396,44 @@ const spellDatabase = {
         challenge: "d4",
         maintenance: "None",
         failure: "Next round spell fizzles"
+      },
+      {
+        name: "Aura of Restoration",
+        category: "Restore",
+        description: "Creates an aura that continuously restores passive defense points to allies within range.",
+        potency: "d4",
+        challenge: "d4",
+        maintenance: "None",
+        failure: "Next round spell fizzles"
+      },
+      {
+        name: "Word of Cleansing",
+        category: "Restore",
+        description: "Speaks a divine word that purifies corruption and removes minor ailments or poisons.",
+        potency: "d4",
+        challenge: "d4",
+        maintenance: "None",
+        failure: "Next round spell fizzles"
+      }
+    ],
+    Uncommon: [
+      {
+        name: "Blessing of Health",
+        category: "Restore",
+        description: "Bestows divine favor that restores health and provides immunity to diseases and poisons.",
+        potency: "d6",
+        challenge: "d6",
+        maintenance: "-2",
+        failure: "2 rounds, -1 spirit point"
+      },
+      {
+        name: "Consecrate Ground",
+        category: "Protect",
+        description: "Imbues an area with holy energy that harms undead and provides sanctuary to the faithful.",
+        potency: "d6",
+        challenge: "d6",
+        maintenance: "-2",
+        failure: "2 rounds, -1 spirit point"
       }
     ]
   },
@@ -294,6 +458,24 @@ const spellDatabase = {
         challenge: "d4",
         maintenance: "None",
         failure: "Next round spell fizzles"
+      },
+      {
+        name: "Summon Animal",
+        category: "Activate",
+        description: "Calls a normal animal to your aid, which will obey simple commands for the duration.",
+        potency: "d4",
+        challenge: "d4",
+        maintenance: "None",
+        failure: "Next round spell fizzles"
+      },
+      {
+        name: "Commune with Plants",
+        category: "Activate",
+        description: "Allows communication with plant life, gaining information about the local environment.",
+        potency: "d4",
+        challenge: "d4",
+        maintenance: "None",
+        failure: "Next round spell fizzles"
       }
     ],
     Uncommon: [
@@ -301,6 +483,24 @@ const spellDatabase = {
         name: "Shapeshift",
         category: "Modify",
         description: "Transforms the caster into a natural animal, gaining all the creature's physical abilities and characteristics.",
+        potency: "d6",
+        challenge: "d6",
+        maintenance: "-2",
+        failure: "2 rounds, -1 spirit point"
+      },
+      {
+        name: "Control Animal",
+        category: "Afflict",
+        description: "Exerts dominance over a natural animal, compelling it to follow your commands.",
+        potency: "d6",
+        challenge: "d6",
+        maintenance: "-2",
+        failure: "2 rounds, -1 spirit point"
+      },
+      {
+        name: "Healing Grove",
+        category: "Restore",
+        description: "Creates a sacred grove that accelerates natural healing for all within its bounds.",
         potency: "d6",
         challenge: "d6",
         maintenance: "-2",
@@ -573,10 +773,23 @@ export default function SpellReference() {
     const recommendedCount = calculateSpellCount(competence, expertise, selectedCharacterClass)
 
     suggestions.push(`**Recommended Total Spells:** ${recommendedCount}`)
-    suggestions.push(`**Available Paths:** ${availablePaths.join(', ')}`)
     
+    // Special handling for different classes
     if (selectedCharacterClass === 'Adept') {
-      suggestions.push('**Note:** Adepts receive half the normal spell count but excel at ritual magic and crafting.')
+      suggestions.push(`**Mastery Path:** Arcanum (automatic)`)
+      suggestions.push(`**Available Paths:** ${availablePaths.join(', ')}`)
+      suggestions.push('**Note:** Adepts automatically have Arcanum mastery and receive half the normal spell count but excel at ritual magic and crafting.')
+    } else if (selectedCharacterClass === 'Mystic') {
+      suggestions.push(`**Mastery Path:** Mysticism (only option)`)
+      suggestions.push(`**Available Paths:** Universal, Mysticism`)
+      suggestions.push('**Note:** Mystics specialize exclusively in Mysticism and can learn other paths with special failure mechanics.')
+    } else {
+      suggestions.push(`**Available Paths:** ${availablePaths.join(', ')}`)
+      if (selectedCharacterClass === 'Mage') {
+        suggestions.push('**Note:** Mages must choose one mastery path: Thaumaturgy, Elementalism, or Sorcery.')
+      } else if (selectedCharacterClass === 'Theurgist') {
+        suggestions.push('**Note:** Theurgists must choose one mastery path: Druidry or Hieraticism.')
+      }
     }
 
     // Suggest spell distribution
@@ -587,6 +800,139 @@ export default function SpellReference() {
     }
 
     return suggestions
+  }
+
+  const generateAutoSuggestions = () => {
+    if (!selectedCharacterClass) return []
+
+    const level = parseInt(selectedLevel) || 1
+    const competence = level <= 2 ? 'd6' : level <= 4 ? 'd8' : 'd10'
+    const expertise = level <= 1 ? 'd6' : level <= 3 ? 'd8' : 'd10'
+    const recommendedCount = calculateSpellCount(competence, expertise, selectedCharacterClass)
+
+    const autoSpells = []
+    
+    // All characters get Universal spells
+    const universalCommon = spellDatabase.Universal.Common
+    autoSpells.push(...universalCommon.map(spell => ({
+      ...spell,
+      path: 'Universal',
+      rarity: 'Common',
+      id: `Universal-${spell.name}-Common`
+    })))
+
+    // Calculate remaining spell budget
+    let remainingSpells = recommendedCount - universalCommon.length
+    
+    // Get class-specific paths based on mastery
+    const classPaths = selectedCharacterClass === 'Adept' ? ['Thaumaturgy', 'Elementalism', 'Sorcery']
+                     : selectedCharacterClass === 'Mage' ? ['Thaumaturgy', 'Elementalism', 'Sorcery']
+                     : selectedCharacterClass === 'Mystic' ? ['Mysticism']
+                     : selectedCharacterClass === 'Theurgist' ? ['Druidry', 'Hieraticism']
+                     : []
+
+    // For Mages and Theurgists, prefer their primary path
+    let pathPriority = [...classPaths]
+    if (selectedCharacterClass === 'Mage') {
+      // Rotate to give each path a chance to be primary
+      const rotation = Math.floor(Math.random() * classPaths.length)
+      pathPriority = [...classPaths.slice(rotation), ...classPaths.slice(0, rotation)]
+    } else if (selectedCharacterClass === 'Theurgist') {
+      // Randomly choose between Druidry and Hieraticism as primary
+      pathPriority = Math.random() < 0.5 ? ['Druidry', 'Hieraticism'] : ['Hieraticism', 'Druidry']
+    }
+
+    // Distribute remaining spells across available paths with priority weighting
+    if (remainingSpells > 0 && pathPriority.length > 0) {
+      // Primary path gets 60% of spells, others split the rest
+      const primarySpells = Math.floor(remainingSpells * 0.6)
+      const secondarySpells = remainingSpells - primarySpells
+      const spellsPerSecondary = pathPriority.length > 1 ? Math.floor(secondarySpells / (pathPriority.length - 1)) : 0
+
+      pathPriority.forEach((path, index) => {
+        const pathSpells = spellDatabase[path]
+        if (!pathSpells) return
+
+        const commonSpells = pathSpells.Common || []
+        const uncommonSpells = pathSpells.Uncommon || []
+        
+        let pathSpellCount = index === 0 ? primarySpells : spellsPerSecondary
+        if (pathSpellCount <= 0) return
+        
+        // 70% common, 30% uncommon distribution
+        const commonCount = Math.ceil(pathSpellCount * 0.7)
+        const uncommonCount = pathSpellCount - commonCount
+
+        // Shuffle arrays for variety
+        const shuffledCommon = [...commonSpells].sort(() => Math.random() - 0.5)
+        const shuffledUncommon = [...uncommonSpells].sort(() => Math.random() - 0.5)
+
+        // Add common spells
+        const selectedCommon = shuffledCommon.slice(0, Math.min(commonCount, shuffledCommon.length))
+        autoSpells.push(...selectedCommon.map(spell => ({
+          ...spell,
+          path,
+          rarity: 'Common',
+          id: `${path}-${spell.name}-Common`
+        })))
+
+        // Add uncommon spells
+        const selectedUncommon = shuffledUncommon.slice(0, Math.min(uncommonCount, shuffledUncommon.length))
+        autoSpells.push(...selectedUncommon.map(spell => ({
+          ...spell,
+          path,
+          rarity: 'Uncommon',
+          id: `${path}-${spell.name}-Uncommon`
+        })))
+      })
+    }
+
+    return autoSpells
+  }
+
+  const generateAlternativeSuggestion = (spellToReplace: any) => {
+    if (!selectedCharacterClass) return null
+
+    const pathSpells = spellDatabase[spellToReplace.path]
+    if (!pathSpells) return null
+
+    const raritySpells = pathSpells[spellToReplace.rarity] || []
+    const alternatives = raritySpells.filter(spell => 
+      spell.name !== spellToReplace.name && 
+      !selectedSpells.find(s => s.name === spell.name && s.path === spellToReplace.path)
+    )
+
+    if (alternatives.length === 0) return null
+
+    const randomAlternative = alternatives[Math.floor(Math.random() * alternatives.length)]
+    return {
+      ...randomAlternative,
+      path: spellToReplace.path,
+      rarity: spellToReplace.rarity,
+      id: `${spellToReplace.path}-${randomAlternative.name}-${spellToReplace.rarity}`
+    }
+  }
+
+  const swapSpellSuggestion = (spellToReplace: any) => {
+    const alternative = generateAlternativeSuggestion(spellToReplace)
+    if (!alternative) {
+      toast.error('No alternative spells available for this path/rarity')
+      return
+    }
+
+    setSelectedSpells(current => 
+      current.map(spell => 
+        spell.id === spellToReplace.id ? alternative : spell
+      )
+    )
+    
+    toast.success(`Swapped "${spellToReplace.name}" for "${alternative.name}"`)
+  }
+
+  const applyAutoSuggestions = () => {
+    const suggestions = generateAutoSuggestions()
+    setSelectedSpells(suggestions)
+    toast.success(`Auto-selected ${suggestions.length} spells for ${selectedCharacterClass} Level ${selectedLevel || 1}`)
   }
 
   return (
@@ -689,10 +1035,27 @@ export default function SpellReference() {
                     <CardTitle className="text-lg">Suggestions for {selectedCharacterClass} Level {selectedLevel || '1'}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2">
-                      {generateCharacterSuggestions().map((suggestion, index) => (
-                        <div key={index} className="text-sm">{suggestion}</div>
-                      ))}
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        {generateCharacterSuggestions().map((suggestion, index) => (
+                          <div key={index} className="text-sm">{suggestion}</div>
+                        ))}
+                      </div>
+                      
+                      {/* Auto-Selection Button */}
+                      <div className="flex items-center gap-4 pt-2 border-t border-border">
+                        <Button
+                          onClick={applyAutoSuggestions}
+                          variant="outline"
+                          className="flex items-center gap-2"
+                        >
+                          <Sparkles className="w-4 h-4" />
+                          Auto-Select Suggested Spells
+                        </Button>
+                        <span className="text-xs text-muted-foreground">
+                          Automatically selects a balanced spell list following the recommendations above
+                        </span>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -1025,14 +1388,27 @@ export default function SpellReference() {
                                   </div>
                                   <p className="text-sm text-muted-foreground line-clamp-2">{spell.description}</p>
                                 </div>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => removeSpellFromSelection(spell.id)}
-                                  className="text-destructive hover:bg-destructive hover:text-destructive-foreground ml-2"
-                                >
-                                  <Minus className="w-4 h-4" />
-                                </Button>
+                                <div className="flex items-center gap-2 ml-2">
+                                  {spell.path !== 'Universal' && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => swapSpellSuggestion(spell)}
+                                      className="text-primary hover:bg-primary hover:text-primary-foreground"
+                                      title="Swap for alternative spell"
+                                    >
+                                      <Sparkles className="w-4 h-4" />
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removeSpellFromSelection(spell.id)}
+                                    className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                                  >
+                                    <Minus className="w-4 h-4" />
+                                  </Button>
+                                </div>
                               </div>
                             ))}
                           </div>
