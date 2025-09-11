@@ -489,6 +489,7 @@ function PlayerCharacterGenerator() {
     }
 
     const characterId = character.id || `char_${Date.now()}`
+    const now = Date.now()
     
     const characterToSave: Character = {
       ...character,
