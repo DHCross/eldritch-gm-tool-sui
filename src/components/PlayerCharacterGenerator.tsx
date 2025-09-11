@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 import { useKV } from '@github/spark/hooks'
 import { toast } from "sonner"
-import { Download, Copy, Sparkles, Users } from "@phosphor-icons/react"
+import { Download, Copy, Sparkles, Users, Plus } from "@phosphor-icons/react"
 
 // Game data
 const dieRanks = ["d4", "d6", "d8", "d10", "d12"]
@@ -190,6 +190,44 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
 
   const showMagicPath = characterClass && magicPathsByClass[characterClass as keyof typeof magicPathsByClass] && characterClass !== 'Adept' && characterClass !== 'Mystic'
   const canUseRookieProfile = level === 1
+
+  // Populate fields when a character is selected
+  useEffect(() => {
+    if (selectedCharacter) {
+      setRace(selectedCharacter.race)
+      setCharacterClass(selectedCharacter.class)
+      setLevel(selectedCharacter.level)
+      setCharacterName(selectedCharacter.name || `${selectedCharacter.race} ${selectedCharacter.class}`)
+      setMagicPath(selectedCharacter.magicPath || '')
+      setCharacter(selectedCharacter)
+      
+      // Load spells if character has them - check both spells and spellbook fields
+      const characterSpells = selectedCharacter.spells || selectedCharacter.spellbook || []
+      if (characterSpells.length > 0) {
+        setSelectedSpells(characterSpells)
+      }
+      
+      toast.success('Character loaded for editing')
+    }
+  }, [selectedCharacter])
+
+  const clearForm = () => {
+    setRace('')
+    setCharacterClass('')
+    setLevel(1)
+    setMagicPath('')
+    setBuildStyle('balanced')
+    setRookieProfile('off')
+    setIconicArcane(false)
+    setNpcMode(false)
+    setEnforceSoftcaps(true)
+    setShowWeakness(true)
+    setCharacter(null)
+    setCharacterName('')
+    setSelectedSpells([])
+    onCharacterSelect(null)
+    toast.success('Form cleared for new character')
+  }
 
   useEffect(() => {
     if (!canUseRookieProfile) {
@@ -933,6 +971,14 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
               <div className="flex flex-wrap gap-2 pt-2">
                 <Button onClick={generate} className="flex-1">
                   Generate Character
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={clearForm}
+                  className="flex items-center gap-2"
+                >
+                  <Plus size={16} />
+                  New
                 </Button>
                 <Button 
                   variant="outline" 
