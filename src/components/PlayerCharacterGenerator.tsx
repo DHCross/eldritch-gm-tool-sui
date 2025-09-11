@@ -163,8 +163,8 @@ interface Character {
   spellbook?: any[]
   magicPath?: string
   recommendedSpellCount?: number
-  createdAt?: string
-  updatedAt?: string
+  createdAt?: number
+  updatedAt?: number
 }
 
 function PlayerCharacterGenerator() {
@@ -489,15 +489,15 @@ function PlayerCharacterGenerator() {
     }
 
     const characterId = character.id || `char_${Date.now()}`
-    const now = Date.now()
+    const timestamp = Date.now()
     
     const characterToSave: Character = {
       ...character,
       id: characterId,
       name: characterName.trim() || `${character.race} ${character.class}`,
       spellbook: casterClasses.includes(character.class) ? [...selectedSpells] : undefined,
-      createdAt: character.createdAt || now,
-      updatedAt: now
+      createdAt: character.createdAt || timestamp,
+      updatedAt: timestamp
     }
 
     setSavedCharacters(current => ({
