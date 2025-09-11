@@ -572,7 +572,7 @@ function PlayerCharacterGenerator() {
         }).filter(Boolean).join(', ')
         return `${s} **${character.specialties[a][s]}**${fl ? ` (${fl})` : ''}`
       }).join(', ')
-      md += `**${a} ${character.abilities[a]}** → ${sp}.\n`
+      md += `**${a} ${character.abilities[a]}**: ${sp}.\n`
     }
     
     md += `\n### Actions\n`
@@ -667,7 +667,7 @@ function PlayerCharacterGenerator() {
         }).filter(Boolean).join(', ')
         return `${s} **${character.specialties[a][s]}**${fl ? ` (${fl})` : ''}`
       }).join(', ')
-      md += `**${a} ${character.abilities[a]}** → ${sp}.\n`
+      md += `**${a} ${character.abilities[a]}**: ${sp}.\n`
     }
     
     md += `\n### Actions\n`
@@ -1058,7 +1058,7 @@ function PlayerCharacterGenerator() {
                     }).join(', ')
                     return (
                       <div key={ab} className="mb-2">
-                        <span className="font-semibold">{ab} <strong>{character.abilities[ab]}</strong></span> → {sp}.
+                        <span className="font-semibold">{ab} <strong>{character.abilities[ab]}</strong></span>: {sp}.
                       </div>
                     )
                   })}
