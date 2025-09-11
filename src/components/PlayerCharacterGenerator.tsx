@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 import { useKV } from '@github/spark/hooks'
 import { toast } from "sonner"
-import { Download, Copy, Sparkles, Users, Plus } from "@phosphor-icons/react"
+import { Download, Copy, Sparkles, Users, Plus, UserCircle } from "@phosphor-icons/react"
 
 // Game data
 const dieRanks = ["d4", "d6", "d8", "d10", "d12"]
@@ -809,7 +809,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
           {/* Essential Identity - Hero Section */}
           <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 p-6 rounded-xl border border-primary/20">
             <h3 className="text-2xl font-bold mb-6 text-center text-primary flex items-center justify-center gap-2">
-              <UserFocus className="w-6 h-6" />
+              <UserCircle className="w-6 h-6" />
               Essential Identity
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
