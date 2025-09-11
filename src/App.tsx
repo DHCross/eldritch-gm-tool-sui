@@ -10,6 +10,11 @@ import SpellReference from './components/SpellReference'
 import CharacterRoster from './components/CharacterRoster'
 import { Crown, UserFocus, Dice6, User, Sword, Heart, Sparkles, Users } from "@phosphor-icons/react"
 
+// Fix for "now is not defined" error - provide global fallback
+if (typeof window !== 'undefined' && !(window as any).now) {
+  (window as any).now = Date.now
+}
+
 function App() {
   return (
     <div className="min-h-screen bg-background text-foreground">
