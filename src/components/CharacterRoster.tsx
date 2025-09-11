@@ -52,13 +52,19 @@ const rarityColors = {
 }
 
 interface CharacterRosterProps {
+  selectedCharacter: Character | null
+  onCharacterSelect: (character: Character | null) => void
   onEditCharacter?: (character: Character) => void
   onUseSpellsForCharacter?: (characterId: string, spells: Spell[]) => void
 }
 
-export default function CharacterRoster({ onEditCharacter, onUseSpellsForCharacter }: CharacterRosterProps) {
+export default function CharacterRoster({ 
+  selectedCharacter, 
+  onCharacterSelect, 
+  onEditCharacter, 
+  onUseSpellsForCharacter 
+}: CharacterRosterProps) {
   const [savedCharacters, setSavedCharacters] = useKV('saved-characters', {} as Record<string, Character>)
-  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null)
   const [showDetails, setShowDetails] = useState(false)
 
   const characters = Object.values(savedCharacters)
@@ -70,7 +76,7 @@ export default function CharacterRoster({ onEditCharacter, onUseSpellsForCharact
       return updated
     })
     if (selectedCharacter?.id === characterId) {
-      setSelectedCharacter(null)
+      onCharacterSelect(null)
       setShowDetails(false)
     }
     toast.success('Character deleted')
@@ -149,9 +155,19 @@ export default function CharacterRoster({ onEditCharacter, onUseSpellsForCharact
           <CardTitle className="flex items-center gap-2">
             <Users className="w-6 h-6 text-primary" />
             Character Roster
+            {selectedCharacter && (
+              <Badge variant="secondary" className="ml-auto">
+                Active: {selectedCharacter.name || `${selectedCharacter.race} ${selectedCharacter.class}`}
+              </Badge>
+            )}
           </CardTitle>
           <CardDescription>
             Manage your saved characters and their spell lists. {characters.length} characters saved.
+            {selectedCharacter && (
+              <span className="block mt-1 text-primary font-medium">
+                Selected character will be used in the Spells tab.
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
       </Card>
@@ -178,7 +194,7 @@ export default function CharacterRoster({ onEditCharacter, onUseSpellsForCharact
                   selectedCharacter?.id === character.id ? 'ring-2 ring-primary' : ''
                 }`}
                 onClick={() => {
-                  setSelectedCharacter(character)
+                  onCharacterSelect(character)
                   setShowDetails(true)
                 }}
               >

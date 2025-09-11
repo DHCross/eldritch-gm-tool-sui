@@ -167,7 +167,12 @@ interface Character {
   updatedAt?: number
 }
 
-function PlayerCharacterGenerator() {
+interface PlayerCharacterGeneratorProps {
+  selectedCharacter: Character | null
+  onCharacterSelect: (character: Character | null) => void
+}
+
+function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: PlayerCharacterGeneratorProps) {
   const [race, setRace] = useState<string>('')
   const [characterClass, setCharacterClass] = useState<string>('')
   const [level, setLevel] = useState<number>(1)
@@ -545,6 +550,10 @@ function PlayerCharacterGenerator() {
 
     setCharacter(characterToSave)
     setCharacterName(characterToSave.name)
+    
+    // Auto-select this character
+    onCharacterSelect(characterToSave)
+    
     toast.success('Character generated and automatically saved to roster!')
   }
 
@@ -743,9 +752,19 @@ function PlayerCharacterGenerator() {
           <CardTitle className="flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-primary" />
             Player Character Generator
+            {selectedCharacter && (
+              <Badge variant="secondary" className="ml-auto">
+                Active: {selectedCharacter.name || `${selectedCharacter.race} ${selectedCharacter.class}`}
+              </Badge>
+            )}
           </CardTitle>
           <CardDescription>
             Create detailed player characters with balanced, hybrid, or specialist builds
+            {selectedCharacter && (
+              <span className="block mt-1 text-primary font-medium">
+                A character is selected - spells will be associated with this character.
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

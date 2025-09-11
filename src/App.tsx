@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Toaster } from "@/components/ui/sonner"
 import EncounterGenerator from './components/EncounterGenerator'
@@ -15,7 +15,24 @@ if (typeof window !== 'undefined' && !(window as any).now) {
   (window as any).now = Date.now
 }
 
+export interface Character {
+  id: string
+  name: string
+  race: string
+  class: string
+  level: number
+  abilities: Record<string, string>
+  specialties: Record<string, Record<string, string>>
+  focuses: Record<string, Record<string, string>>
+  pools: { active: number; passive: number; spirit: number }
+  masteryDie: string
+  spells?: Array<{ name: string; rarity: string; path: string }>
+  [key: string]: any
+}
+
 function App() {
+  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null)
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="container max-w-5xl mx-auto px-4 py-8">
@@ -119,15 +136,24 @@ function App() {
               </TabsList>
 
               <TabsContent value="character">
-                <PlayerCharacterGenerator />
+                <PlayerCharacterGenerator 
+                  selectedCharacter={selectedCharacter}
+                  onCharacterSelect={setSelectedCharacter}
+                />
               </TabsContent>
               
               <TabsContent value="spells">
-                <SpellReference />
+                <SpellReference 
+                  selectedCharacter={selectedCharacter}
+                  onCharacterUpdate={setSelectedCharacter}
+                />
               </TabsContent>
               
               <TabsContent value="roster">
-                <CharacterRoster />
+                <CharacterRoster 
+                  selectedCharacter={selectedCharacter}
+                  onCharacterSelect={setSelectedCharacter}
+                />
               </TabsContent>
             </Tabs>
           </TabsContent>
