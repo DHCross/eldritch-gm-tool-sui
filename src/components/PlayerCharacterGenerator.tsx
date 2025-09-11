@@ -211,25 +211,25 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
     }
   }, [selectedCharacter])
 
-  const clearForm = () => {
-    setRace('')
-    setCharacterClass('')
-    setLevel(1)
-    setMagicPath('')
-    setBuildStyle('balanced')
-    setRookieProfile('off')
-    setIconicArcane(false)
-    setNpcMode(false)
-    setEnforceSoftcaps(true)
-    setShowWeakness(true)
-    setCharacter(null)
-    setCharacterName('')
-    setSelectedSpells([])
-    onCharacterSelect(null)
-    toast.success('Form cleared for new character')
-  }
+    if (!canUseRookieProfile) {
+      setRookieProfile('off')
+    }
+  }, [level, canUseRookieProfile])
 
+  // Auto-update character spellbook when selectedSpells changes
   useEffect(() => {
+    if (character && character.id && casterClasses.includes(character.class)) {
+      const updatedCharacter = {
+        ...character,
+        spellbook: [...selectedSpells],
+        updatedAt: Date.now()
+      }
+      
+      setSavedCharacters(current => ({
+        ...current,
+        [character.id!]: updatedCharacter
+      }))
+      
     if (!canUseRookieProfile) {
       setRookieProfile('off')
     }
