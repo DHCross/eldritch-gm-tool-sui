@@ -1216,5 +1216,5 @@ function PlayerCharacterGenerator() {
     </div>
   )
 }
-
+export default PlayerCharacterGenerator
 export default PlayerCharacterGenerator
