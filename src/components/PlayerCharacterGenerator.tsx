@@ -766,6 +766,23 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
     }
   }
 
+  const clearForm = () => {
+    setRace('')
+    setCharacterClass('')
+    setLevel(1)
+    setMagicPath('')
+    setBuildStyle('balanced')
+    setRookieProfile('off')
+    setIconicArcane(false)
+    setNpcMode(false)
+    setEnforceSoftcaps(true)
+    setShowWeakness(true)
+    setCharacter(null)
+    setCharacterName('')
+    onCharacterSelect(null)
+    toast.success('Form cleared for new character')
+  }
+
   return (
     <div className="space-y-6">
       <Card>
