@@ -1218,4 +1218,3 @@ function PlayerCharacterGenerator() {
   )
 }
 export default PlayerCharacterGenerator
-export default PlayerCharacterGenerator
