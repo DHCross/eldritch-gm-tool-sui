@@ -232,25 +232,6 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
         [character.id!]: updatedCharacter
       }))
       
-    if (!canUseRookieProfile) {
-      setRookieProfile('off')
-    }
-  }, [level, canUseRookieProfile])
-
-  // Auto-update character spellbook when selectedSpells changes
-  useEffect(() => {
-    if (character && character.id && casterClasses.includes(character.class)) {
-      const updatedCharacter = {
-        ...character,
-        spellbook: [...selectedSpells],
-        updatedAt: Date.now()
-      }
-      
-      setSavedCharacters(current => ({
-        ...current,
-        [character.id!]: updatedCharacter
-      }))
-      
       setCharacter(updatedCharacter)
     }
   }, [selectedSpells, character?.id])
