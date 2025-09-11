@@ -211,6 +211,8 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
     }
   }, [selectedCharacter])
 
+  // Auto-disable rookie profile when not level 1
+  useEffect(() => {
     if (!canUseRookieProfile) {
       setRookieProfile('off')
     }
