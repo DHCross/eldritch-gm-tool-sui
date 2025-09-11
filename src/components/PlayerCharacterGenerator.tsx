@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 import { useKV } from '@github/spark/hooks'
 import { toast } from "sonner"
-import { Download, Copy, Sparkles, Save, Users } from "@phosphor-icons/react"
+import { Download, Copy, Sparkles, Users } from "@phosphor-icons/react"
 
 // Game data
 const dieRanks = ["d4", "d6", "d8", "d10", "d12"]
@@ -191,6 +191,42 @@ function PlayerCharacterGenerator() {
       setRookieProfile('off')
     }
   }, [level, canUseRookieProfile])
+
+  // Auto-update character spellbook when selectedSpells changes
+  useEffect(() => {
+    if (character && character.id && casterClasses.includes(character.class)) {
+      const updatedCharacter = {
+        ...character,
+        spellbook: [...selectedSpells],
+        updatedAt: Date.now()
+      }
+      
+      setSavedCharacters(current => ({
+        ...current,
+        [character.id!]: updatedCharacter
+      }))
+      
+      setCharacter(updatedCharacter)
+    }
+  }, [selectedSpells, character?.id])
+
+  // Auto-update character name when characterName changes
+  useEffect(() => {
+    if (character && character.id && characterName.trim()) {
+      const updatedCharacter = {
+        ...character,
+        name: characterName.trim(),
+        updatedAt: Date.now()
+      }
+      
+      setSavedCharacters(current => ({
+        ...current,
+        [character.id!]: updatedCharacter
+      }))
+      
+      setCharacter(updatedCharacter)
+    }
+  }, [characterName, character?.id])
 
   const applyMinima = (ch: Character, minima: Record<string, string>) => {
     for (const [k, v] of Object.entries(minima || {})) {
@@ -462,6 +498,15 @@ function PlayerCharacterGenerator() {
       }
     }
 
+    // Add magic path for casters
+    if (magicPath) {
+      ch.magicPath = magicPath
+    } else if (characterClass === 'Adept') {
+      ch.magicPath = 'Arcanum'
+    } else if (characterClass === 'Mystic') {
+      ch.magicPath = 'Mysticism'
+    }
+
     // Add spell information for casters
     if (casterClasses.includes(characterClass)) {
       
@@ -478,25 +523,16 @@ function PlayerCharacterGenerator() {
       ch.recommendedSpellCount = Math.max(2, recommendedSpellCount)
     }
 
-    setCharacter(ch)
-    toast.success('Character generated successfully!')
-  }
-
-  const saveCharacter = () => {
-    if (!character) {
-      toast.error('No character to save!')
-      return
-    }
-
-    const characterId = character.id || `char_${Date.now()}`
+    // Auto-save the character to roster
+    const characterId = `char_${Date.now()}`
     const timestamp = Date.now()
     
     const characterToSave: Character = {
-      ...character,
+      ...ch,
       id: characterId,
-      name: characterName.trim() || `${character.race} ${character.class}`,
-      spellbook: casterClasses.includes(character.class) ? [...selectedSpells] : undefined,
-      createdAt: character.createdAt || timestamp,
+      name: `${ch.race} ${ch.class}`,
+      spellbook: casterClasses.includes(ch.class) ? [...selectedSpells] : undefined,
+      createdAt: timestamp,
       updatedAt: timestamp
     }
 
@@ -506,8 +542,10 @@ function PlayerCharacterGenerator() {
     }))
 
     setCharacter(characterToSave)
-    toast.success(`Character "${characterToSave.name}" saved to roster!`)
+    setCharacterName(characterToSave.name)
+    toast.success('Character generated and automatically saved to roster!')
   }
+
 
   const exportMarkdown = () => {
     if (!character) {
@@ -899,12 +937,12 @@ function PlayerCharacterGenerator() {
         </CardContent>
       </Card>
 
-      {/* Character Name and Save */}
+      {/* Character Name and Auto-Save Status */}
           {character && (
             <div className="mt-6 p-4 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-4">
                 <div className="flex-1">
-                  <Label htmlFor="character-name">Character Name (optional)</Label>
+                  <Label htmlFor="character-name">Character Name</Label>
                   <Input
                     id="character-name"
                     placeholder={`${character.race} ${character.class}`}
@@ -912,21 +950,18 @@ function PlayerCharacterGenerator() {
                     onChange={(e) => setCharacterName(e.target.value)}
                     className="mt-1"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Changes are automatically saved to your roster
+                  </p>
                 </div>
-                <div className="flex flex-col gap-2">
-                  <Button 
-                    onClick={saveCharacter}
-                    className="flex items-center gap-2"
-                  >
-                    <Save size={16} />
-                    Save to Roster
-                  </Button>
-                  {character.id && (
-                    <Badge variant="outline" className="text-xs">
-                      <Users className="w-3 h-3 mr-1" />
-                      In Roster
-                    </Badge>
-                  )}
+                <div className="flex flex-col gap-2 items-center">
+                  <Badge variant="default" className="text-xs flex items-center">
+                    <Users className="w-3 h-3 mr-1" />
+                    Auto-saved to Roster
+                  </Badge>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Generated: {new Date(character.createdAt || Date.now()).toLocaleTimeString()}
+                  </p>
                 </div>
               </div>
               
@@ -944,7 +979,7 @@ function PlayerCharacterGenerator() {
                     </p>
                     <p>
                       {selectedSpells.length > 0 
-                        ? `${selectedSpells.length} spells from your current selection will be saved with this character.`
+                        ? `${selectedSpells.length} spells from your current selection are auto-saved with this character.`
                         : 'No spells selected. Visit the Spells tab to build this character\'s spellbook.'
                       }
                     </p>
