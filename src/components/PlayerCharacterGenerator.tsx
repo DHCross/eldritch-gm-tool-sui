@@ -895,8 +895,10 @@ function PlayerCharacterGenerator() {
               </div>
             </div>
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Character Name and Save */}
+      {/* Character Name and Save */}
           {character && (
             <div className="mt-6 p-4 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-4">
@@ -1210,7 +1212,7 @@ function PlayerCharacterGenerator() {
             </div>
           </CardContent>
         </Card>
-          )}
+      )}
     </div>
   )
 }
