@@ -8,7 +8,7 @@ import BattleCalculator from './components/BattleCalculator'
 import MonsterGenerator from './components/MonsterGenerator'
 import SpellReference from './components/SpellReference'
 import CharacterRoster from './components/CharacterRoster'
-import { Crown, UserFocus, Dice6, User, Sword, Heart, Sparkles, Users } from "@phosphor-icons/react"
+import { Crown, UserCircle, Dice6, User, Sword, Heart, Sparkles, Users } from "@phosphor-icons/react"
 
 // Fix for "now is not defined" error - provide global fallback
 if (typeof window !== 'undefined' && !(window as any).now) {
@@ -51,7 +51,7 @@ function App() {
               value="player" 
               className="text-xl px-8 h-full data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:border-2 data-[state=active]:border-primary/50 hover:bg-primary/20 transition-all duration-300 flex items-center justify-center gap-4 border-2 border-transparent rounded-lg mx-2 my-2"
             >
-              <UserFocus size={28} />
+              <UserCircle size={28} />
               <span className="font-semibold tracking-wide">Player Tools</span>
             </TabsTrigger>
             <TabsTrigger 
@@ -121,7 +121,7 @@ function App() {
                   value="character" 
                   className="px-6 h-full data-[state=active]:bg-accent/80 data-[state=active]:text-accent-foreground data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-accent/50 hover:bg-accent/20 transition-all duration-200 flex flex-col items-center justify-center gap-2 border-2 border-transparent rounded-lg mx-1 my-1"
                 >
-                  <UserFocus size={24} />
+                  <UserCircle size={24} />
                   <span className="text-sm font-medium tracking-wide">Character</span>
                 </TabsTrigger>
                 <TabsTrigger 
