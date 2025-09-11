@@ -1211,8 +1211,6 @@ function PlayerCharacterGenerator() {
           </CardContent>
         </Card>
           )}
-        </CardContent>
-    </div>
     </div>
   )
 }
