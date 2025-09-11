@@ -970,7 +970,7 @@ function PlayerCharacterGenerator() {
 
           {/* Character Display */}
           {character && (
-        <Card>
+            <Card>
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <CardTitle>
@@ -1210,7 +1210,9 @@ function PlayerCharacterGenerator() {
             </div>
           </CardContent>
         </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
