@@ -536,12 +536,14 @@ const magicPathsByClass = {
   Theurgist: ['Druidry', 'Hieraticism']
 }
 
-// Helper function to calculate spell count based on competence and expertise
+// Helper function to calculate spell count based on competence and expertise die ranks
 const calculateSpellCount = (competence: string, expertise: string, characterClass: string) => {
-  const competenceSteps = Math.max(0, ['d4', 'd6', 'd8', 'd10', 'd12'].indexOf(competence))
-  const expertiseSteps = Math.max(0, ['d4', 'd6', 'd8', 'd10', 'd12'].indexOf(expertise))
+  // Each die rank provides 2 spells per die value (not step)
+  // d4 = 2 spells, d6 = 3 spells, d8 = 4 spells, etc.
+  const competenceValue = competence ? parseInt(competence.replace('d', '')) : 4
+  const expertiseValue = expertise ? parseInt(expertise.replace('d', '')) : 4
   
-  let spellCount = 2 * (competenceSteps + expertiseSteps)
+  let spellCount = Math.floor(competenceValue / 2) + Math.floor(expertiseValue / 2)
   
   // Adepts get half the spells
   if (characterClass === 'Adept') {
@@ -767,22 +769,23 @@ export default function SpellReference() {
     const level = parseInt(selectedLevel) || 1
     const suggestions = []
 
-    // Calculate recommended spell counts based on level
+    // Calculate recommended spell counts based on level - using realistic die ranks
     const competence = level <= 2 ? 'd6' : level <= 4 ? 'd8' : 'd10'
     const expertise = level <= 1 ? 'd6' : level <= 3 ? 'd8' : 'd10'
     const recommendedCount = calculateSpellCount(competence, expertise, selectedCharacterClass)
 
-    suggestions.push(`**Recommended Total Spells:** ${recommendedCount}`)
+    suggestions.push(`**Initial Spell Count:** ${recommendedCount} (based on Competence + Expertise die ranks)`)
+    suggestions.push(`**Spell Acquisition Rule:** 2 spells per die rank in Competence and Expertise combined`)
     
     // Special handling for different classes
     if (selectedCharacterClass === 'Adept') {
-      suggestions.push(`**Mastery Path:** Arcanum (automatic)`)
+      suggestions.push(`**Mastery Path:** Arcanum (automatic for all Adepts)`)
       suggestions.push(`**Available Paths:** ${availablePaths.join(', ')}`)
-      suggestions.push('**Note:** Adepts automatically have Arcanum mastery and receive half the normal spell count but excel at ritual magic and crafting.')
+      suggestions.push('**Note:** Adepts receive half the normal spell count but excel at ritual magic and item crafting.')
     } else if (selectedCharacterClass === 'Mystic') {
-      suggestions.push(`**Mastery Path:** Mysticism (only option)`)
+      suggestions.push(`**Mastery Path:** Mysticism (only option for Mystics)`)
       suggestions.push(`**Available Paths:** Universal, Mysticism`)
-      suggestions.push('**Note:** Mystics specialize exclusively in Mysticism and can learn other paths with special failure mechanics.')
+      suggestions.push('**Note:** Mystics specialize exclusively in Mysticism. They can learn other paths with special failure mechanics.')
     } else {
       suggestions.push(`**Available Paths:** ${availablePaths.join(', ')}`)
       if (selectedCharacterClass === 'Mage') {
@@ -792,12 +795,18 @@ export default function SpellReference() {
       }
     }
 
-    // Suggest spell distribution
-    suggestions.push(`**Suggested Distribution:** 70% Common, 30% Uncommon spells for starting characters`)
+    // Spell rarity restrictions for initial selection
+    suggestions.push(`**Initial Spell Rarity:** Common and Uncommon only (70% Common, 30% Uncommon recommended)`)
     
-    if (level >= 3) {
-      suggestions.push('**Higher Level Note:** Characters level 3+ may access Esoteric spells with appropriate focus')
+    // Level-based additional spells
+    if (level >= 2) {
+      suggestions.push(`**Level ${level} Bonus:** +1 path spell (${level === 2 ? 'Uncommon' : level === 3 ? 'Esoteric' : level === 4 ? 'Occult' : 'Legendary'} rarity)`)
     }
+
+    // Spell expansion rules
+    suggestions.push(`**Expanding Repertoire:** Each die rank increase in Competence or Expertise grants +2 spell slots`)
+    suggestions.push(`**Learning Spells:** Additional spells can be learned from grimoires (5 days + ability roll vs spell challenge)`)
+    suggestions.push(`**Mastery Die Usage:** Enhances spell effects but does NOT grant additional spells`)
 
     return suggestions
   }
@@ -806,13 +815,14 @@ export default function SpellReference() {
     if (!selectedCharacterClass) return []
 
     const level = parseInt(selectedLevel) || 1
+    // Use realistic die ranks based on level
     const competence = level <= 2 ? 'd6' : level <= 4 ? 'd8' : 'd10'
     const expertise = level <= 1 ? 'd6' : level <= 3 ? 'd8' : 'd10'
     const recommendedCount = calculateSpellCount(competence, expertise, selectedCharacterClass)
 
     const autoSpells = []
     
-    // All characters get Universal spells
+    // All characters get Universal spells (these are inherent for Gift of Magic)
     const universalCommon = spellDatabase.Universal.Common
     autoSpells.push(...universalCommon.map(spell => ({
       ...spell,

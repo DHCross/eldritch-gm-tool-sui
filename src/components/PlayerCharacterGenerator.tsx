@@ -510,17 +510,19 @@ function PlayerCharacterGenerator() {
     // Add spell information for casters
     if (casterClasses.includes(characterClass)) {
       
-      // Calculate recommended spell count based on abilities
-      const competenceSteps = Math.max(0, dieRanks.indexOf(ch.abilities.Competence))
-      const expertiseSteps = Math.max(0, dieRanks.indexOf(ch.specialties.Competence.Expertise))
-      let recommendedSpellCount = 2 * (competenceSteps + expertiseSteps)
+      // Calculate spell count based on Competence and Expertise die ranks
+      // Each die rank gives 2 spells per rank (d4=2, d6=4, d8=6, etc.)
+      const competenceSpells = mv(ch.abilities.Competence) / 2
+      const expertiseSpells = mv(ch.specialties.Competence.Expertise) / 2
+      let baseSpellCount = competenceSpells + expertiseSpells
       
       // Adepts get half the spells
       if (characterClass === 'Adept') {
-        recommendedSpellCount = Math.floor(recommendedSpellCount / 2)
+        baseSpellCount = Math.floor(baseSpellCount / 2)
       }
       
-      ch.recommendedSpellCount = Math.max(2, recommendedSpellCount)
+      // Minimum of 2 spells
+      ch.recommendedSpellCount = Math.max(2, baseSpellCount)
     }
 
     // Auto-save the character to roster
@@ -970,12 +972,16 @@ function PlayerCharacterGenerator() {
                 <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded text-sm">
                   <div className="flex items-center gap-2 mb-1">
                     <Sparkles className="w-4 h-4 text-blue-600" />
-                    <span className="font-medium text-blue-900">Spell Integration</span>
+                    <span className="font-medium text-blue-900">Spell Repertoire</span>
                   </div>
                   <div className="space-y-2 text-blue-800">
                     <p>
-                      <strong>Recommended Spells:</strong> {character.recommendedSpellCount || 'Unknown'} 
-                      {character.magicPath && <span> • <strong>Magic Path:</strong> {character.magicPath}</span>}
+                      <strong>Initial Spell Count:</strong> {character.recommendedSpellCount || 'Unknown'} 
+                      {character.magicPath && <span> • <strong>Mastery Path:</strong> {character.magicPath}</span>}
+                    </p>
+                    <p className="text-xs">
+                      <strong>Spell Acquisition Rules:</strong> Initial spells = 2 per die rank in Competence + Expertise combined. 
+                      Adepts get half this amount. Must be Common or Uncommon rarity only.
                     </p>
                     <p>
                       {selectedSpells.length > 0 
@@ -985,9 +991,17 @@ function PlayerCharacterGenerator() {
                     </p>
                     {character.recommendedSpellCount && selectedSpells.length !== character.recommendedSpellCount && (
                       <p className="text-amber-700 font-medium">
-                        Note: You have {selectedSpells.length} spells selected, but {character.recommendedSpellCount} are recommended for this character.
+                        Note: You have {selectedSpells.length} spells selected, but {character.recommendedSpellCount} are recommended for initial creation.
                       </p>
                     )}
+                    <div className="text-xs text-blue-600 bg-blue-100 p-2 rounded">
+                      <strong>Expanding Spell Repertoire:</strong>
+                      <ul className="mt-1 space-y-1">
+                        <li>• Level advancement grants 1 new path spell (Uncommon at L2, Esoteric at L3, Occult at L4, Legendary at L5)</li>
+                        <li>• Each die rank increase in Competence or Expertise grants 2 new spell slots</li>
+                        <li>• Additional spells can be learned from grimoires or teaching (5 days + ability roll)</li>
+                      </ul>
+                    </div>
                     <Button
                       variant="outline"
                       size="sm"
