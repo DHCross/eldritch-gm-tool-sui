@@ -8,29 +8,29 @@
 }
 
 :root {
-  /* Eldritch mystical color scheme */
+  /* Eldritch mystical color scheme with purple and green variations */
   --background: oklch(0.12 0.02 200);
   --foreground: oklch(0.92 0.02 180);
 
-  --card: oklch(0.18 0.03 190);
+  --card: oklch(0.18 0.04 250);
   --card-foreground: oklch(0.92 0.02 180);
-  --popover: oklch(0.18 0.03 190);
+  --popover: oklch(0.18 0.04 250);
   --popover-foreground: oklch(0.92 0.02 180);
 
-  --primary: oklch(0.35 0.15 150);
+  --primary: oklch(0.45 0.18 280);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.25 0.12 180);
-  --secondary-foreground: oklch(0.92 0.02 180);
-  --accent: oklch(0.65 0.25 145);
+  --secondary: oklch(0.35 0.15 150);
+  --secondary-foreground: oklch(1 0 0);
+  --accent: oklch(0.65 0.25 320);
   --accent-foreground: oklch(0.15 0.02 180);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(1 0 0);
 
-  --muted: oklch(0.45 0.08 140);
-  --muted-foreground: oklch(0.7 0.05 160);
-  --border: oklch(0.3 0.05 170);
-  --input: oklch(0.3 0.05 170);
-  --ring: oklch(0.65 0.25 145);
+  --muted: oklch(0.45 0.08 290);
+  --muted-foreground: oklch(0.7 0.05 270);
+  --border: oklch(0.3 0.06 260);
+  --input: oklch(0.3 0.06 260);
+  --ring: oklch(0.65 0.25 320);
 
   --radius: 0.5rem;
 }

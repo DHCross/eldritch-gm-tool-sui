@@ -40,21 +40,21 @@ function App() {
           Eldritch RPG Tool Suite
         </h1>
         
-        <Tabs defaultValue="gm" className="w-full">
+        <Tabs defaultValue="player" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8 h-16 bg-card border-2 border-primary/20">
-            <TabsTrigger 
-              value="gm" 
-              className="text-lg px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200 flex items-center justify-center gap-3"
-            >
-              <Crown size={24} />
-              <span className="font-medium">Game Master Tools</span>
-            </TabsTrigger>
             <TabsTrigger 
               value="player" 
               className="text-lg px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200 flex items-center justify-center gap-3"
             >
               <UserFocus size={24} />
               <span className="font-medium">Player Tools</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="gm" 
+              className="text-lg px-6 h-full data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground transition-all duration-200 flex items-center justify-center gap-3"
+            >
+              <Crown size={24} />
+              <span className="font-medium">Game Master Tools</span>
             </TabsTrigger>
           </TabsList>
 
