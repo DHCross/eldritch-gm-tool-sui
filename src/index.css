@@ -8,31 +8,31 @@
 }
 
 :root {
-  /* Eldritch mystical color scheme with purple and green variations */
-  --background: oklch(0.12 0.02 200);
-  --foreground: oklch(0.92 0.02 180);
+  /* Dark grimoire color scheme - deep purples, amber highlights, and tarnished silver */
+  --background: oklch(0.08 0.03 270);
+  --foreground: oklch(0.88 0.02 45);
 
-  --card: oklch(0.18 0.04 250);
-  --card-foreground: oklch(0.92 0.02 180);
-  --popover: oklch(0.18 0.04 250);
-  --popover-foreground: oklch(0.92 0.02 180);
+  --card: oklch(0.14 0.04 280);
+  --card-foreground: oklch(0.88 0.02 45);
+  --popover: oklch(0.14 0.04 280);
+  --popover-foreground: oklch(0.88 0.02 45);
 
-  --primary: oklch(0.55 0.22 140);
-  --primary-foreground: oklch(0.15 0.02 180);
-  --secondary: oklch(0.45 0.18 280);
-  --secondary-foreground: oklch(1 0 0);
-  --accent: oklch(0.65 0.25 320);
-  --accent-foreground: oklch(0.15 0.02 180);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(1 0 0);
+  --primary: oklch(0.48 0.18 285);
+  --primary-foreground: oklch(0.92 0.02 45);
+  --secondary: oklch(0.62 0.15 45);
+  --secondary-foreground: oklch(0.12 0.02 270);
+  --accent: oklch(0.55 0.12 260);
+  --accent-foreground: oklch(0.92 0.02 45);
+  --destructive: oklch(0.55 0.20 15);
+  --destructive-foreground: oklch(0.95 0.02 45);
 
-  --muted: oklch(0.45 0.08 290);
-  --muted-foreground: oklch(0.7 0.05 270);
-  --border: oklch(0.3 0.06 260);
-  --input: oklch(0.3 0.06 260);
-  --ring: oklch(0.65 0.25 320);
+  --muted: oklch(0.22 0.04 275);
+  --muted-foreground: oklch(0.65 0.03 275);
+  --border: oklch(0.25 0.05 275);
+  --input: oklch(0.18 0.04 280);
+  --ring: oklch(0.62 0.15 45);
 
-  --radius: 0.5rem;
+  --radius: 0.75rem;
 }
 
 @theme {
@@ -70,6 +70,7 @@
 
 body {
   font-family: var(--font-body);
+  background: linear-gradient(135deg, var(--background) 0%, oklch(0.1 0.03 280) 50%, var(--background) 100%);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -78,4 +79,36 @@ h1, h2, h3, h4, h5, h6 {
 
 .font-mono {
   font-family: var(--font-mono);
+}
+
+/* Add subtle glow effects for mystical feel */
+.mystical-glow {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
+}
+
+.mystical-border {
+  border: 1px solid;
+  border-image: linear-gradient(45deg, var(--border), var(--primary), var(--border)) 1;
+}
+
+/* Enhanced focus states for form elements */
+.focus\\:ring-mystical:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: var(--ring);
+  ring-opacity: 0.3;
+}
+
+/* Subtle animations for interactive elements */
+@keyframes pulse-mystical {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse-mystical {
+  animation: pulse-mystical 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

@@ -784,220 +784,271 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-primary" />
-            Player Character Generator
+    <div className="space-y-8">
+      {/* Character Creation Grimoire */}
+      <Card className="bg-gradient-to-br from-card via-card to-card/90 border-border/50 shadow-2xl backdrop-blur-sm">
+        <CardHeader className="pb-8">
+          <div className="text-center space-y-2">
+            <CardTitle className="text-3xl font-bold text-foreground tracking-wide flex items-center justify-center gap-3">
+              <Sparkles className="w-8 h-8 text-primary" />
+              Character Codex
+              <Sparkles className="w-8 h-8 text-primary" />
+            </CardTitle>
+            <CardDescription className="text-lg text-muted-foreground">
+              Weave your legend from the threads of fate
+            </CardDescription>
             {selectedCharacter && (
-              <Badge variant="secondary" className="ml-auto">
+              <Badge variant="secondary" className="text-base px-4 py-2">
                 Active: {selectedCharacter.name || `${selectedCharacter.race} ${selectedCharacter.class}`}
               </Badge>
             )}
-          </CardTitle>
-          <CardDescription>
-            Create detailed player characters with balanced, hybrid, or specialist builds
-            {selectedCharacter && (
-              <span className="block mt-1 text-primary font-medium">
-                A character is selected - spells will be associated with this character.
-              </span>
-            )}
-          </CardDescription>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Basic Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="race">Race</Label>
-              <Select value={race} onValueChange={setRace}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Race" />
-                </SelectTrigger>
-                <SelectContent>
-                  {races.map(r => (
-                    <SelectItem key={r} value={r}>{r}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="class">Class</Label>
-              <Select value={characterClass} onValueChange={setCharacterClass}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Class" />
-                </SelectTrigger>
-                <SelectContent>
-                  {classes.map(c => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="level">Level</Label>
-              <Select value={level.toString()} onValueChange={(v) => setLevel(parseInt(v))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Level" />
-                </SelectTrigger>
-                <SelectContent>
-                  {levels.map(l => (
-                    <SelectItem key={l} value={l.toString()}>{l}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {showMagicPath && (
-              <div className="space-y-2">
-                <Label htmlFor="magic-path">Magic Path</Label>
-                <Select value={magicPath} onValueChange={setMagicPath}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Path" />
+        
+        <CardContent className="space-y-10">
+          {/* Essential Identity - Hero Section */}
+          <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 p-6 rounded-xl border border-primary/20">
+            <h3 className="text-2xl font-bold mb-6 text-center text-primary flex items-center justify-center gap-2">
+              <UserFocus className="w-6 h-6" />
+              Essential Identity
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="space-y-3">
+                <Label htmlFor="race" className="text-base font-semibold text-foreground">Bloodline</Label>
+                <Select value={race} onValueChange={setRace}>
+                  <SelectTrigger className="h-12 text-lg bg-card/50 border-border/40 hover:border-primary/50 transition-all">
+                    <SelectValue placeholder="Choose your heritage..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {magicPathsByClass[characterClass as keyof typeof magicPathsByClass]?.map(p => (
-                      <SelectItem key={p} value={p}>{p}</SelectItem>
+                    {races.map(r => (
+                      <SelectItem key={r} value={r} className="text-lg py-3">{r}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-            )}
-          </div>
 
-          <Separator />
-
-          {/* Build Options */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Build Philosophy */}
-            <div className="space-y-4">
-              <div>
-                <Label className="text-base font-medium">Build Philosophy</Label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {buildStyles.map(style => (
-                    <Badge 
-                      key={style}
-                      variant={buildStyle === style ? "default" : "outline"}
-                      className="cursor-pointer"
-                      onClick={() => setBuildStyle(style)}
-                    >
-                      {style.charAt(0).toUpperCase() + style.slice(1)}
-                    </Badge>
-                  ))}
-                </div>
+              <div className="space-y-3">
+                <Label htmlFor="class" className="text-base font-semibold text-foreground">Calling</Label>
+                <Select value={characterClass} onValueChange={setCharacterClass}>
+                  <SelectTrigger className="h-12 text-lg bg-card/50 border-border/40 hover:border-primary/50 transition-all">
+                    <SelectValue placeholder="Select your path..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {classes.map(c => (
+                      <SelectItem key={c} value={c} className="text-lg py-3">{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="enforce-softcaps" 
-                  checked={enforceSoftcaps}
-                  onCheckedChange={setEnforceSoftcaps}
-                />
-                <Label htmlFor="enforce-softcaps" className="text-sm">Enforce Soft Caps by Level</Label>
-              </div>
-              
-              <p className="text-xs text-muted-foreground">
-                Balanced spreads CP before spiking; Specialist prioritizes class axis; Hybrid blends both.
-              </p>
-            </div>
 
-            {/* Rookie Profiles */}
-            <div className="space-y-4">
-              <div>
-                <Label className="text-base font-medium">Rookie Profile (Level 1 Only)</Label>
-                <Select 
-                  value={rookieProfile} 
-                  onValueChange={setRookieProfile}
-                  disabled={!canUseRookieProfile}
-                >
-                  <SelectTrigger className="mt-2">
+              <div className="space-y-3">
+                <Label htmlFor="level" className="text-base font-semibold text-foreground">Experience</Label>
+                <Select value={level.toString()} onValueChange={(v) => setLevel(parseInt(v))}>
+                  <SelectTrigger className="h-12 text-lg bg-card/50 border-border/40 hover:border-primary/50 transition-all">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {rookieProfiles.map(profile => (
-                      <SelectItem key={profile} value={profile}>
-                        {profile === 'off' ? 'Off' : 
-                         profile === 'pure' ? 'Pure Rookie (Minima only)' :
-                         profile === 'balanced' ? 'Balanced Rookie (breadth-first)' :
-                         'Specialist Rookie (focused)'}
+                    {levels.map(l => (
+                      <SelectItem key={l} value={l.toString()} className="text-lg py-3">
+                        Level {l}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              
-              <p className="text-xs text-muted-foreground">
-                Generate a true starting character with only the 10 bonus CPs.
-              </p>
-            </div>
 
-            {/* Options & Actions */}
-            <div className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
+              {showMagicPath && (
+                <div className="space-y-3">
+                  <Label htmlFor="magic-path" className="text-base font-semibold text-foreground">Mystical Path</Label>
+                  <Select value={magicPath} onValueChange={setMagicPath}>
+                    <SelectTrigger className="h-12 text-lg bg-card/50 border-border/40 hover:border-primary/50 transition-all">
+                      <SelectValue placeholder="Choose your magic..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {magicPathsByClass[characterClass as keyof typeof magicPathsByClass]?.map(p => (
+                        <SelectItem key={p} value={p} className="text-lg py-3">{p}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Building Philosophy - Major Section */}
+          <div className="bg-gradient-to-r from-secondary/5 via-secondary/10 to-secondary/5 p-6 rounded-xl border border-secondary/20">
+            <h3 className="text-2xl font-bold mb-6 text-center text-secondary flex items-center justify-center gap-2">
+              <Dice6 className="w-6 h-6" />
+              Character Philosophy
+            </h3>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Build Style */}
+              <div className="space-y-4">
+                <Label className="text-lg font-semibold text-foreground">Development Style</Label>
+                <div className="grid grid-cols-1 gap-3">
+                  {buildStyles.map(style => (
+                    <div 
+                      key={style}
+                      onClick={() => setBuildStyle(style)}
+                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                        buildStyle === style 
+                          ? 'bg-secondary/20 border-secondary text-secondary-foreground shadow-md' 
+                          : 'bg-card/30 border-border/40 hover:border-secondary/50 hover:bg-secondary/5'
+                      }`}
+                    >
+                      <div className="font-semibold text-base mb-1">
+                        {style === 'balanced' && '⚖️ Balanced'}
+                        {style === 'specialist' && '🎯 Specialist'}
+                        {style === 'hybrid' && '🔄 Hybrid'}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {style === 'balanced' && 'Spreads power evenly before spiking'}
+                        {style === 'specialist' && 'Prioritizes class-focused abilities'}
+                        {style === 'hybrid' && 'Blends balanced and specialist approaches'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Rookie Profile */}
+              <div className="space-y-4">
+                <Label className="text-lg font-semibold text-foreground">Rookie Training {!canUseRookieProfile && '(Level 1 Only)'}</Label>
+                <Select 
+                  value={rookieProfile} 
+                  onValueChange={setRookieProfile}
+                  disabled={!canUseRookieProfile}
+                >
+                  <SelectTrigger className="h-12 text-lg bg-card/50 border-border/40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {rookieProfiles.map(profile => (
+                      <SelectItem key={profile} value={profile} className="text-base py-3">
+                        {profile === 'off' ? '🚫 Experienced' : 
+                         profile === 'pure' ? '🌱 Pure Rookie (Minimal training)' :
+                         profile === 'balanced' ? '📚 Balanced Rookie (Broad skills)' :
+                         '⚡ Specialist Rookie (Focused training)'}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  True starting characters use only the 10 bonus creation points
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Advanced Options - Collapsible */}
+          <div className="bg-gradient-to-r from-accent/5 via-accent/10 to-accent/5 p-6 rounded-xl border border-accent/20">
+            <h3 className="text-xl font-bold mb-6 text-center text-accent flex items-center justify-center gap-2">
+              ⚙️ Advanced Configuration
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3 p-3 rounded-lg bg-card/30 border border-border/40">
                   <Checkbox 
                     id="iconic-arcane" 
                     checked={iconicArcane}
                     onCheckedChange={setIconicArcane}
+                    className="scale-125"
                   />
-                  <Label htmlFor="iconic-arcane" className="text-sm">
-                    Iconic Arcane Inheritance <span className="text-xs text-muted-foreground">(Costs 4 CP)</span>
-                  </Label>
+                  <div>
+                    <Label htmlFor="iconic-arcane" className="font-medium cursor-pointer">
+                      ✨ Iconic Arcane Inheritance
+                    </Label>
+                    <p className="text-xs text-muted-foreground">Costs 4 CP</p>
+                  </div>
                 </div>
                 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3 p-3 rounded-lg bg-card/30 border border-border/40">
                   <Checkbox 
                     id="npc-mode" 
                     checked={npcMode}
                     onCheckedChange={setNpcMode}
+                    className="scale-125"
                   />
-                  <Label htmlFor="npc-mode" className="text-sm">
-                    NPC Mode <span className="text-xs text-muted-foreground">(favor breadth / avoid d12 at low level)</span>
-                  </Label>
+                  <div>
+                    <Label htmlFor="npc-mode" className="font-medium cursor-pointer">
+                      👥 NPC Generation Mode
+                    </Label>
+                    <p className="text-xs text-muted-foreground">Favors breadth over peaks</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3 p-3 rounded-lg bg-card/30 border border-border/40">
+                  <Checkbox 
+                    id="enforce-softcaps" 
+                    checked={enforceSoftcaps}
+                    onCheckedChange={setEnforceSoftcaps}
+                    className="scale-125"
+                  />
+                  <div>
+                    <Label htmlFor="enforce-softcaps" className="font-medium cursor-pointer">
+                      📊 Enforce Level Caps
+                    </Label>
+                    <p className="text-xs text-muted-foreground">Respect soft limits by level</p>
+                  </div>
                 </div>
                 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3 p-3 rounded-lg bg-card/30 border border-border/40">
                   <Checkbox 
                     id="warn-weakness" 
                     checked={showWeakness}
                     onCheckedChange={setShowWeakness}
+                    className="scale-125"
                   />
-                  <Label htmlFor="warn-weakness" className="text-sm">Show Weakness Report</Label>
+                  <div>
+                    <Label htmlFor="warn-weakness" className="font-medium cursor-pointer">
+                      ☠️ Reveal Fatal Flaws
+                    </Label>
+                    <p className="text-xs text-muted-foreground">Show weakness analysis</p>
+                  </div>
                 </div>
               </div>
-              
-              <div className="flex flex-wrap gap-2 pt-2">
-                <Button onClick={generate} className="flex-1">
-                  Generate Character
-                </Button>
+
+              {/* Action Buttons */}
+              <div className="space-y-4">
                 <Button 
-                  variant="outline" 
-                  onClick={clearForm}
-                  className="flex items-center gap-2"
+                  onClick={generate} 
+                  className="w-full h-14 text-lg font-semibold bg-primary hover:bg-primary/90 shadow-lg"
                 >
-                  <Plus size={16} />
-                  New
+                  ⚡ Forge Character
                 </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={exportMarkdown}
-                  disabled={!character}
-                  className="flex items-center gap-2"
-                >
-                  <Download size={16} />
-                  Export
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={copyMarkdown}
-                  disabled={!character}
-                  className="flex items-center gap-2"
-                >
-                  <Copy size={16} />
-                  Copy
-                </Button>
+                
+                <div className="grid grid-cols-3 gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={clearForm}
+                    className="flex items-center justify-center gap-1 h-10"
+                  >
+                    <Plus size={16} />
+                    New
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={exportMarkdown}
+                    disabled={!character}
+                    className="flex items-center justify-center gap-1 h-10"
+                  >
+                    <Download size={16} />
+                    Export
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={copyMarkdown}
+                    disabled={!character}
+                    className="flex items-center justify-center gap-1 h-10"
+                  >
+                    <Copy size={16} />
+                    Copy
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -1005,85 +1056,86 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
       </Card>
 
       {/* Character Name and Auto-Save Status */}
-          {character && (
-            <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-              <div className="flex items-center gap-4">
-                <div className="flex-1">
-                  <Label htmlFor="character-name">Character Name</Label>
-                  <Input
-                    id="character-name"
-                    placeholder={`${character.race} ${character.class}`}
-                    value={characterName}
-                    onChange={(e) => setCharacterName(e.target.value)}
-                    className="mt-1"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Changes are automatically saved to your roster
-                  </p>
+      {character && (
+        <Card className="bg-gradient-to-r from-muted/10 via-muted/20 to-muted/10 border-border/50 shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-6">
+              <div className="flex-1">
+                <Label htmlFor="character-name" className="text-lg font-semibold text-foreground">Character Name</Label>
+                <Input
+                  id="character-name"
+                  placeholder={`${character.race} ${character.class}`}
+                  value={characterName}
+                  onChange={(e) => setCharacterName(e.target.value)}
+                  className="mt-2 h-12 text-lg bg-card/50 border-border/40"
+                />
+                <p className="text-sm text-muted-foreground mt-2">
+                  Changes are automatically saved to your roster
+                </p>
+              </div>
+              <div className="flex flex-col gap-3 items-center">
+                <Badge variant="default" className="text-sm flex items-center px-4 py-2">
+                  <Users className="w-4 h-4 mr-2" />
+                  Auto-saved to Roster
+                </Badge>
+                <p className="text-sm text-muted-foreground text-center">
+                  Generated: {new Date(character.createdAt || Date.now()).toLocaleTimeString()}
+                </p>
+              </div>
+            </div>
+            
+            {/* Spell Integration Notice */}
+            {casterClasses.includes(character.class) && (
+              <div className="mt-6 p-4 bg-gradient-to-r from-accent/10 via-accent/20 to-accent/10 border border-accent/30 rounded-lg">
+                <div className="flex items-center gap-3 mb-3">
+                  <Sparkles className="w-5 h-5 text-accent" />
+                  <span className="font-semibold text-lg text-accent-foreground">Spell Repertoire</span>
                 </div>
-                <div className="flex flex-col gap-2 items-center">
-                  <Badge variant="default" className="text-xs flex items-center">
-                    <Users className="w-3 h-3 mr-1" />
-                    Auto-saved to Roster
-                  </Badge>
-                  <p className="text-xs text-muted-foreground text-center">
-                    Generated: {new Date(character.createdAt || Date.now()).toLocaleTimeString()}
+                <div className="space-y-3 text-accent-foreground">
+                  <p>
+                    <strong>Initial Spell Count:</strong> {character.recommendedSpellCount || 'Unknown'} 
+                    {character.magicPath && <span> • <strong>Mastery Path:</strong> {character.magicPath}</span>}
                   </p>
+                  <p className="text-sm">
+                    <strong>Spell Acquisition Rules:</strong> Initial spells = 2 per die rank in Competence + Expertise combined. 
+                    Adepts get half this amount. Must be Common or Uncommon rarity only.
+                  </p>
+                  <p>
+                    {selectedSpells.length > 0 
+                      ? `${selectedSpells.length} spells from your current selection are auto-saved with this character.`
+                      : 'No spells selected. Visit the Spells tab to build this character\'s spellbook.'
+                    }
+                  </p>
+                  {character.recommendedSpellCount && selectedSpells.length !== character.recommendedSpellCount && (
+                    <p className="text-amber-200 font-medium">
+                      Note: You have {selectedSpells.length} spells selected, but {character.recommendedSpellCount} are recommended for initial creation.
+                    </p>
+                  )}
+                  <div className="text-sm bg-accent/20 p-3 rounded border border-accent/40">
+                    <strong>Expanding Spell Repertoire:</strong>
+                    <ul className="mt-2 space-y-1">
+                      <li>• Level advancement grants 1 new path spell (Uncommon at L2, Esoteric at L3, Occult at L4, Legendary at L5)</li>
+                      <li>• Each die rank increase in Competence or Expertise grants 2 new spell slots</li>
+                      <li>• Additional spells can be learned from grimoires or teaching (5 days + ability roll)</li>
+                    </ul>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      toast.info('Visit the Spells tab and use the Character Builder to auto-select spells for this character.')
+                    }}
+                    className="flex items-center gap-2 text-accent border-accent/40 hover:bg-accent/10"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Build Spellbook
+                  </Button>
                 </div>
               </div>
-              
-              {/* Spell Integration Notice */}
-              {casterClasses.includes(character.class) && (
-                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded text-sm">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Sparkles className="w-4 h-4 text-blue-600" />
-                    <span className="font-medium text-blue-900">Spell Repertoire</span>
-                  </div>
-                  <div className="space-y-2 text-blue-800">
-                    <p>
-                      <strong>Initial Spell Count:</strong> {character.recommendedSpellCount || 'Unknown'} 
-                      {character.magicPath && <span> • <strong>Mastery Path:</strong> {character.magicPath}</span>}
-                    </p>
-                    <p className="text-xs">
-                      <strong>Spell Acquisition Rules:</strong> Initial spells = 2 per die rank in Competence + Expertise combined. 
-                      Adepts get half this amount. Must be Common or Uncommon rarity only.
-                    </p>
-                    <p>
-                      {selectedSpells.length > 0 
-                        ? `${selectedSpells.length} spells from your current selection are auto-saved with this character.`
-                        : 'No spells selected. Visit the Spells tab to build this character\'s spellbook.'
-                      }
-                    </p>
-                    {character.recommendedSpellCount && selectedSpells.length !== character.recommendedSpellCount && (
-                      <p className="text-amber-700 font-medium">
-                        Note: You have {selectedSpells.length} spells selected, but {character.recommendedSpellCount} are recommended for initial creation.
-                      </p>
-                    )}
-                    <div className="text-xs text-blue-600 bg-blue-100 p-2 rounded">
-                      <strong>Expanding Spell Repertoire:</strong>
-                      <ul className="mt-1 space-y-1">
-                        <li>• Level advancement grants 1 new path spell (Uncommon at L2, Esoteric at L3, Occult at L4, Legendary at L5)</li>
-                        <li>• Each die rank increase in Competence or Expertise grants 2 new spell slots</li>
-                        <li>• Additional spells can be learned from grimoires or teaching (5 days + ability roll)</li>
-                      </ul>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        // Navigate to spell tab with character data
-                        toast.info('Visit the Spells tab and use the Character Builder to auto-select spells for this character.')
-                      }}
-                      className="flex items-center gap-2 text-blue-700 border-blue-300 hover:bg-blue-100"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      Build Spellbook
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+            )}
+          </CardContent>
+        </Card>
+      )}
 
           {/* Character Display */}
           {character && (
