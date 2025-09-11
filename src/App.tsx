@@ -8,7 +8,7 @@ import BattleCalculator from './components/BattleCalculator'
 import MonsterGenerator from './components/MonsterGenerator'
 import SpellReference from './components/SpellReference'
 import CharacterRoster from './components/CharacterRoster'
-import { Crown, UserCircle, Dice6, User, Sword, Heart, Sparkles, Users } from "@phosphor-icons/react"
+import { Crown, UserCircle, DiceSix, User, Sword, Heart, Sparkles, Users } from "@phosphor-icons/react"
 
 // Fix for "now is not defined" error - provide global fallback
 if (typeof window !== 'undefined' && !(window as any).now) {
@@ -70,7 +70,7 @@ function App() {
                   value="encounter" 
                   className="px-3 h-full data-[state=active]:bg-accent/80 data-[state=active]:text-accent-foreground data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-accent/50 hover:bg-accent/20 transition-all duration-200 flex flex-col items-center justify-center gap-1 border-2 border-transparent rounded-lg mx-1 my-1"
                 >
-                  <Dice6 size={22} />
+                  <DiceSix size={22} />
                   <span className="text-sm font-medium leading-tight tracking-wide">Encounter</span>
                 </TabsTrigger>
                 <TabsTrigger 
