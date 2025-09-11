@@ -1212,7 +1212,7 @@ function PlayerCharacterGenerator() {
         </Card>
           )}
         </CardContent>
-      </Card>
+    </div>
     </div>
   )
 }
