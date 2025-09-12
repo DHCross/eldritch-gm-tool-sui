@@ -49,16 +49,16 @@ function App() {
           <TabsList className="grid w-full grid-cols-2 mb-12 h-20 bg-card/80 border-2 border-primary/20 rounded-xl shadow-2xl backdrop-blur-sm">
             <TabsTrigger 
               value="player" 
-              className="text-xl px-8 h-full data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:border-2 data-[state=active]:border-primary/50 hover:bg-primary/20 transition-all duration-300 flex items-center justify-center gap-4 border-2 border-transparent rounded-lg mx-2 my-2"
+              className="text-xl px-8 h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-xl data-[state=active]:border-2 data-[state=active]:border-primary data-[state=active]:transform data-[state=active]:scale-105 hover:bg-primary/20 hover:text-primary transition-all duration-300 flex items-center justify-center gap-4 border-2 border-transparent rounded-lg mx-2 my-2 text-muted-foreground"
             >
-              <UserCircle size={28} />
+              <UserCircle size={28} className="data-[state=active]:drop-shadow-lg" />
               <span className="font-semibold tracking-wide">Player Tools</span>
             </TabsTrigger>
             <TabsTrigger 
               value="gm" 
-              className="text-xl px-8 h-full data-[state=active]:bg-secondary/90 data-[state=active]:text-secondary-foreground data-[state=active]:shadow-lg data-[state=active]:border-2 data-[state=active]:border-secondary/50 hover:bg-secondary/20 transition-all duration-300 flex items-center justify-center gap-4 border-2 border-transparent rounded-lg mx-2 my-2"
+              className="text-xl px-8 h-full data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground data-[state=active]:shadow-xl data-[state=active]:border-2 data-[state=active]:border-secondary data-[state=active]:transform data-[state=active]:scale-105 hover:bg-secondary/20 hover:text-secondary transition-all duration-300 flex items-center justify-center gap-4 border-2 border-transparent rounded-lg mx-2 my-2 text-muted-foreground"
             >
-              <Crown size={28} />
+              <Crown size={28} className="data-[state=active]:drop-shadow-lg" />
               <span className="font-semibold tracking-wide">Game Master Tools</span>
             </TabsTrigger>
           </TabsList>
@@ -68,28 +68,28 @@ function App() {
               <TabsList className="grid w-full grid-cols-4 mb-8 h-16 bg-card/60 border-2 border-accent/20 rounded-xl shadow-lg backdrop-blur-sm">
                 <TabsTrigger 
                   value="encounter" 
-                  className="px-3 h-full data-[state=active]:bg-accent/80 data-[state=active]:text-accent-foreground data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-accent/50 hover:bg-accent/20 transition-all duration-200 flex flex-col items-center justify-center gap-1 border-2 border-transparent rounded-lg mx-1 my-1"
+                  className="px-3 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg data-[state=active]:border-2 data-[state=active]:border-accent data-[state=active]:transform data-[state=active]:scale-105 hover:bg-accent/20 hover:text-accent transition-all duration-200 flex flex-col items-center justify-center gap-1 border-2 border-transparent rounded-lg mx-1 my-1 text-muted-foreground"
                 >
                   <DiceOne size={22} />
                   <span className="text-sm font-medium leading-tight tracking-wide">Encounter</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="npc" 
-                  className="px-3 h-full data-[state=active]:bg-accent/80 data-[state=active]:text-accent-foreground data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-accent/50 hover:bg-accent/20 transition-all duration-200 flex flex-col items-center justify-center gap-1 border-2 border-transparent rounded-lg mx-1 my-1"
+                  className="px-3 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg data-[state=active]:border-2 data-[state=active]:border-accent data-[state=active]:transform data-[state=active]:scale-105 hover:bg-accent/20 hover:text-accent transition-all duration-200 flex flex-col items-center justify-center gap-1 border-2 border-transparent rounded-lg mx-1 my-1 text-muted-foreground"
                 >
                   <User size={22} />
                   <span className="text-sm font-medium leading-tight tracking-wide">NPC</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="battle" 
-                  className="px-3 h-full data-[state=active]:bg-accent/80 data-[state=active]:text-accent-foreground data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-accent/50 hover:bg-accent/20 transition-all duration-200 flex flex-col items-center justify-center gap-1 border-2 border-transparent rounded-lg mx-1 my-1"
+                  className="px-3 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg data-[state=active]:border-2 data-[state=active]:border-accent data-[state=active]:transform data-[state=active]:scale-105 hover:bg-accent/20 hover:text-accent transition-all duration-200 flex flex-col items-center justify-center gap-1 border-2 border-transparent rounded-lg mx-1 my-1 text-muted-foreground"
                 >
                   <Sword size={22} />
                   <span className="text-sm font-medium leading-tight tracking-wide">Battle</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="monster" 
-                  className="px-3 h-full data-[state=active]:bg-accent/80 data-[state=active]:text-accent-foreground data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-accent/50 hover:bg-accent/20 transition-all duration-200 flex flex-col items-center justify-center gap-1 border-2 border-transparent rounded-lg mx-1 my-1"
+                  className="px-3 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg data-[state=active]:border-2 data-[state=active]:border-accent data-[state=active]:transform data-[state=active]:scale-105 hover:bg-accent/20 hover:text-accent transition-all duration-200 flex flex-col items-center justify-center gap-1 border-2 border-transparent rounded-lg mx-1 my-1 text-muted-foreground"
                 >
                   <Heart size={22} />
                   <span className="text-sm font-medium leading-tight tracking-wide">Monster</span>
@@ -119,21 +119,21 @@ function App() {
               <TabsList className="grid w-full grid-cols-3 mb-8 h-16 bg-card/60 border-2 border-accent/20 rounded-xl shadow-lg backdrop-blur-sm">
                 <TabsTrigger 
                   value="character" 
-                  className="px-6 h-full data-[state=active]:bg-accent/80 data-[state=active]:text-accent-foreground data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-accent/50 hover:bg-accent/20 transition-all duration-200 flex flex-col items-center justify-center gap-2 border-2 border-transparent rounded-lg mx-1 my-1"
+                  className="px-6 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg data-[state=active]:border-2 data-[state=active]:border-accent data-[state=active]:transform data-[state=active]:scale-105 hover:bg-accent/20 hover:text-accent transition-all duration-200 flex flex-col items-center justify-center gap-2 border-2 border-transparent rounded-lg mx-1 my-1 text-muted-foreground"
                 >
                   <UserCircle size={24} />
                   <span className="text-sm font-medium tracking-wide">Character</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="spells" 
-                  className="px-6 h-full data-[state=active]:bg-accent/80 data-[state=active]:text-accent-foreground data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-accent/50 hover:bg-accent/20 transition-all duration-200 flex flex-col items-center justify-center gap-2 border-2 border-transparent rounded-lg mx-1 my-1"
+                  className="px-6 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg data-[state=active]:border-2 data-[state=active]:border-accent data-[state=active]:transform data-[state=active]:scale-105 hover:bg-accent/20 hover:text-accent transition-all duration-200 flex flex-col items-center justify-center gap-2 border-2 border-transparent rounded-lg mx-1 my-1 text-muted-foreground"
                 >
                   <Sparkles size={24} />
                   <span className="text-sm font-medium tracking-wide">Spells</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="roster" 
-                  className="px-6 h-full data-[state=active]:bg-accent/80 data-[state=active]:text-accent-foreground data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-accent/50 hover:bg-accent/20 transition-all duration-200 flex flex-col items-center justify-center gap-2 border-2 border-transparent rounded-lg mx-1 my-1"
+                  className="px-6 h-full data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg data-[state=active]:border-2 data-[state=active]:border-accent data-[state=active]:transform data-[state=active]:scale-105 hover:bg-accent/20 hover:text-accent transition-all duration-200 flex flex-col items-center justify-center gap-2 border-2 border-transparent rounded-lg mx-1 my-1 text-muted-foreground"
                 >
                   <Users size={24} />
                   <span className="text-sm font-medium tracking-wide">Roster</span>

@@ -110,6 +110,48 @@ button:active {
   transform: translateY(0);
 }
 
+/* Enhanced tab selection states */
+[data-state="active"] {
+  background: var(--accent) !important;
+  color: var(--accent-foreground) !important;
+  box-shadow: 
+    0 8px 25px rgba(139, 92, 246, 0.4), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 30px rgba(139, 92, 246, 0.3);
+  transform: scale(1.05);
+  border: 2px solid var(--accent) !important;
+  position: relative;
+  z-index: 10;
+}
+
+/* Primary tab active states */
+[data-state="active"][value="player"] {
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  box-shadow: 
+    0 8px 25px rgba(139, 92, 246, 0.5), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 30px rgba(139, 92, 246, 0.4);
+  border: 2px solid var(--primary) !important;
+}
+
+[data-state="active"][value="gm"] {
+  background: var(--secondary) !important;
+  color: var(--secondary-foreground) !important;
+  box-shadow: 
+    0 8px 25px rgba(242, 147, 57, 0.5), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 30px rgba(242, 147, 57, 0.4);
+  border: 2px solid var(--secondary) !important;
+}
+
+/* Enhanced hover states */
+button:hover:not([data-state="active"]) {
+  background: rgba(139, 92, 246, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+}
+
 /* Improved visual hierarchy */
 body {
   line-height: 1.6;
