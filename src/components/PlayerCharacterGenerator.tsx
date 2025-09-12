@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { useKV } from '@github/spark/hooks'
 import { toast } from "sonner"
 import { Download, Copy, Sparkles, Users, Plus, UserCircle, Cube } from "@phosphor-icons/react"
+import { cn } from "@/lib/utils"
 
 // Game data
 const dieRanks = ["d4", "d6", "d8", "d10", "d12"]
