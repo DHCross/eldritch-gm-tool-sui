@@ -774,97 +774,86 @@ export default function SpellReference({ selectedCharacter, onCharacterUpdate }:
 
     suggestions.push(`**Initial Spell Count:** ${recommendedCount} (based on Competence + Expertise die ranks)`)
     suggestions.push(`**Spell Acquisition Rule:** 2 spells per die rank in Competence and Expertise combined`)
-    const suggestions = []
 
-    // Calculate recommended spell counts based on level - using realistic die ranks
+    // Class-specific notes
+    if (classToUse === 'Adept') {
       suggestions.push(`**Mastery Path:** Arcanum (automatic for all Adepts)`)
       suggestions.push(`**Available Paths:** ${availablePaths.join(', ')}`)
       suggestions.push('**Note:** Adepts receive half the normal spell count but excel at ritual magic and item crafting.')
-
-    suggestions.push(`**Initial Spell Count:** ${recommendedCount} (based on Competence + Expertise die ranks)`)
-    suggestions.push(`**Spell Acquisition Rule:** 2 spells per die rank in Competence and Expertise combined`)
+    } else if (classToUse === 'Mystic') {
       suggestions.push('**Note:** Mystics specialize exclusively in Mysticism. They can learn other paths with special failure mechanics.')
-    } else {
-    if (classToUse === 'Adept') {
-      if (classToUse === 'Mage') {
-        suggestions.push('**Note:** Mages must choose one mastery path: Thaumaturgy, Elementalism, or Sorcery.')
-      suggestions.push('**Note:** Adepts receive half the normal spell count but excel at ritual magic and item crafting.')
-    } else if (classToUse === 'Mystic') {icism.')
-      }
+    } else if (classToUse === 'Mage') {
+      suggestions.push('**Note:** Mages must choose one mastery path: Thaumaturgy, Elementalism, or Sorcery.')
+    } else if (classToUse === 'Theurgist') {
+      suggestions.push('**Note:** Theurgists must choose one mastery path: Druidry or Hieraticism.')
     }
-      suggestions.push('**Note:** Mystics specialize exclusively in Mysticism. They can learn other paths with special failure mechanics.')
+
     // Spell rarity restrictions for initial selection
     suggestions.push(`**Initial Spell Rarity:** Common and Uncommon only (70% Common, 30% Uncommon recommended)`)
-      if (classToUse === 'Mage') {
+
     // Level-based additional spells
-      } else if (classToUse === 'Theurgist') {
-        suggestions.push('**Note:** Theurgists must choose one mastery path: Druidry or Hieraticism.')'Legendary'} rarity)`)
+    if (levelNum >= 2) {
+      suggestions.push(`**Level ${levelNum} Bonus:** +1 path spell (${levelNum === 2 ? 'Uncommon' : levelNum === 3 ? 'Esoteric' : levelNum === 4 ? 'Occult' : 'Legendary'} rarity)`)
     }
-    }
+
     // Spell expansion rules
     suggestions.push(`**Expanding Repertoire:** Each die rank increase in Competence or Expertise grants +2 spell slots`)
     suggestions.push(`**Learning Spells:** Additional spells can be learned from grimoires (5 days + ability roll vs spell challenge)`)
     suggestions.push(`**Mastery Die Usage:** Enhances spell effects but does NOT grant additional spells`)
 
-    if (levelNum >= 2) {
-      suggestions.push(`**Level ${levelNum} Bonus:** +1 path spell (${levelNum === 2 ? 'Uncommon' : levelNum === 3 ? 'Esoteric' : levelNum === 4 ? 'Occult' : 'Legendary'} rarity)`)
+    return suggestions
+  }
 
-estions = (characterClass?: string, level?: string) => {
-    // Spell expansion rules
-    const levelToUse = level || selectedLevel
-    
-    if (!classToUse) return []
-
-    const levelNum = parseInt(levelToUse) || 1
-    // Use realistic die ranks based on level
-    const competence = levelNum <= 2 ? 'd6' : levelNum <= 4 ? 'd8' : 'd10'
-    const autoSpells = []
-    
-    const levelToUse = level || selectedLevel
-     = spellDatabase.Universal.Common
-    autoSpells.push(...universalCommon.map(spell => ({
-      ...spell,
-      path: 'Universal',
-    // Use realistic die ranks based on level
-      id: `Universal-${spell.name}-Common`
-    })))
-
-
+  const generateAutoSpells = (characterClass: string, level: string) => {
     const autoSpells = []
     
     // All characters get Universal spells (these are inherent for Gift of Magic)
     const universalCommon = spellDatabase.Universal.Common
     autoSpells.push(...universalCommon.map(spell => ({
-                     : classToUse === 'Mystic' ? ['Mysticism']
-                     : classToUse === 'Theurgist' ? ['Druidry', 'Hieraticism']
+      ...spell,
+      path: 'Universal',
+      id: `Universal-${spell.name}-Common`
+    })))
+
+    const classPaths = characterClass === 'Adept' ? ['Thaumaturgy', 'Elementalism', 'Sorcery']
+                     : characterClass === 'Mage' ? ['Thaumaturgy', 'Elementalism', 'Sorcery']
+                     : characterClass === 'Mystic' ? ['Mysticism']
+                     : characterClass === 'Theurgist' ? ['Druidry', 'Hieraticism']
                      : []
 
     // For Mages and Theurgists, prefer their primary path
     let pathPriority = [...classPaths]
-    if (classToUse === 'Mage') {
+    if (characterClass === 'Mage') {
       // Rotate to give each path a chance to be primary
       const rotation = Math.floor(Math.random() * classPaths.length)
       pathPriority = [...classPaths.slice(rotation), ...classPaths.slice(0, rotation)]
-    const classPaths = classToUse === 'Adept' ? ['Thaumaturgy', 'Elementalism', 'Sorcery']
-                     : classToUse === 'Mage' ? ['Thaumaturgy', 'Elementalism', 'Sorcery']
-                     : classToUse === 'Mystic' ? ['Mysticism']
-                     : classToUse === 'Theurgist' ? ['Druidry', 'Hieraticism']
+    } else if (characterClass === 'Theurgist') {
+      pathPriority = Math.random() < 0.5 ? ['Druidry', 'Hieraticism'] : ['Hieraticism', 'Druidry']
+    }
 
-    // Distribute remaining spells across available paths with priority weighting
-    // For Mages and Theurgists, prefer their primary path
-    let pathPriority = [...classPaths]
-    if (classToUse === 'Mage') {
-      // Rotate to give each path a chance to be primary
+    // Get spell count based on character class and level
+    const levelNum = parseInt(level) || 1
+    const competence = levelNum <= 2 ? 'd6' : levelNum <= 4 ? 'd8' : 'd10'
+    const expertise = levelNum <= 1 ? 'd6' : levelNum <= 3 ? 'd8' : 'd10'
+    const targetSpellCount = calculateSpellCount(competence, expertise, characterClass)
+    
+    // Reserve slots for universal spells
+    const remainingSpells = Math.max(0, targetSpellCount - universalCommon.length)
+    
+    if (remainingSpells > 0 && pathPriority.length > 0) {
+      // Distribute spells across paths with emphasis on primary path
+      const primarySpells = Math.ceil(remainingSpells * 0.6)
+      const secondarySpells = remainingSpells - primarySpells
       const spellsPerSecondary = pathPriority.length > 1 ? Math.floor(secondarySpells / (pathPriority.length - 1)) : 0
 
-    } else if (classToUse === 'Theurgist') {
+      pathPriority.forEach((path, index) => {
         const pathSpells = spellDatabase[path]
-      pathPriority = Math.random() < 0.5 ? ['Druidry', 'Hieraticism'] : ['Hieraticism', 'Druidry']
+        if (!pathSpells) return
 
         const commonSpells = pathSpells.Common || []
         const uncommonSpells = pathSpells.Uncommon || []
-    if (remainingSpells > 0 && pathPriority.length > 0) {
         let pathSpellCount = index === 0 ? primarySpells : spellsPerSecondary
+        
         if (pathSpellCount <= 0) return
         
         // 70% common, 30% uncommon distribution
