@@ -940,7 +940,7 @@ export default function SpellReference({ selectedCharacter, onCharacterUpdate }:
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-primary" />
-            Spell Reference & Selection
+            Spells
             {selectedCharacter && (
               <Badge variant="secondary" className="ml-2">
                 {selectedCharacter.name}
@@ -963,20 +963,20 @@ export default function SpellReference({ selectedCharacter, onCharacterUpdate }:
       </Card>
 
       <Tabs defaultValue="browse" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 mb-6">
-          <TabsTrigger value="browse" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsTrigger value="browse" className="tab-trigger flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
             Browse Spells
           </TabsTrigger>
-          <TabsTrigger value="character" className="flex items-center gap-2">
+          <TabsTrigger value="character" className="tab-trigger flex items-center gap-2">
             <Plus className="w-4 h-4" />
             Repertoire
           </TabsTrigger>
-          <TabsTrigger value="selection" className="flex items-center gap-2">
+          <TabsTrigger value="selection" className="tab-trigger flex items-center gap-2">
             <Star className="w-4 h-4" />
             Current Selection ({selectedSpells.length})
           </TabsTrigger>
-          <TabsTrigger value="saved" className="flex items-center gap-2">
+          <TabsTrigger value="saved" className="tab-trigger flex items-center gap-2">
             <Sparkles className="w-4 h-4" />
             Saved Lists ({Object.keys(savedSpellLists).length})
           </TabsTrigger>

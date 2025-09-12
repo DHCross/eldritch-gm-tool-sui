@@ -890,11 +890,12 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
                       key={l}
                       type="button"
                       onClick={() => setLevel(l)}
-                      className={`flex-1 h-12 rounded-lg border-2 font-medium transition-all ${
+                      className={cn(
+                        "level-selector flex-1 h-12 rounded-lg border-2 font-medium transition-all",
                         level === l 
-                          ? 'bg-primary text-primary-foreground border-primary shadow-md' 
+                          ? 'selected bg-primary text-primary-foreground border-primary shadow-md' 
                           : 'bg-card border-border hover:border-primary/50 hover:bg-primary/5'
-                      }`}
+                      )}
                     >
                       Level {l}
                     </button>
@@ -931,16 +932,16 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
                 Training Mode
               </h3>
               <div className="space-y-3">
-                <div className="flex bg-muted rounded-lg p-1">
+                <div className="segmented-control">
                   <button
                     type="button"
                     onClick={() => setRookieProfile('off')}
                     disabled={!canUseRookieProfile}
-                    className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
-                      rookieProfile === 'off' 
-                        ? 'bg-secondary text-secondary-foreground shadow-sm' 
-                        : 'text-muted-foreground hover:text-foreground'
-                    } ${!canUseRookieProfile ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={cn(
+                      'transition-all',
+                      rookieProfile === 'off' && 'active',
+                      !canUseRookieProfile && 'opacity-50 cursor-not-allowed'
+                    )}
                   >
                     Standard
                   </button>
@@ -948,11 +949,11 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
                     type="button"
                     onClick={() => setRookieProfile('balanced')}
                     disabled={!canUseRookieProfile}
-                    className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
-                      rookieProfile === 'balanced' 
-                        ? 'bg-secondary text-secondary-foreground shadow-sm' 
-                        : 'text-muted-foreground hover:text-foreground'
-                    } ${!canUseRookieProfile ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={cn(
+                      'transition-all',
+                      rookieProfile === 'balanced' && 'active',
+                      !canUseRookieProfile && 'opacity-50 cursor-not-allowed'
+                    )}
                   >
                     Rookie
                   </button>
@@ -973,17 +974,16 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
                 Development Style
               </h3>
               <div className="space-y-3">
-                <div className="flex bg-muted rounded-lg p-1">
+                <div className="segmented-control">
                   {buildStyles.map(style => (
                     <button
                       key={style}
                       type="button"
                       onClick={() => setBuildStyle(style)}
-                      className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
-                        buildStyle === style 
-                          ? 'bg-secondary text-secondary-foreground shadow-sm' 
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
+                      className={cn(
+                        'transition-all',
+                        buildStyle === style && 'active'
+                      )}
                     >
                       {style === 'balanced' && 'Balanced'}
                       {style === 'specialist' && 'Specialist'}  
