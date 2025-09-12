@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 import { useKV } from '@github/spark/hooks'
 import { toast } from "sonner"
-import { Download, Copy, Sparkles, Users, Plus, UserCircle } from "@phosphor-icons/react"
+import { Download, Copy, Sparkles, Users, Plus, UserCircle, Cube } from "@phosphor-icons/react"
 
 // Game data
 const dieRanks = ["d4", "d6", "d8", "d10", "d12"]
@@ -878,7 +878,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
           {/* Building Philosophy - Major Section */}
           <div className="bg-gradient-to-r from-secondary/5 via-secondary/10 to-secondary/5 p-6 rounded-xl border border-secondary/20">
             <h3 className="text-2xl font-bold mb-6 text-center text-secondary flex items-center justify-center gap-2">
-              <Dice6 className="w-6 h-6" />
+              <Cube className="w-6 h-6" />
               Character Philosophy
             </h3>
             
