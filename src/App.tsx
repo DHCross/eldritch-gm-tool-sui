@@ -154,46 +154,50 @@ function App() {
             {/* Can add footer items here */}
           </SidebarFooter>
         </Sidebar>
-        <SidebarInset>
-          <div className="container max-w-7xl mx-auto px-6 py-8">
-            <div className="md:hidden flex justify-between items-center mb-6 p-4 bg-card rounded-lg border">
-              <div className="flex items-center gap-3">
-                <ScrollText size={24} className="text-primary" />
-                <h1 className="font-serif text-xl font-bold tracking-tight text-foreground">
-                  Eldritch RPG
-                </h1>
+        <SidebarInset className="overflow-hidden flex flex-col">
+          <div className="flex-1 overflow-y-auto">
+            <div className="container max-w-7xl mx-auto px-6 py-8 min-h-full">
+              <div className="md:hidden flex justify-between items-center mb-6 p-4 bg-card rounded-lg border">
+                <div className="flex items-center gap-3">
+                  <ScrollText size={24} className="text-primary" />
+                  <h1 className="font-serif text-xl font-bold tracking-tight text-foreground">
+                    Eldritch RPG
+                  </h1>
+                </div>
+                <SidebarTrigger />
               </div>
-              <SidebarTrigger />
-            </div>
-            
-            {/* Active tool header */}
-            <div className="mb-8">
-              {(() => {
-                const currentTool = [...playerTools, ...gmTools].find(tool => tool.id === activeTool);
-                const isPlayerTool = playerTools.some(tool => tool.id === activeTool);
-                return currentTool ? (
-                  <div className="flex items-center gap-4 p-6 bg-card rounded-xl border shadow-sm">
-                    <div className={`p-3 rounded-lg ${isPlayerTool ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary'}`}>
-                      <currentTool.icon size={32} />
+              
+              {/* Active tool header */}
+              <div className="mb-8">
+                {(() => {
+                  const currentTool = [...playerTools, ...gmTools].find(tool => tool.id === activeTool);
+                  const isPlayerTool = playerTools.some(tool => tool.id === activeTool);
+                  return currentTool ? (
+                    <div className="flex items-center gap-4 p-6 bg-card rounded-xl border shadow-sm">
+                      <div className={`p-3 rounded-lg ${isPlayerTool ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary'}`}>
+                        <currentTool.icon size={32} />
+                      </div>
+                      <div>
+                        <h2 className="font-serif text-2xl font-bold text-foreground">
+                          {currentTool.name}
+                        </h2>
+                        <p className="text-muted-foreground">
+                          {currentTool.description}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="font-serif text-2xl font-bold text-foreground">
-                        {currentTool.name}
-                      </h2>
-                      <p className="text-muted-foreground">
-                        {currentTool.description}
-                      </p>
-                    </div>
-                  </div>
-                ) : null;
-              })()}
-            </div>
+                  ) : null;
+                })()}
+              </div>
 
-            <ActiveToolComponent
-              selectedCharacter={selectedCharacter}
-              onCharacterSelect={setSelectedCharacter}
-              onCharacterUpdate={setSelectedCharacter}
-            />
+              <div className="pb-8">
+                <ActiveToolComponent
+                  selectedCharacter={selectedCharacter}
+                  onCharacterSelect={setSelectedCharacter}
+                  onCharacterUpdate={setSelectedCharacter}
+                />
+              </div>
+            </div>
           </div>
         </SidebarInset>
         <Toaster />

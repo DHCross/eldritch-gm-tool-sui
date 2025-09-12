@@ -116,6 +116,12 @@ button:active {
   border-right: 2px solid var(--border);
 }
 
+/* Sidebar container styling */
+[data-sidebar="sidebar"] {
+  background: var(--card) !important;
+  border-right: 2px solid var(--border) !important;
+}
+
 /* Better visual separation for navigation groups */
 [data-sidebar="group"] {
   margin-bottom: 1.5rem;
@@ -125,44 +131,69 @@ button:active {
   border-bottom: 1px solid var(--border);
   padding-bottom: 0.5rem;
   margin-bottom: 1rem;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+}
+
+/* Player Tools label styling */
+[data-sidebar="group"]:first-child [data-sidebar="group-label"] {
+  color: var(--primary) !important;
+}
+
+/* Game Master Tools label styling */
+[data-sidebar="group"]:last-child [data-sidebar="group-label"] {
+  color: var(--secondary) !important;
 }
 
 /* Enhanced menu button states with clearer visual feedback */
 [data-sidebar="menu-button"] {
-  border: 2px solid transparent;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 0.75rem;
-  margin-bottom: 0.25rem;
+  border: 2px solid transparent !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-radius: 0.75rem !important;
+  margin-bottom: 0.25rem !important;
+  background: transparent !important;
 }
 
 [data-sidebar="menu-button"]:hover {
-  background: var(--accent)/10;
-  border-color: var(--accent)/30;
-  transform: translateX(2px);
+  background: var(--accent)/10 !important;
+  border-color: var(--accent)/30 !important;
+  transform: translateX(2px) !important;
 }
 
-[data-sidebar="menu-button"][data-active="true"] {
-  background: var(--primary);
-  color: var(--primary-foreground);
-  border-color: var(--primary);
+/* Player Tools Active State */
+[data-sidebar="group"]:first-child [data-sidebar="menu-button"][data-active="true"],
+[data-sidebar="group"]:first-child [data-sidebar="menu-button"].bg-primary {
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  border-color: var(--primary) !important;
   box-shadow: 
-    0 4px 12px rgba(139, 92, 246, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  transform: translateX(4px);
+    0 4px 12px rgba(139, 92, 246, 0.4) !important,
+    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  transform: translateX(4px) !important;
 }
 
-[data-sidebar="menu-button"][data-active="true"]:hover {
-  transform: translateX(4px);
+[data-sidebar="group"]:first-child [data-sidebar="menu-button"][data-active="true"]:hover,
+[data-sidebar="group"]:first-child [data-sidebar="menu-button"].bg-primary:hover {
+  transform: translateX(4px) !important;
+  background: var(--primary) !important;
 }
 
-/* Secondary tools with different color */
-[data-sidebar="group"]:last-child [data-sidebar="menu-button"][data-active="true"] {
-  background: var(--secondary);
-  color: var(--secondary-foreground);
-  border-color: var(--secondary);
+/* Game Master Tools Active State */
+[data-sidebar="group"]:last-child [data-sidebar="menu-button"][data-active="true"],
+[data-sidebar="group"]:last-child [data-sidebar="menu-button"].bg-secondary {
+  background: var(--secondary) !important;
+  color: var(--secondary-foreground) !important;
+  border-color: var(--secondary) !important;
   box-shadow: 
-    0 4px 12px rgba(242, 147, 57, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 4px 12px rgba(242, 147, 57, 0.4) !important,
+    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  transform: translateX(4px) !important;
+}
+
+[data-sidebar="group"]:last-child [data-sidebar="menu-button"][data-active="true"]:hover,
+[data-sidebar="group"]:last-child [data-sidebar="menu-button"].bg-secondary:hover {
+  transform: translateX(4px) !important;
+  background: var(--secondary) !important;
 }
 
 /* Clear visual hierarchy for nested content */
@@ -289,6 +320,100 @@ h1, h2, h3, h4, h5, h6 {
   .grid-cols-2 {
     grid-template-columns: repeat(1, minmax(0, 1fr));
   }
+}
+
+/* Main content area overflow handling */
+[data-sidebar="inset"] {
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Ensure main content scrolls properly */
+.main-content-wrapper {
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* Fix sidebar menu spacing */
+[data-sidebar="menu"] {
+  padding: 0.5rem;
+}
+
+[data-sidebar="menu-button"] {
+  width: 100% !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+  padding: 0.75rem 1rem !important;
+}
+
+/* Fix sidebar menu button active states - using more specific selectors */
+[data-sidebar] button.bg-primary,
+[data-sidebar] button[class*="bg-primary"] {
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  border: 2px solid var(--primary) !important;
+  box-shadow: 
+    0 4px 12px rgba(139, 92, 246, 0.4) !important,
+    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  transform: translateX(4px) !important;
+}
+
+[data-sidebar] button.bg-secondary,
+[data-sidebar] button[class*="bg-secondary"] {
+  background: var(--secondary) !important;
+  color: var(--secondary-foreground) !important;
+  border: 2px solid var(--secondary) !important;
+  box-shadow: 
+    0 4px 12px rgba(242, 147, 57, 0.4) !important,
+    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  transform: translateX(4px) !important;
+}
+
+/* More specific selector for sidebar buttons */
+[data-sidebar="menu-button"][data-state="active"],
+[data-sidebar="menu-button"].active,
+.sidebar button[aria-current="page"] {
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  border: 2px solid var(--primary) !important;
+  box-shadow: 
+    0 4px 12px rgba(139, 92, 246, 0.4) !important,
+    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  transform: translateX(4px) !important;
+}
+
+[data-sidebar="menu-button"]:not([data-active="true"]):not(.bg-primary):not(.bg-secondary):hover {
+  background: var(--accent)/10 !important;
+  border-color: var(--accent)/30 !important;
+  transform: translateX(2px) !important;
+}
+
+/* Ensure proper text wrapping in sidebar */
+[data-sidebar="menu-button"] .flex.flex-col {
+  min-width: 0;
+  flex: 1;
+}
+
+[data-sidebar="menu-button"] .flex.flex-col span {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* Overall layout improvements */
+.min-h-screen {
+  min-height: 100vh;
+}
+
+/* Sidebar width consistency */
+[data-sidebar="sidebar"] {
+  width: 280px !important;
+  min-width: 280px !important;
+}
+
+/* Content area proper spacing */
+[data-sidebar="inset"] {
+  flex: 1;
+  min-width: 0;
 }
 
 /* Subtle animations for interactive elements */
