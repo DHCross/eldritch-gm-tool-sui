@@ -798,11 +798,11 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
   } : null
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans text-base font-normal tracking-wide">
       {/* Live Build Summary - Sticky at top when character exists */}
       {buildSummary && (
         <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 p-4 rounded-xl border border-primary/20 sticky top-4 z-10 backdrop-blur-sm">
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm font-mono">
             <Badge variant="default" className="flex items-center gap-1">
               Level {buildSummary.level}
             </Badge>
@@ -831,7 +831,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
       <Card className="bg-gradient-to-br from-card via-card to-card/90 border-border/50 shadow-2xl backdrop-blur-sm">
         <CardHeader className="pb-6">
           <div className="space-y-3">
-            <CardTitle className="text-4xl font-bold text-foreground tracking-wide text-center">
+            <CardTitle className="font-serif text-4xl font-bold text-foreground tracking-wide text-center">
               Character Codex
             </CardTitle>
             <CardDescription className="text-muted-foreground text-center">
@@ -850,13 +850,13 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
         <CardContent className="space-y-8">
           {/* Essential Identity - Clean Two-Column Grid */}
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-primary flex items-center gap-3">
+            <h2 className="font-serif text-2xl font-semibold tracking-normal text-primary flex items-center gap-3">
               <UserCircle className="w-6 h-6" />
               Essential Identity
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-2">
-                <Label htmlFor="race" className="text-base font-semibold">Race</Label>
+                <Label htmlFor="race" className="font-sans text-sm font-medium">Race</Label>
                 <Select value={race} onValueChange={setRace}>
                   <SelectTrigger className="h-12 text-base">
                     <SelectValue placeholder="Choose your heritage..." />
@@ -870,7 +870,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="class" className="text-base font-semibold">Class</Label>
+                <Label htmlFor="class" className="font-sans text-sm font-medium">Class</Label>
                 <Select value={characterClass} onValueChange={setCharacterClass}>
                   <SelectTrigger className="h-12 text-base">
                     <SelectValue placeholder="Select your calling..." />
@@ -884,7 +884,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="level" className="text-base font-semibold">Experience Level</Label>
+                <Label htmlFor="level" className="font-sans text-sm font-medium">Experience Level</Label>
                 <div className="flex gap-2">
                   {levels.map(l => (
                     <button
@@ -892,7 +892,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
                       type="button"
                       onClick={() => setLevel(l)}
                       className={cn(
-                        "level-selector flex-1 h-12 rounded-lg border-2 font-medium transition-all",
+                        "level-selector flex-1 h-12 rounded-lg border-2 font-medium transition-all font-sans text-sm",
                         level === l 
                           ? 'selected bg-primary text-primary-foreground border-primary shadow-md' 
                           : 'bg-card border-border hover:border-primary/50 hover:bg-primary/5'
@@ -906,7 +906,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
 
               {showMagicPath && (
                 <div className="space-y-2">
-                  <Label htmlFor="magic-path" className="text-base font-semibold">Magic Path</Label>
+                  <Label htmlFor="magic-path" className="font-sans text-sm font-medium">Magic Path</Label>
                   <Select value={magicPath} onValueChange={setMagicPath}>
                     <SelectTrigger className="h-12 text-base">
                       <SelectValue placeholder="Choose your path..." />
@@ -928,7 +928,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Training Mode */}
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-secondary flex items-center gap-2">
+              <h3 className="font-serif text-xl font-semibold tracking-normal text-secondary flex items-center gap-2">
                 <Cube className="w-5 h-5" />
                 Training Mode
               </h3>
@@ -939,7 +939,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
                     onClick={() => setRookieProfile('off')}
                     disabled={!canUseRookieProfile}
                     className={cn(
-                      'transition-all',
+                      'transition-all font-sans text-sm font-medium',
                       rookieProfile === 'off' && 'active',
                       !canUseRookieProfile && 'opacity-50 cursor-not-allowed'
                     )}
@@ -951,7 +951,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
                     onClick={() => setRookieProfile('balanced')}
                     disabled={!canUseRookieProfile}
                     className={cn(
-                      'transition-all',
+                      'transition-all font-sans text-sm font-medium',
                       rookieProfile === 'balanced' && 'active',
                       !canUseRookieProfile && 'opacity-50 cursor-not-allowed'
                     )}
@@ -970,7 +970,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
 
             {/* Development Style */}
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-secondary flex items-center gap-2">
+              <h3 className="font-serif text-xl font-semibold tracking-normal text-secondary flex items-center gap-2">
                 <Cube className="w-5 h-5" />
                 Development Style
               </h3>
@@ -982,7 +982,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
                       type="button"
                       onClick={() => setBuildStyle(style)}
                       className={cn(
-                        'transition-all',
+                        'transition-all font-sans text-sm font-medium',
                         buildStyle === style && 'active'
                       )}
                     >
@@ -1005,7 +1005,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
 
           {/* Advanced Configuration - Collapsible */}
           <details className="group">
-            <summary className="cursor-pointer text-xl font-semibold text-accent flex items-center gap-2 mb-4 hover:text-accent/80 transition-colors">
+            <summary className="cursor-pointer font-serif text-xl font-semibold tracking-normal text-accent flex items-center gap-2 mb-4 hover:text-accent/80 transition-colors">
               <span className="transform transition-transform group-open:rotate-90">▶</span>
               Advanced Configuration
             </summary>
@@ -1019,7 +1019,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
                     onCheckedChange={setIconicArcane}
                   />
                   <div className="space-y-1">
-                    <Label htmlFor="iconic-arcane" className="font-medium cursor-pointer">
+                    <Label htmlFor="iconic-arcane" className="font-sans text-sm font-medium cursor-pointer">
                       Iconic Arcane Inheritance
                     </Label>
                     <p className="text-xs text-muted-foreground">Costs 4 CP</p>
@@ -1033,7 +1033,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
                     onCheckedChange={setEnforceSoftcaps}
                   />
                   <div className="space-y-1">
-                    <Label htmlFor="enforce-softcaps" className="font-medium cursor-pointer">
+                    <Label htmlFor="enforce-softcaps" className="font-sans text-sm font-medium cursor-pointer">
                       Respect Level Caps
                     </Label>
                     <p className="text-xs text-muted-foreground">Soft limits; you can override later</p>
@@ -1047,7 +1047,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
                     onCheckedChange={setNpcMode}
                   />
                   <div className="space-y-1">
-                    <Label htmlFor="npc-mode" className="font-medium cursor-pointer">
+                    <Label htmlFor="npc-mode" className="font-sans text-sm font-medium cursor-pointer">
                       NPC Generation Mode
                     </Label>
                     <p className="text-xs text-muted-foreground">Favors breadth over peaks</p>
@@ -1061,7 +1061,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
                     onCheckedChange={setShowWeakness}
                   />
                   <div className="space-y-1">
-                    <Label htmlFor="warn-weakness" className="font-medium cursor-pointer">
+                    <Label htmlFor="warn-weakness" className="font-sans text-sm font-medium cursor-pointer">
                       Show Build Weakness Analysis
                     </Label>
                     <p className="text-xs text-muted-foreground">Explains what's computed</p>
@@ -1183,10 +1183,10 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
 
           {/* Character Display - Streamlined */}
           {character && (
-            <Card className="border-border/50">
+            <Card className="border-border/50 font-mono text-sm">
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <CardTitle className="text-2xl">
+              <CardTitle className="font-serif text-2xl">
                 {character.race} {character.class} — Level {character.displayLevel}
               </CardTitle>
               <div className="flex items-center gap-2">
@@ -1221,7 +1221,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Abilities */}
               <div className="space-y-3">
-                <h3 className="text-lg font-semibold border-b border-border pb-2">Abilities</h3>
+                <h3 className="font-serif text-lg font-semibold border-b border-border pb-2">Abilities</h3>
                 <div className="space-y-3">
                   {abilities.map(ab => {
                     const sp = specialties[ab as keyof typeof specialties].map(s => {
@@ -1242,7 +1242,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
 
               {/* Actions */}
               <div className="space-y-3">
-                <h3 className="text-lg font-semibold border-b border-border pb-2">Actions</h3>
+                <h3 className="font-serif text-lg font-semibold border-b border-border pb-2">Actions</h3>
                 <div className="space-y-2 text-sm">
                   <div><strong>Melee Attack:</strong> {character.actions.meleeAttack}</div>
                   <div><strong>Ranged Attack:</strong> {character.actions.rangedAttack}</div>
@@ -1255,7 +1255,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
 
               {/* Build Analysis */}
               <div className="space-y-3">
-                <h3 className="text-lg font-semibold border-b border-border pb-2">Build Analysis</h3>
+                <h3 className="font-serif text-lg font-semibold border-b border-border pb-2">Build Analysis</h3>
                 <div className="space-y-2 text-sm">
                   {(() => {
                     const totals = cpTally(character, iconicArcane)
@@ -1290,7 +1290,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
 
               {/* Character Traits */}
               <div className="space-y-3">
-                <h3 className="text-lg font-semibold border-b border-border pb-2">Character Traits</h3>
+                <h3 className="font-serif text-lg font-semibold border-b border-border pb-2">Character Traits</h3>
                 
                 <div className="space-y-3 text-sm">
                   <div>
@@ -1327,7 +1327,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
               {/* Spellbook for Casters */}
               {casterClasses.includes(character.class) && (
                 <div className="lg:col-span-2 space-y-3">
-                  <h3 className="text-lg font-semibold border-b border-border pb-2">
+                  <h3 className="font-serif text-lg font-semibold border-b border-border pb-2">
                     Spellbook ({selectedSpells.length} spells)
                     {character.magicPath && <span className="text-sm font-normal text-muted-foreground"> • {character.magicPath}</span>}
                   </h3>
