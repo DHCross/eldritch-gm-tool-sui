@@ -927,7 +927,7 @@ export default function SpellReference({ selectedCharacter, onCharacterUpdate }:
   }
 
   const applyAutoSuggestions = (characterClass?: string, level?: string) => {
-    const suggestions = generateAutoSuggestions(characterClass, level)
+    const suggestions = generateAutoSpells(characterClass || selectedCharacterClass, level || selectedLevel || '1')
     setSelectedSpells(suggestions)
     const classToUse = characterClass || selectedCharacterClass
     const levelToUse = level || selectedLevel
@@ -970,7 +970,7 @@ export default function SpellReference({ selectedCharacter, onCharacterUpdate }:
           </TabsTrigger>
           <TabsTrigger value="character" className="flex items-center gap-2">
             <Plus className="w-4 h-4" />
-            Character Builder
+            Repertoire
           </TabsTrigger>
           <TabsTrigger value="selection" className="flex items-center gap-2">
             <Star className="w-4 h-4" />
@@ -985,7 +985,7 @@ export default function SpellReference({ selectedCharacter, onCharacterUpdate }:
         <TabsContent value="character" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Character Spell Builder</CardTitle>
+              <CardTitle>Character Spell Repertoire</CardTitle>
               <CardDescription>
                 {selectedCharacter ? (
                   <>Build spells for <strong>{selectedCharacter.name || `${selectedCharacter.race} ${selectedCharacter.class}`}</strong>. Get recommendations based on their class and level.</>
