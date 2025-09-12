@@ -129,7 +129,7 @@ function App() {
                   className="px-6 h-full data-[state=active]:bg-accent/80 data-[state=active]:text-accent-foreground data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-accent/50 hover:bg-accent/20 transition-all duration-200 flex flex-col items-center justify-center gap-2 border-2 border-transparent rounded-lg mx-1 my-1"
                 >
                   <Sparkles size={24} />
-                  <span className="text-sm font-medium tracking-wide">Spells</span>
+                  <span className="text-sm font-medium tracking-wide">Repertoire</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="roster" 
