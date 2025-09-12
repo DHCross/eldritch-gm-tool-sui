@@ -938,20 +938,19 @@ export default function SpellReference({ selectedCharacter, onCharacterUpdate }:
     <div className="space-y-6">
       <Card>
         <CardHeader>
-  const applyAutoSuggestions = (characterClass?: string, level?: string) => {
-    const suggestions = generateAutoSuggestions(characterClass, level)
-            Spell Reference & Selection
-    const classToUse = characterClass || selectedCharacterClass
-    const levelToUse = level || selectedLevel
-    toast.success(`Auto-selected ${suggestions.length} spells for ${classToUse} Level ${levelToUse || 1}`)
-              </Badge>
-            )}
-  return (
-    <div className="space-y-6">
-            Browse and search the complete Eldritch RPG spell library. Contains {allSpells.length} spells across all magical paths.
-        <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-primary" />
+            Spell Reference & Selection
+            {selectedCharacter && (
+              <Badge variant="secondary" className="ml-2">
+                {selectedCharacter.name}
+              </Badge>
+            )}
+          </CardTitle>
+          <CardDescription>
+            {selectedCharacter ? (
+              <span>
+                Browse and search the complete Eldritch RPG spell library. Contains {allSpells.length} spells across all magical paths.
                 {selectedCharacter.spellbook && ` (currently has ${selectedCharacter.spellbook.length} spells)`}
               </span>
             ) : (
