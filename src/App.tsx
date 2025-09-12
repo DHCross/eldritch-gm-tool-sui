@@ -1,18 +1,31 @@
-import React, { useState } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Toaster } from "@/components/ui/sonner"
-import EncounterGenerator from './components/EncounterGenerator'
-import NPCGenerator from './components/NPCGenerator'
-import PlayerCharacterGenerator from './components/PlayerCharacterGenerator'
-import BattleCalculator from './components/BattleCalculator'
-import MonsterGenerator from './components/MonsterGenerator'
-import SpellReference from './components/SpellReference'
-import CharacterRoster from './components/CharacterRoster'
-import { Crown, UserCircle, DiceOne, User, Sword, Heart, Sparkles, Users } from "@phosphor-icons/react"
+import React, { useState } from 'react';
+import { Toaster } from "@/components/ui/sonner";
+import EncounterGenerator from './components/EncounterGenerator';
+import NPCGenerator from './components/NPCGenerator';
+import PlayerCharacterGenerator from './components/PlayerCharacterGenerator';
+import BattleCalculator from './components/BattleCalculator';
+import MonsterGenerator from './components/MonsterGenerator';
+import SpellReference from './components/SpellReference';
+import CharacterRoster from './components/CharacterRoster';
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarFooter,
+  SidebarTrigger,
+  SidebarInset,
+  SidebarGroup,
+  SidebarGroupLabel,
+} from '@/components/ui/sidebar';
+import { Crown, UserCircle, DiceOne, User, Sword, Heart, Sparkles, Users } from "@phosphor-icons/react";
 
 // Fix for "now is not defined" error - provide global fallback
 if (typeof window !== 'undefined' && !(window as any).now) {
-  (window as any).now = Date.now
+  (window as any).now = Date.now;
 }
 
 export interface Character {
@@ -41,143 +54,106 @@ export interface Character {
   [key: string]: any
 }
 
+const toolComponents: { [key: string]: React.ElementType } = {
+  character: PlayerCharacterGenerator,
+  spells: SpellReference,
+  roster: CharacterRoster,
+  encounter: EncounterGenerator,
+  npc: NPCGenerator,
+  battle: BattleCalculator,
+  monster: MonsterGenerator,
+};
+
+const playerTools = [
+  { id: 'character', name: 'Character', icon: UserCircle },
+  { id: 'spells', name: 'Spells', icon: Sparkles },
+  { id: 'roster', name: 'Roster', icon: Users },
+];
+
+const gmTools = [
+  { id: 'encounter', name: 'Encounter', icon: DiceOne },
+  { id: 'npc', name: 'NPC', icon: User },
+  { id: 'battle', name: 'Battle', icon: Sword },
+  { id: 'monster', name: 'Monster', icon: Heart },
+];
+
 function App() {
-  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null)
+  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
+  const [activeTool, setActiveTool] = useState('character');
+
+  const ActiveToolComponent = toolComponents[activeTool];
 
   return (
-    <div className="min-h-screen bg-background text-foreground bg-gradient-to-br from-background via-background to-background/95">
-      <div className="container max-w-6xl mx-auto px-6 py-12">
-        <div className="text-center mb-16">
-          <h1 className="text-6xl font-bold mb-4 text-foreground drop-shadow-2xl tracking-wide">
-            Eldritch RPG
-          </h1>
-          <p className="text-xl text-muted-foreground font-light tracking-widest">
-            Tool Suite
-          </p>
-        </div>
-        
-        <Tabs defaultValue="player" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-12 h-20 bg-card/80 border-2 border-primary/20 rounded-xl shadow-2xl backdrop-blur-sm">
-            <TabsTrigger 
-              value="player" 
-              className="tab-trigger text-xl px-8 h-full hover:bg-primary/20 hover:text-primary transition-all duration-300 border-2 border-transparent rounded-lg mx-2 my-2 text-muted-foreground"
-            >
-              <UserCircle size={28} />
-              <span className="font-semibold tracking-wide">Player Tools</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="gm" 
-              className="tab-trigger text-xl px-8 h-full hover:bg-secondary/20 hover:text-secondary transition-all duration-300 border-2 border-transparent rounded-lg mx-2 my-2 text-muted-foreground"
-            >
-              <Crown size={28} />
-              <span className="font-semibold tracking-wide">Game Master Tools</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="gm" className="space-y-8">
-            <Tabs defaultValue="encounter" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-8 h-16 bg-card/60 border-2 border-accent/20 rounded-xl shadow-lg backdrop-blur-sm">
-                <TabsTrigger 
-                  value="encounter" 
-                  className="tab-trigger px-3 h-full hover:bg-accent/20 hover:text-accent transition-all duration-200 flex flex-col items-center justify-center gap-1 border-2 border-transparent rounded-lg mx-1 my-1 text-muted-foreground"
-                >
-                  <DiceOne size={22} />
-                  <span className="text-sm font-medium leading-tight tracking-wide">Encounter</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="npc" 
-                  className="tab-trigger px-3 h-full hover:bg-accent/20 hover:text-accent transition-all duration-200 flex flex-col items-center justify-center gap-1 border-2 border-transparent rounded-lg mx-1 my-1 text-muted-foreground"
-                >
-                  <User size={22} />
-                  <span className="text-sm font-medium leading-tight tracking-wide">NPC</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="battle" 
-                  className="tab-trigger px-3 h-full hover:bg-accent/20 hover:text-accent transition-all duration-200 flex flex-col items-center justify-center gap-1 border-2 border-transparent rounded-lg mx-1 my-1 text-muted-foreground"
-                >
-                  <Sword size={22} />
-                  <span className="text-sm font-medium leading-tight tracking-wide">Battle</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="monster" 
-                  className="tab-trigger px-3 h-full hover:bg-accent/20 hover:text-accent transition-all duration-200 flex flex-col items-center justify-center gap-1 border-2 border-transparent rounded-lg mx-1 my-1 text-muted-foreground"
-                >
-                  <Heart size={22} />
-                  <span className="text-sm font-medium leading-tight tracking-wide">Monster</span>
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="encounter">
-                <EncounterGenerator />
-              </TabsContent>
-              
-              <TabsContent value="npc">
-                <NPCGenerator />
-              </TabsContent>
-              
-              <TabsContent value="battle">
-                <BattleCalculator />
-              </TabsContent>
-              
-              <TabsContent value="monster">
-                <MonsterGenerator />
-              </TabsContent>
-            </Tabs>
-          </TabsContent>
-          
-          <TabsContent value="player" className="space-y-8">
-            <Tabs defaultValue="character" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-8 h-16 bg-card/60 border-2 border-accent/20 rounded-xl shadow-lg backdrop-blur-sm">
-                <TabsTrigger 
-                  value="character" 
-                  className="tab-trigger px-6 h-full hover:bg-accent/20 hover:text-accent transition-all duration-200 flex flex-col items-center justify-center gap-2 border-2 border-transparent rounded-lg mx-1 my-1 text-muted-foreground"
-                >
-                  <UserCircle size={24} />
-                  <span className="text-sm font-medium tracking-wide">Character</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="spells" 
-                  className="tab-trigger px-6 h-full hover:bg-accent/20 hover:text-accent transition-all duration-200 flex flex-col items-center justify-center gap-2 border-2 border-transparent rounded-lg mx-1 my-1 text-muted-foreground"
-                >
-                  <Sparkles size={24} />
-                  <span className="text-sm font-medium tracking-wide">Spells</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="roster" 
-                  className="tab-trigger px-6 h-full hover:bg-accent/20 hover:text-accent transition-all duration-200 flex flex-col items-center justify-center gap-2 border-2 border-transparent rounded-lg mx-1 my-1 text-muted-foreground"
-                >
-                  <Users size={24} />
-                  <span className="text-sm font-medium tracking-wide">Roster</span>
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="character">
-                <PlayerCharacterGenerator 
-                  selectedCharacter={selectedCharacter}
-                  onCharacterSelect={setSelectedCharacter}
-                />
-              </TabsContent>
-              
-              <TabsContent value="spells">
-                <SpellReference 
-                  selectedCharacter={selectedCharacter}
-                  onCharacterUpdate={setSelectedCharacter}
-                />
-              </TabsContent>
-              
-              <TabsContent value="roster">
-                <CharacterRoster 
-                  selectedCharacter={selectedCharacter}
-                  onCharacterSelect={setSelectedCharacter}
-                />
-              </TabsContent>
-            </Tabs>
-          </TabsContent>
-        </Tabs>
+    <SidebarProvider>
+      <div className="min-h-screen bg-background text-foreground bg-gradient-to-br from-background via-background to-background/95 font-sans text-base font-normal tracking-wide">
+        <Sidebar>
+          <SidebarHeader>
+            <div className="text-center py-4">
+              <h1 className="font-serif text-3xl font-bold tracking-tight text-foreground">
+                Eldritch RPG
+              </h1>
+              <p className="text-sm text-muted-foreground font-light tracking-widest">
+                Tool Suite
+              </p>
+            </div>
+          </SidebarHeader>
+          <SidebarContent>
+            <SidebarMenu>
+              <SidebarGroup>
+                <SidebarGroupLabel className="font-serif text-xl font-semibold tracking-normal">Player Tools</SidebarGroupLabel>
+                {playerTools.map(tool => (
+                  <SidebarMenuItem key={tool.id}>
+                    <SidebarMenuButton
+                      onClick={() => setActiveTool(tool.id)}
+                      isActive={activeTool === tool.id}
+                      className="font-sans text-sm font-medium"
+                    >
+                      <tool.icon size={24} />
+                      <span>{tool.name}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarGroup>
+              <SidebarGroup>
+                <SidebarGroupLabel className="font-serif text-xl font-semibold tracking-normal">Game Master Tools</SidebarGroupLabel>
+                {gmTools.map(tool => (
+                  <SidebarMenuItem key={tool.id}>
+                    <SidebarMenuButton
+                      onClick={() => setActiveTool(tool.id)}
+                      isActive={activeTool === tool.id}
+                      className="font-sans text-sm font-medium"
+                    >
+                      <tool.icon size={24} />
+                      <span>{tool.name}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarGroup>
+            </SidebarMenu>
+          </SidebarContent>
+          <SidebarFooter>
+            {/* Can add footer items here */}
+          </SidebarFooter>
+        </Sidebar>
+        <SidebarInset>
+          <div className="container max-w-6xl mx-auto px-6 py-12">
+            <div className="md:hidden flex justify-between items-center mb-4">
+               <h1 className="font-serif text-2xl font-bold tracking-tight text-foreground">
+                Eldritch RPG
+              </h1>
+              <SidebarTrigger />
+            </div>
+            <ActiveToolComponent
+              selectedCharacter={selectedCharacter}
+              onCharacterSelect={setSelectedCharacter}
+              onCharacterUpdate={setSelectedCharacter}
+            />
+          </div>
+        </SidebarInset>
+        <Toaster />
       </div>
-      <Toaster />
-    </div>
-  )
+    </SidebarProvider>
+  );
 }
 
-export default App
+export default App;

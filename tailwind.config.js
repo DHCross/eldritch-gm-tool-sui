@@ -23,6 +23,11 @@ const defaultTheme = {
       fine: { raw: "(pointer: fine)" },
       pwa: { raw: "(display-mode: standalone)" },
     },
+    fontFamily: {
+      sans: ['Inter', 'sans-serif'],
+      serif: ['Crimson Text', 'serif'],
+      mono: ['JetBrains Mono', 'monospace'],
+    },
     colors: {
       neutral: {
         1: "var(--color-neutral-1)",
