@@ -7,10 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { useKV } from '@github/spark/hooks'
-import { MagnifyingGlass, Sparkles, Lightning, Shield, Heart, Plus, Minus, BookOpen, Star, Sword, Check, X, Download, Users, Save } from "@phosphor-icons/react"
+import { MagnifyingGlass, Sparkles, Lightning, Shield, Heart, Plus, Minus, BookOpen, Star, Sword, Check, X, Download, Users, Save, UserCircle } from "@phosphor-icons/react"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import type { Character } from '../App'
 
 // Comprehensive spell database
 const spellDatabase = {
@@ -567,16 +568,6 @@ const getAvailablePathsForClass = (characterClass: string) => {
   return ['Universal']
 }
 
-interface Character {
-  id: string
-  name: string
-  race: string
-  class: string
-  level: number
-  spellbook?: any[]
-  [key: string]: any
-}
-
 interface SpellReferenceProps {
   selectedCharacter: Character | null
   onCharacterUpdate: (character: Character | null) => void
@@ -766,35 +757,38 @@ export default function SpellReference({ selectedCharacter, onCharacterUpdate }:
     })
   }
 
-  const generateCharacterSuggestions = () => {
-    if (!selectedCharacterClass) return []
+  const generateCharacterSuggestions = (characterClass?: string, level?: string) => {
+    const classToUse = characterClass || selectedCharacterClass
+    const levelToUse = level || selectedLevel
+    
+    if (!classToUse) return []
 
-    const availablePaths = getAvailablePathsForClass(selectedCharacterClass)
-    const level = parseInt(selectedLevel) || 1
+    const availablePaths = getAvailablePathsForClass(classToUse)
+    const levelNum = parseInt(levelToUse) || 1
     const suggestions = []
 
     // Calculate recommended spell counts based on level - using realistic die ranks
-    const competence = level <= 2 ? 'd6' : level <= 4 ? 'd8' : 'd10'
-    const expertise = level <= 1 ? 'd6' : level <= 3 ? 'd8' : 'd10'
-    const recommendedCount = calculateSpellCount(competence, expertise, selectedCharacterClass)
+    const competence = levelNum <= 2 ? 'd6' : levelNum <= 4 ? 'd8' : 'd10'
+    const expertise = levelNum <= 1 ? 'd6' : levelNum <= 3 ? 'd8' : 'd10'
+    const recommendedCount = calculateSpellCount(competence, expertise, classToUse)
 
     suggestions.push(`**Initial Spell Count:** ${recommendedCount} (based on Competence + Expertise die ranks)`)
     suggestions.push(`**Spell Acquisition Rule:** 2 spells per die rank in Competence and Expertise combined`)
     
     // Special handling for different classes
-    if (selectedCharacterClass === 'Adept') {
+    if (classToUse === 'Adept') {
       suggestions.push(`**Mastery Path:** Arcanum (automatic for all Adepts)`)
       suggestions.push(`**Available Paths:** ${availablePaths.join(', ')}`)
       suggestions.push('**Note:** Adepts receive half the normal spell count but excel at ritual magic and item crafting.')
-    } else if (selectedCharacterClass === 'Mystic') {
+    } else if (classToUse === 'Mystic') {
       suggestions.push(`**Mastery Path:** Mysticism (only option for Mystics)`)
       suggestions.push(`**Available Paths:** Universal, Mysticism`)
       suggestions.push('**Note:** Mystics specialize exclusively in Mysticism. They can learn other paths with special failure mechanics.')
     } else {
       suggestions.push(`**Available Paths:** ${availablePaths.join(', ')}`)
-      if (selectedCharacterClass === 'Mage') {
+      if (classToUse === 'Mage') {
         suggestions.push('**Note:** Mages must choose one mastery path: Thaumaturgy, Elementalism, or Sorcery.')
-      } else if (selectedCharacterClass === 'Theurgist') {
+      } else if (classToUse === 'Theurgist') {
         suggestions.push('**Note:** Theurgists must choose one mastery path: Druidry or Hieraticism.')
       }
     }
@@ -803,8 +797,8 @@ export default function SpellReference({ selectedCharacter, onCharacterUpdate }:
     suggestions.push(`**Initial Spell Rarity:** Common and Uncommon only (70% Common, 30% Uncommon recommended)`)
     
     // Level-based additional spells
-    if (level >= 2) {
-      suggestions.push(`**Level ${level} Bonus:** +1 path spell (${level === 2 ? 'Uncommon' : level === 3 ? 'Esoteric' : level === 4 ? 'Occult' : 'Legendary'} rarity)`)
+    if (levelNum >= 2) {
+      suggestions.push(`**Level ${levelNum} Bonus:** +1 path spell (${levelNum === 2 ? 'Uncommon' : levelNum === 3 ? 'Esoteric' : levelNum === 4 ? 'Occult' : 'Legendary'} rarity)`)
     }
 
     // Spell expansion rules
@@ -815,14 +809,17 @@ export default function SpellReference({ selectedCharacter, onCharacterUpdate }:
     return suggestions
   }
 
-  const generateAutoSuggestions = () => {
-    if (!selectedCharacterClass) return []
+  const generateAutoSuggestions = (characterClass?: string, level?: string) => {
+    const classToUse = characterClass || selectedCharacterClass
+    const levelToUse = level || selectedLevel
+    
+    if (!classToUse) return []
 
-    const level = parseInt(selectedLevel) || 1
+    const levelNum = parseInt(levelToUse) || 1
     // Use realistic die ranks based on level
-    const competence = level <= 2 ? 'd6' : level <= 4 ? 'd8' : 'd10'
-    const expertise = level <= 1 ? 'd6' : level <= 3 ? 'd8' : 'd10'
-    const recommendedCount = calculateSpellCount(competence, expertise, selectedCharacterClass)
+    const competence = levelNum <= 2 ? 'd6' : levelNum <= 4 ? 'd8' : 'd10'
+    const expertise = levelNum <= 1 ? 'd6' : levelNum <= 3 ? 'd8' : 'd10'
+    const recommendedCount = calculateSpellCount(competence, expertise, classToUse)
 
     const autoSpells = []
     
@@ -839,19 +836,19 @@ export default function SpellReference({ selectedCharacter, onCharacterUpdate }:
     let remainingSpells = recommendedCount - universalCommon.length
     
     // Get class-specific paths based on mastery
-    const classPaths = selectedCharacterClass === 'Adept' ? ['Thaumaturgy', 'Elementalism', 'Sorcery']
-                     : selectedCharacterClass === 'Mage' ? ['Thaumaturgy', 'Elementalism', 'Sorcery']
-                     : selectedCharacterClass === 'Mystic' ? ['Mysticism']
-                     : selectedCharacterClass === 'Theurgist' ? ['Druidry', 'Hieraticism']
+    const classPaths = classToUse === 'Adept' ? ['Thaumaturgy', 'Elementalism', 'Sorcery']
+                     : classToUse === 'Mage' ? ['Thaumaturgy', 'Elementalism', 'Sorcery']
+                     : classToUse === 'Mystic' ? ['Mysticism']
+                     : classToUse === 'Theurgist' ? ['Druidry', 'Hieraticism']
                      : []
 
     // For Mages and Theurgists, prefer their primary path
     let pathPriority = [...classPaths]
-    if (selectedCharacterClass === 'Mage') {
+    if (classToUse === 'Mage') {
       // Rotate to give each path a chance to be primary
       const rotation = Math.floor(Math.random() * classPaths.length)
       pathPriority = [...classPaths.slice(rotation), ...classPaths.slice(0, rotation)]
-    } else if (selectedCharacterClass === 'Theurgist') {
+    } else if (classToUse === 'Theurgist') {
       // Randomly choose between Druidry and Hieraticism as primary
       pathPriority = Math.random() < 0.5 ? ['Druidry', 'Hieraticism'] : ['Hieraticism', 'Druidry']
     }
@@ -943,10 +940,12 @@ export default function SpellReference({ selectedCharacter, onCharacterUpdate }:
     toast.success(`Swapped "${spellToReplace.name}" for "${alternative.name}"`)
   }
 
-  const applyAutoSuggestions = () => {
-    const suggestions = generateAutoSuggestions()
+  const applyAutoSuggestions = (characterClass?: string, level?: string) => {
+    const suggestions = generateAutoSuggestions(characterClass, level)
     setSelectedSpells(suggestions)
-    toast.success(`Auto-selected ${suggestions.length} spells for ${selectedCharacterClass} Level ${selectedLevel || 1}`)
+    const classToUse = characterClass || selectedCharacterClass
+    const levelToUse = level || selectedLevel
+    toast.success(`Auto-selected ${suggestions.length} spells for ${classToUse} Level ${levelToUse || 1}`)
   }
 
   return (
@@ -1003,83 +1002,156 @@ export default function SpellReference({ selectedCharacter, onCharacterUpdate }:
             <CardHeader>
               <CardTitle>Character Spell Builder</CardTitle>
               <CardDescription>
-                Build spell lists for specific character classes and levels. Get recommendations for spell counts and distribution.
+                {selectedCharacter ? (
+                  <>Build spells for <strong>{selectedCharacter.name || `${selectedCharacter.race} ${selectedCharacter.class}`}</strong>. Get recommendations based on their class and level.</>
+                ) : (
+                  "Select a character from the Roster tab to build their spell repertoire."
+                )}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Character Details */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="char-class">Character Class</Label>
-                  <Select value={selectedCharacterClass} onValueChange={setSelectedCharacterClass}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Class" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {characterClasses.map(cls => (
-                        <SelectItem key={cls} value={cls}>{cls}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              {!selectedCharacter ? (
+                <Card className="bg-muted/30">
+                  <CardContent className="text-center py-8">
+                    <Users className="mx-auto mb-4 opacity-50" size={48} />
+                    <p className="text-lg font-medium mb-2">No Character Selected</p>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Go to the Roster tab and select a magic-wielding character to build their spell repertoire.
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Supported classes: Adept, Mage, Mystic, Theurgist
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : !characterClasses.includes(selectedCharacter.class) ? (
+                <Card className="bg-muted/30">
+                  <CardContent className="text-center py-8">
+                    <Users className="mx-auto mb-4 opacity-50" size={48} />
+                    <p className="text-lg font-medium mb-2">Non-Magic Character</p>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {selectedCharacter.name || `${selectedCharacter.race} ${selectedCharacter.class}`} is a {selectedCharacter.class}, which doesn't use magic.
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Supported classes: Adept, Mage, Mystic, Theurgist
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  {/* Character Details - Auto-populated from selected character */}
+                  <Card className="bg-primary/5 border-primary/20">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <UserCircle className="w-5 h-5" />
+                        Character Details
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <span className="font-medium text-muted-foreground">Name:</span>
+                          <div className="text-foreground font-medium">{selectedCharacter.name || 'Unnamed'}</div>
+                        </div>
+                        <div>
+                          <span className="font-medium text-muted-foreground">Race:</span>
+                          <div className="text-foreground">{selectedCharacter.race}</div>
+                        </div>
+                        <div>
+                          <span className="font-medium text-muted-foreground">Class:</span>
+                          <div className="text-foreground">{selectedCharacter.class}</div>
+                        </div>
+                        <div>
+                          <span className="font-medium text-muted-foreground">Level:</span>
+                          <div className="text-foreground">{selectedCharacter.level}</div>
+                        </div>
+                      </div>
+                      
+                      {/* Current spellbook info */}
+                      {selectedCharacter.spellbook && selectedCharacter.spellbook.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-border">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-muted-foreground">
+                              Current Spellbook: {selectedCharacter.spellbook.length} spells
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedSpells([...selectedCharacter.spellbook])
+                                toast.success('Loaded current spellbook into selection')
+                              }}
+                            >
+                              Load Current Spells
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
 
-                <div>
-                  <Label htmlFor="char-level">Character Level</Label>
-                  <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1, 2, 3, 4, 5].map(level => (
-                        <SelectItem key={level} value={level.toString()}>{level}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                  {/* Path Filter - based on character class */}
+                  <div>
+                    <Label htmlFor="char-path">Filter by Available Paths</Label>
+                    <Select value={selectedPath} onValueChange={setSelectedPath}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All available paths" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Available Paths</SelectItem>
+                        {getAvailablePathsForClass(selectedCharacter.class).map(path => (
+                          <SelectItem key={path} value={path}>{path}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
 
-                <div>
-                  <Label htmlFor="char-path">Filter by Available Paths</Label>
-                  <Select value={selectedPath} onValueChange={setSelectedPath}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All available paths" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Available Paths</SelectItem>
-                      {selectedCharacterClass && getAvailablePathsForClass(selectedCharacterClass).map(path => (
-                        <SelectItem key={path} value={path}>{path}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Character Suggestions */}
-              {selectedCharacterClass && (
+              {/* Character Suggestions - only show if character is selected */}
+              {selectedCharacter && characterClasses.includes(selectedCharacter.class) && (
                 <Card className="bg-muted/50">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Suggestions for {selectedCharacterClass} Level {selectedLevel || '1'}</CardTitle>
+                    <CardTitle className="text-lg">Suggestions for {selectedCharacter.class} Level {selectedCharacter.level}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        {generateCharacterSuggestions().map((suggestion, index) => (
+                        {generateCharacterSuggestions(selectedCharacter.class, selectedCharacter.level.toString()).map((suggestion, index) => (
                           <div key={index} className="text-sm">{suggestion}</div>
                         ))}
                       </div>
                       
-                      {/* Auto-Selection Button */}
-                      <div className="flex items-center gap-4 pt-2 border-t border-border">
-                        <Button
-                          onClick={applyAutoSuggestions}
-                          variant="outline"
-                          className="flex items-center gap-2"
-                        >
-                          <Sparkles className="w-4 h-4" />
-                          Auto-Select Suggested Spells
-                        </Button>
-                        <span className="text-xs text-muted-foreground">
-                          Automatically selects a balanced spell list following the recommendations above
-                        </span>
+                      {/* Auto-Selection Buttons */}
+                      <div className="flex flex-col gap-3 pt-2 border-t border-border">
+                        <div className="flex items-center gap-4">
+                          <Button
+                            onClick={() => applyAutoSuggestions(selectedCharacter.class, selectedCharacter.level.toString())}
+                            variant="outline"
+                            className="flex items-center gap-2"
+                          >
+                            <Sparkles className="w-4 h-4" />
+                            Auto-Select Suggested Spells
+                          </Button>
+                          <span className="text-xs text-muted-foreground">
+                            Automatically selects a balanced spell list following the recommendations above
+                          </span>
+                        </div>
+                        
+                        {/* Direct save to character button */}
+                        {selectedSpells.length > 0 && (
+                          <div className="flex items-center gap-4">
+                            <Button
+                              onClick={saveSpellsToCharacter}
+                              className="flex items-center gap-2"
+                            >
+                              <Save className="w-4 h-4" />
+                              Save {selectedSpells.length} Spells to Character
+                            </Button>
+                            <span className="text-xs text-muted-foreground">
+                              This will replace their current spellbook
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardContent>
