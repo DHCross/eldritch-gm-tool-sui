@@ -92,11 +92,64 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Enhanced focus states for form elements */
-.focus\\:ring-mystical:focus {
-  outline: none;
-  ring: 2px;
-  ring-color: var(--ring);
-  ring-opacity: 0.3;
+*:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Better button transitions */
+button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Improved visual hierarchy */
+body {
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.2;
+}
+
+/* Better spacing */
+.space-y-8 > * + * {
+  margin-top: 2rem;
+}
+
+.space-y-6 > * + * {
+  margin-top: 1.5rem;
+}
+
+/* Enhanced card shadows */
+.card {
+  box-shadow: 
+    0 1px 3px 0 rgba(139, 92, 246, 0.1),
+    0 1px 2px 0 rgba(139, 92, 246, 0.06);
+}
+
+/* Mystical glow effects */
+.mystical-glow {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
+}
+
+.mystical-border {
+  border: 1px solid;
+  border-image: linear-gradient(45deg, var(--border), var(--primary), var(--border)) 1;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .grid-cols-2 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
 }
 
 /* Subtle animations for interactive elements */
@@ -105,7 +158,7 @@ h1, h2, h3, h4, h5, h6 {
     opacity: 1;
   }
   50% {
-    opacity: 0.8;
+    opacity: 0.85;
   }
 }
 
