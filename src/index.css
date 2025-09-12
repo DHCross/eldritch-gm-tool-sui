@@ -115,13 +115,14 @@ button:active {
   background: var(--accent) !important;
   color: var(--accent-foreground) !important;
   box-shadow: 
-    0 4px 20px rgba(139, 92, 246, 0.3), 
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 4px 20px rgba(139, 92, 246, 0.4), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
     0 0 0 2px var(--accent);
   transform: scale(1.02);
   position: relative;
   z-index: 10;
   border: 2px solid var(--accent) !important;
+  font-weight: 600;
 }
 
 /* Primary tab active states with stronger contrast */
@@ -129,20 +130,22 @@ button:active {
   background: var(--primary) !important;
   color: var(--primary-foreground) !important;
   box-shadow: 
-    0 4px 20px rgba(139, 92, 246, 0.4), 
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 4px 20px rgba(139, 92, 246, 0.5), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
     0 0 0 2px var(--primary);
   border: 2px solid var(--primary) !important;
+  font-weight: 700;
 }
 
 [data-state="active"][value="gm"] {
   background: var(--secondary) !important;
   color: var(--secondary-foreground) !important;
   box-shadow: 
-    0 4px 20px rgba(242, 147, 57, 0.4), 
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 4px 20px rgba(242, 147, 57, 0.5), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
     0 0 0 2px var(--secondary);
   border: 2px solid var(--secondary) !important;
+  font-weight: 700;
 }
 
 /* Fix tab content alignment and center text properly */
@@ -154,6 +157,9 @@ button:active {
   width: 100%;
   height: 100%;
   white-space: nowrap;
+  gap: 0.5rem;
+  flex-direction: column;
+  padding: 0.75rem;
 }
 
 /* Ensure tab content is properly centered */
@@ -162,6 +168,21 @@ button:active {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  text-align: center;
+  flex-direction: column;
+  min-height: 100%;
+  width: 100%;
+}
+
+/* For primary level tabs, use horizontal layout */
+[role="tablist"]:first-child [role="tab"] {
+  flex-direction: row;
+  gap: 0.75rem;
+}
+
+[role="tablist"]:first-child .tab-trigger {
+  flex-direction: row;
+  gap: 0.75rem;
 }
 
 /* Sub-tab styling for better distinction */
@@ -169,12 +190,15 @@ button:active {
   background: transparent;
   color: var(--muted-foreground);
   border: 2px solid transparent;
+  transition: all 0.2s ease;
 }
 
 [role="tablist"] [role="tab"]:hover:not([data-state="active"]) {
   background: var(--accent)/10;
   color: var(--accent);
   border: 2px solid var(--accent)/20;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.1);
 }
 
 /* Better visual feedback for buttons */

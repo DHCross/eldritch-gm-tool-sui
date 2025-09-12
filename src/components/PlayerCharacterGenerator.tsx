@@ -11,6 +11,7 @@ import { useKV } from '@github/spark/hooks'
 import { toast } from "sonner"
 import { Download, Copy, Sparkles, Users, Plus, UserCircle, Cube } from "@phosphor-icons/react"
 import { cn } from "@/lib/utils"
+import type { Character } from '../App'
 
 // Game data
 const dieRanks = ["d4", "d6", "d8", "d10", "d12"]
@@ -143,30 +144,6 @@ const raceFlaws = {
 const idx = (r: string) => dieRanks.indexOf(r)
 const mv = (r: string) => r && r.startsWith("d") ? parseInt(r.slice(1), 10) : 0
 const fnum = (v: string) => v ? parseInt(String(v).replace("+", ""), 10) : 0
-
-interface Character {
-  id?: string
-  name?: string
-  race: string
-  class: string
-  level: number
-  displayLevel: number
-  abilities: Record<string, string>
-  specialties: Record<string, Record<string, string>>
-  focuses: Record<string, Record<string, string>>
-  pools: { active: number, passive: number, spirit: number }
-  masteryDie: string
-  actions: Record<string, string>
-  advantages: string[]
-  flaws: string[]
-  classFeats: string[]
-  equipment: string[]
-  spellbook?: any[]
-  magicPath?: string
-  recommendedSpellCount?: number
-  createdAt?: number
-  updatedAt?: number
-}
 
 interface PlayerCharacterGeneratorProps {
   selectedCharacter: Character | null
@@ -444,6 +421,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
     }
 
     const ch: Character = {
+      id: '', // Will be set later
       race,
       class: characterClass,
       level,
@@ -560,7 +538,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
       ...ch,
       id: characterId,
       name: `${ch.race} ${ch.class}`,
-      spellbook: casterClasses.includes(ch.class) ? [...selectedSpells] : undefined,
+      spellbook: (casterClasses.includes(ch.class) && selectedSpells.length > 0) ? [...selectedSpells] : undefined,
       createdAt: timestamp,
       updatedAt: timestamp
     }
@@ -574,7 +552,7 @@ function PlayerCharacterGenerator({ selectedCharacter, onCharacterSelect }: Play
     setCharacterName(characterToSave.name)
     
     // Auto-select this character
-    onCharacterSelect(characterToSave)
+    onCharacterSelect?.(characterToSave)
     
     toast.success('Character generated and automatically saved to roster!')
   }

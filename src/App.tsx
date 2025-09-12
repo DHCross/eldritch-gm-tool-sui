@@ -17,16 +17,27 @@ if (typeof window !== 'undefined' && !(window as any).now) {
 
 export interface Character {
   id: string
-  name: string
+  name?: string
   race: string
   class: string
   level: number
+  displayLevel?: number
   abilities: Record<string, string>
   specialties: Record<string, Record<string, string>>
   focuses: Record<string, Record<string, string>>
   pools: { active: number; passive: number; spirit: number }
   masteryDie: string
+  actions?: Record<string, string>
+  advantages?: string[]
+  flaws?: string[]
+  classFeats?: string[]
+  equipment?: string[]
   spells?: Array<{ name: string; rarity: string; path: string }>
+  spellbook?: Array<{ name: string; rarity: string; path: string }>
+  magicPath?: string
+  recommendedSpellCount?: number
+  createdAt?: number
+  updatedAt?: number
   [key: string]: any
 }
 
