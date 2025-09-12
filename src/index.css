@@ -369,7 +369,6 @@ h1, h2, h3, h4, h5, h6 {
   transform: translateX(4px) !important;
 }
 
-/* More specific selector for sidebar buttons */
 [data-sidebar="menu-button"][data-state="active"],
 [data-sidebar="menu-button"].active,
 .sidebar button[aria-current="page"] {
@@ -381,6 +380,7 @@ h1, h2, h3, h4, h5, h6 {
     inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
   transform: translateX(4px) !important;
 }
+}
 
 [data-sidebar="menu-button"]:not([data-active="true"]):not(.bg-primary):not(.bg-secondary):hover {
   background: var(--accent)/10 !important;
@@ -388,7 +388,6 @@ h1, h2, h3, h4, h5, h6 {
   transform: translateX(2px) !important;
 }
 
-/* Ensure proper text wrapping in sidebar */
 [data-sidebar="menu-button"] .flex.flex-col {
   min-width: 0;
   flex: 1;
