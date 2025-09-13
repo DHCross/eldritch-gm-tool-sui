@@ -7,6 +7,7 @@ import BattleCalculator from './components/BattleCalculator';
 import MonsterGenerator from './components/MonsterGenerator';
 import SpellReference from './components/SpellReference';
 import CharacterRoster from './components/CharacterRoster';
+import MovementCalculator from './components/MovementCalculator';
 import {
   SidebarProvider,
   Sidebar,
@@ -21,7 +22,7 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
 } from '@/components/ui/sidebar';
-import { UserCircle, DiceOne, User, Sword, Heart, Sparkles, Users, ScrollText } from "@phosphor-icons/react";
+import { UserCircle, DiceOne, User, Sword, Heart, Sparkles, Users, ScrollText, Rocket } from "@phosphor-icons/react";
 
 // Fix for "now is not defined" error - provide global fallback
 if (typeof window !== 'undefined' && !(window as any).now) {
@@ -62,6 +63,7 @@ const toolComponents: { [key: string]: React.ElementType } = {
   npc: NPCGenerator,
   battle: BattleCalculator,
   monster: MonsterGenerator,
+  movement: MovementCalculator,
 };
 
 const playerTools = [
@@ -75,6 +77,7 @@ const gmTools = [
   { id: 'npc', name: 'NPC Generator', icon: User, description: 'Create detailed non-player characters' },
   { id: 'battle', name: 'Initiative Tracker', icon: Sword, description: 'Track initiative and manage combat' },
   { id: 'monster', name: 'Monster Generator', icon: Heart, description: 'Create custom monsters and creatures' },
+  { id: 'movement', name: 'Movement Calculator', icon: Rocket, description: 'Calculate and reference movement rates' },
 ];
 
 function App() {

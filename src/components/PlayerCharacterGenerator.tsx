@@ -11,133 +11,59 @@ import { useKV } from '@github/spark/hooks'
 import { toast } from "sonner"
 import { Download, Copy, Sparkles, Users, Plus, UserCircle, Cube } from "@phosphor-icons/react"
 import { cn } from "@/lib/utils"
+import {
+  ABILITIES,
+  CLASSES,
+  CLASS_AXES,
+  CLASS_FEATS,
+  CLASS_MINIMA,
+  DICE_RANKS,
+  FOCUSES,
+  LEVEL_INFO,
+  MAGIC_PATHS_BY_CLASS,
+  RACE_ADVANTAGES,
+  CLASS_ADVANTAGES,
+  RACE_FLAWS,
+  RACE_MINIMA,
+  RACES,
+  SPECIALTIES,
+  STARTING_EQUIPMENT,
+  CASTER_CLASSES,
+} from '@/data/gameData'
 
 // Game data
-const dieRanks = ["d4", "d6", "d8", "d10", "d12"]
-const abilities = ["Competence", "Prowess", "Fortitude"]
-const specialties = {
-  Competence: ["Adroitness", "Expertise", "Perception"],
-  Prowess: ["Agility", "Melee", "Precision"],
-  Fortitude: ["Endurance", "Strength", "Willpower"]
-}
-const focuses = {
-  Adroitness: ["Skulduggery", "Cleverness"],
-  Expertise: ["Wizardry", "Theurgy"],
-  Perception: ["Alertness", "Perspicacity"],
-  Agility: ["Speed", "Reaction"],
-  Melee: ["Threat", "Finesse"],
-  Precision: ["Ranged Threat", "Ranged Finesse"],
-  Endurance: ["Vitality", "Resilience"],
-  Strength: ["Ferocity", "Might"],
-  Willpower: ["Courage", "Resistance"]
-}
+const dieRanks = DICE_RANKS
+const abilities = ABILITIES
+const specialties = SPECIALTIES
+const focuses = FOCUSES
 
-const races = ["Human", "Elf", "Dwarf", "Gnome", "Half-Elf", "Half-Orc", "Halfling", "Drakkin"]
-const classes = ["Adept", "Assassin", "Barbarian", "Mage", "Mystic", "Rogue", "Theurgist", "Warrior"]
-const levels = [1, 2, 3, 4, 5]
+const races = RACES
+const classes = CLASSES
+const levels = LEVEL_INFO.map(l => l.level)
 const buildStyles = ["balanced", "hybrid", "specialist"]
 const rookieProfiles = ["off", "pure", "balanced", "specialist"]
 
-const casterClasses = ["Adept", "Mage", "Mystic", "Theurgist"]
-const magicPathsByClass = {
-  Adept: ["Thaumaturgy", "Elementalism", "Sorcery"],
-  Mage: ["Thaumaturgy", "Elementalism", "Sorcery"],
-  Mystic: ["Mysticism"],
-  Theurgist: ["Druidry", "Hieraticism"]
-}
+const casterClasses = CASTER_CLASSES
+const magicPathsByClass = MAGIC_PATHS_BY_CLASS
 
-const levelInfo = [
-  { level: 1, masteryDie: "d4", cpBand: [10, 100] },
-  { level: 2, masteryDie: "d6", cpBand: [101, 199] },
-  { level: 3, masteryDie: "d8", cpBand: [200, 299] },
-  { level: 4, masteryDie: "d10", cpBand: [300, 399] },
-  { level: 5, masteryDie: "d12", cpBand: [400, 999] }
-]
+const levelInfo = LEVEL_INFO.map(l => ({
+  level: l.level,
+  masteryDie: l.masteryDie,
+  cpBand: l.cp_range.split(' to ').map(v => parseInt(v, 10))
+}))
 
-const raceMinima = {
-  Drakkin: { Competence: "d6", Prowess: "d6", Fortitude: "d6", Endurance: "d6", Strength: "d4" },
-  Dwarf: { Fortitude: "d8", Endurance: "d4", Prowess: "d6", Melee: "d6" },
-  Elf: { Competence: "d6", Expertise: "d6", Wizardry: "+1", Prowess: "d4", Agility: "d4", Reaction: "+1" },
-  Gnome: { Competence: "d4", Adroitness: "d6", Expertise: "d6", Perception: "d4", Perspicacity: "+1" },
-  "Half-Elf": { Competence: "d6", Prowess: "d6", Agility: "d4", Fortitude: "d4", Endurance: "d4", Willpower: "d4" },
-  "Half-Orc": { Fortitude: "d6", Strength: "d8", Ferocity: "+1", Endurance: "d6" },
-  Halfling: { Competence: "d6", Adroitness: "d6", Cleverness: "+1", Fortitude: "d6", Willpower: "d4", Courage: "+1" },
-  Human: { Competence: "d6", Prowess: "d6", Melee: "d4", Threat: "+1", Fortitude: "d4", Willpower: "d6" }
-}
-
-const classMinima = {
-  Adept: { Competence: "d6", Adroitness: "d4", Cleverness: "+1", Expertise: "d6", Wizardry: "+1", Perception: "d4", Perspicacity: "+1" },
-  Assassin: { Competence: "d4", Adroitness: "d6", Perception: "d4", Prowess: "d4", Agility: "d4", Endurance: "d6", Melee: "d4", Finesse: "+1" },
-  Barbarian: { Prowess: "d6", Melee: "d8", Fortitude: "d4", Strength: "d4", Ferocity: "+1" },
-  Mage: { Competence: "d6", Expertise: "d8", Wizardry: "+1", Fortitude: "d4", Willpower: "d6", Resistance: "+1" },
-  Mystic: { Competence: "d6", Expertise: "d6", Wizardry: "+1", Prowess: "d4", Melee: "d4", Fortitude: "d4", Endurance: "d6", Resilience: "+1", Vitality: "+2" },
-  Rogue: { Competence: "d4", Adroitness: "d4", Skulduggery: "+1", Perception: "d4", Prowess: "d6", Agility: "d8" },
-  Theurgist: { Competence: "d8", Expertise: "d4", Theurgy: "+1", Fortitude: "d6", Willpower: "d4" },
-  Warrior: { Prowess: "d8", Melee: "d6", Threat: "+1", Fortitude: "d6" }
-}
+const raceMinima = RACE_MINIMA
+const classMinima = CLASS_MINIMA
 
 const stepCost = { "d4": 6, "d6": 8, "d8": 10, "d10": 12, "d12": Infinity }
 const cumulativeDieCost = { "d4": 4, "d6": 10, "d8": 18, "d10": 28, "d12": 40 }
 const focusStepCost = 4
 
-const classAxes = {
-  Warrior: ["Prowess", "Melee", "Strength", "Fortitude", "Endurance", "Threat", "Agility", "Might"],
-  Barbarian: ["Prowess", "Melee", "Strength", "Fortitude", "Endurance", "Ferocity", "Might", "Vitality"],
-  Rogue: ["Prowess", "Agility", "Competence", "Adroitness", "Perception", "Skulduggery", "Cleverness", "Speed"],
-  Assassin: ["Prowess", "Agility", "Melee", "Competence", "Adroitness", "Finesse", "Speed", "Perception"],
-  Mage: ["Competence", "Expertise", "Wizardry", "Fortitude", "Willpower", "Resistance", "Perception"],
-  Mystic: ["Fortitude", "Willpower", "Competence", "Expertise", "Endurance", "Prowess", "Melee", "Resilience", "Vitality"],
-  Adept: ["Competence", "Expertise", "Adroitness", "Perception", "Cleverness", "Wizardry", "Perspicacity"],
-  Theurgist: ["Competence", "Expertise", "Theurgy", "Fortitude", "Willpower", "Endurance", "Courage"]
-}
+const classFeats = CLASS_FEATS
 
-const allAdvantages = {
-  Human: ["Fortunate", "Survival"],
-  Elf: ["Night Vision", "Gift of Magic", "Magic Resistance (+1)"],
-  Dwarf: ["Night Vision", "Strong-willed", "Sense of Direction"],
-  Gnome: ["Eidetic Memory", "Low-Light Vision", "Observant"],
-  "Half-Elf": ["Heightened Senses", "Low-Light Vision", "Magic Resistance (+1)"],
-  "Half-Orc": ["Low-light Vision", "Intimidation", "Menacing"],
-  Halfling: ["Low Light Vision", "Read Emotions", "Resilient"],
-  Drakkin: ["Natural Armor", "Breath Weapon", "Night Vision"],
-  Adept: ["Arcanum", "Gift of Magic", "Literacy", "Scholar"],
-  Assassin: ["Expeditious", "Heightened Senses (hearing)", "Observant", "Read Emotions"],
-  Barbarian: ["Animal Affinity", "Brutishness", "Menacing", "Resilient"],
-  Mage: ["Arcanum", "Gift of Magic", "Magic Defense", "Scholar"],
-  Mystic: ["Empathic", "Gift of Magic", "Intuitive", "Magic Resistance (Lesser)", "Strong-Willed"],
-  Rogue: ["Expeditious", "Fortunate", "Streetwise", "Underworld Contacts"],
-  Theurgist: ["Gift of Magic", "Magic Defense", "Religion", "Strong-Willed"],
-  Warrior: ["Commanding", "Intimidation", "Magic Resistance (+1)", "Tactician"]
-}
+const startingEquipment = STARTING_EQUIPMENT
 
-const classFeats = {
-  Adept: ["Guile", "Lore", "Ritual Magic", "Quick-witted"],
-  Assassin: ["Death Strike", "Lethal Exploit", "Ranged Ambush", "Shadow Walk"],
-  Barbarian: ["Berserk", "Brawl", "Feat of Strength", "Grapple"],
-  Mage: ["Arcane Finesse", "Dweomers", "Intangible Threat", "Path Mastery"],
-  Mystic: ["Iron Mind", "Path Mastery", "Premonition", "Psychic Powers"],
-  Rogue: ["Backstab", "Evasion", "Roguish Charm", "Stealth"],
-  Theurgist: ["Divine Healing", "Path Mastery", "Spiritual Smite", "Supernatural Intervention"],
-  Warrior: ["Battle Savvy", "Maneuvers", "Stunning Reversal", "Sunder Foe"]
-}
-
-const startingEquipment = {
-  common: ["Set of ordinary clothes", "Purse of 5 gold coins", "Backpack", "Small dagger", "Week's rations", "Waterskin", "Tinderbox", "50' rope", "Iron spikes", "Small hammer", "6' traveling staff or 10' pole", "Hooded lantern and 2 oil flasks or d4+1 torches"],
-  Adept: ["Book of knowledge (area of expertise)"],
-  Assassin: ["Assassin hood, jacket, cape, robe, or tunic"],
-  Barbarian: ["Garments of woven wool or linen", "Tunic", "Overcoat or cloak"],
-  Mage: ["Spellbook", "Staff or focus item"],
-  Mystic: ["Robes or shawl", "Cloak", "Armor up to leather"],
-  Rogue: ["Set of thieves' tools", "Light armor (up to leather)", "One weapon"],
-  Theurgist: ["Prayer book", "Holy relic or symbol", "Focus item", "Armor up to chain"],
-  Warrior: ["One weapon of choice", "Armor up to chain", "Small to large shield", "Steed"]
-}
-
-const raceFlaws = {
-  Gnome: ["Restriction: small weapons only"],
-  Halfling: ["Restriction: small weapons only"],
-  "Half-Orc": ["Ugliness"]
-}
+const raceFlaws = RACE_FLAWS
 
 // Helper functions
 const idx = (r: string) => dieRanks.indexOf(r)
