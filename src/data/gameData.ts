@@ -25,6 +25,88 @@ export const FOCUSES = {
 
 export const RACES = ['Human', 'Elf', 'Dwarf', 'Gnome', 'Half-Elf', 'Half-Orc', 'Halfling', 'Drakkin'] as const
 export const CLASSES = ['Adept', 'Assassin', 'Barbarian', 'Mage', 'Mystic', 'Rogue', 'Theurgist', 'Warrior'] as const
+
+export const RACE_ADVANTAGES = {
+  Dwarf: ['Night Vision', 'Strong-willed', 'Sense of Direction'],
+  Elf: ['Night Vision', 'Gift of Magic', 'Magic Resistance (+1)'],
+  Gnome: ['Eidetic Memory', 'Low-Light Vision', 'Observant'],
+  'Half-Elf': ['Heightened Senses', 'Low-Light Vision', 'Magic Resistance (+1)'],
+  'Half-Orc': ['Low-light Vision', 'Intimidation', 'Menacing'],
+  Halfling: ['Low Light Vision', 'Read Emotions', 'Resilient'],
+  Human: ['Fortunate', 'Survival'],
+  Drakkin: ['Natural Armor', 'Breath Weapon', 'Night Vision']
+} as const
+
+export const CLASS_ADVANTAGES = {
+  Adept: ["Arcanum", "Gift of Magic", "Literacy", "Scholar"],
+  Assassin: ["Expeditious", "Heightened Senses (hearing)", "Observant", "Read Emotions"],
+  Barbarian: ["Animal Affinity", "Brutishness", "Menacing", "Resilient"],
+  Mage: ["Arcanum", "Gift of Magic", "Magic Defense", "Scholar"],
+  Mystic: ["Empathic", "Gift of Magic", "Intuitive", "Magic Resistance (Lesser)", "Strong-Willed"],
+  Rogue: ["Expeditious", "Fortunate", "Streetwise", "Underworld Contacts"],
+  Theurgist: ["Gift of Magic", "Magic Defense", "Religion", "Strong-Willed"],
+  Warrior: ["Commanding", "Intimidation", "Magic Resistance (+1)", "Tactician"]
+} as const
+
+export const STARTING_EQUIPMENT = {
+  common: ["Set of ordinary clothes", "Purse of 5 gold coins", "Backpack", "Small dagger", "Week's rations", "Waterskin", "Tinderbox", "50' rope", "Iron spikes", "Small hammer", "6' traveling staff or 10' pole", "Hooded lantern and 2 oil flasks or d4+1 torches"],
+  Adept: ["Book of knowledge (area of expertise)"],
+  Assassin: ["Assassin hood, jacket, cape, robe, or tunic"],
+  Barbarian: ["Garments of woven wool or linen", "Tunic", "Overcoat or cloak"],
+  Mage: ["Spellbook", "Staff or focus item"],
+  Mystic: ["Robes or shawl", "Cloak", "Armor up to leather"],
+  Rogue: ["Set of thieves' tools", "Light armor (up to leather)", "One weapon"],
+  Theurgist: ["Prayer book", "Holy relic or symbol", "Focus item", "Armor up to chain"],
+  Warrior: ["One weapon of choice", "Armor up to chain", "Small to large shield", "Steed"]
+} as const
+
+export const RACE_FLAWS = {
+  Gnome: ["Restriction: small weapons only"],
+  Halfling: ["Restriction: small weapons only"],
+  "Half-Orc": ["Ugliness"]
+} as const
+
+export const CLASS_AXES = {
+  Warrior: ["Prowess", "Melee", "Strength", "Fortitude", "Endurance", "Threat", "Agility", "Might"],
+  Barbarian: ["Prowess", "Melee", "Strength", "Fortitude", "Endurance", "Ferocity", "Might", "Vitality"],
+  Rogue: ["Prowess", "Agility", "Competence", "Adroitness", "Perception", "Skulduggery", "Cleverness", "Speed"],
+  Assassin: ["Prowess", "Agility", "Melee", "Competence", "Adroitness", "Finesse", "Speed", "Perception"],
+  Mage: ["Competence", "Expertise", "Wizardry", "Fortitude", "Willpower", "Resistance", "Perception"],
+  Mystic: ["Fortitude", "Willpower", "Competence", "Expertise", "Endurance", "Prowess", "Melee", "Resilience", "Vitality"],
+  Adept: ["Competence", "Expertise", "Adroitness", "Perception", "Cleverness", "Wizardry", "Perspicacity"],
+  Theurgist: ["Competence", "Expertise", "Theurgy", "Fortitude", "Willpower", "Endurance", "Courage"]
+} as const
+
+export const PC_MOVEMENT_TABLE = [
+    { prowess: 'd4', agility: 'd4', specialty: true, walk: 4, run: 8, sprint: 16 },
+    { prowess: 'd4', agility: 'd4', specialty: false, walk: 4, run: 8, sprint: 16 },
+    { prowess: 'd6', agility: 'd6', specialty: true, walk: 5, run: 10, sprint: 20 },
+    { prowess: 'd6', agility: 'd6', specialty: false, walk: 4, run: 8, sprint: 16 },
+    { prowess: 'd8', agility: 'd8', specialty: true, walk: 6, run: 12, sprint: 24 },
+    { prowess: 'd10', agility: 'd8', specialty: true, walk: 6, run: 12, sprint: 24 },
+    { prowess: 'd12', agility: 'd12', specialty: true, walk: 8, run: 16, sprint: 32 },
+] as const
+
+export const CREATURE_MOVEMENT_TABLE = {
+    d4: { base: 2, fast: 3, espSpeedy: 6, sf_d4_d6: 3, sf_d8_d10: 4, sf_d12_plus: 5 },
+    d6: { base: 3, fast: 4, espSpeedy: 7, sf_d4_d6: 4, sf_d8_d10: 5, sf_d12_plus: 6 },
+    d8: { base: 3, fast: 4, espSpeedy: 7, sf_d4_d6: 4, sf_d8_d10: 5, sf_d12_plus: 6 },
+    d10: { base: 4, fast: 5, espSpeedy: 8, sf_d4_d6: 5, sf_d8_d10: 6, sf_d12_plus: 7 },
+    d12: { base: 4, fast: 5, espSpeedy: 8, sf_d4_d6: 5, sf_d8_d10: 6, sf_d12_plus: 7 },
+    d14: { base: 5, fast: 6, espSpeedy: 9, sf_d4_d6: 6, sf_d8_d10: 7, sf_d12_plus: 8 },
+    d16: { base: 5, fast: 6, espSpeedy: 9, sf_d4_d6: 6, sf_d8_d10: 7, sf_d12_plus: 8 },
+    d18: { base: 6, fast: 7, espSpeedy: 10, sf_d4_d6: 7, sf_d8_d10: 8, sf_d12_plus: 9 },
+    d20: { base: 6, fast: 7, espSpeedy: 10, sf_d4_d6: 7, sf_d8_d10: 8, sf_d12_plus: 9 },
+} as const
+
+export const MOVEMENT_MULTIPLIERS = {
+    run: 2,
+    sprint: 4,
+    espSpeedyRun: 3,
+    espSpeedySprint: 5,
+    espSpeedyBurst: 7,
+} as const
+
 export const LEVELS = [1, 2, 3, 4, 5] as const
 
 export const CASTER_CLASSES = ['Adept', 'Mage', 'Mystic', 'Theurgist'] as const
