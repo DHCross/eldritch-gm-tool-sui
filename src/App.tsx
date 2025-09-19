@@ -159,7 +159,7 @@ function App() {
         </Sidebar>
         <SidebarInset className="overflow-hidden flex flex-col">
           <div className="flex-1 overflow-y-auto">
-            <div className="container max-w-7xl mx-auto px-6 py-8 min-h-full">
+            <div className="main-content-area">
               <div className="md:hidden flex justify-between items-center mb-6 p-4 bg-card rounded-lg border">
                 <div className="flex items-center gap-3">
                   <ScrollText size={24} className="text-primary" />
