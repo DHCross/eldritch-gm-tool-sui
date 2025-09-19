@@ -332,6 +332,7 @@ h1, h2, h3, h4, h5, h6 {
 .main-content-wrapper {
   height: 100vh;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Fix sidebar menu spacing */
@@ -404,8 +405,8 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Sidebar width consistency */
 [data-sidebar="sidebar"] {
-  width: 280px !important;
-  min-width: 280px !important;
+  width: 260px !important;
+  min-width: 260px !important;
 }
 
 /* Content area proper spacing */
@@ -413,6 +414,7 @@ h1, h2, h3, h4, h5, h6 {
   flex: 1;
   min-width: 0;
   padding: 0;
+  overflow-x: hidden;
 }
 
 /* Main content area alignment fix */
@@ -420,19 +422,27 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   max-width: none;
   margin: 0;
-  padding: 1rem 2rem;
+  padding: 1rem 1.5rem;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .main-content-area {
+    padding: 1.5rem 2rem;
+  }
 }
 
 @media (min-width: 1024px) {
   .main-content-area {
-    padding: 2rem 3rem;
+    padding: 2rem 2.5rem;
   }
 }
 
 @media (min-width: 1280px) {
   .main-content-area {
-    max-width: 80rem;
+    max-width: 75rem;
     margin: 0 auto;
+    padding: 2rem 3rem;
   }
 }
 
@@ -448,4 +458,56 @@ h1, h2, h3, h4, h5, h6 {
 
 .animate-pulse-mystical {
   animation: pulse-mystical 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Prevent horizontal overflow and ensure proper content width */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  overflow-x: hidden;
+}
+
+/* Ensure all containers respect the viewport width */
+.w-full {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Fix any potential grid overflow issues */
+.grid {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Ensure form elements don't overflow */
+input, select, textarea {
+  max-width: 100%;
+}
+
+/* Better responsive card layout */
+.card {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Improved mobile layout */
+@media (max-width: 640px) {
+  .main-content-area {
+    padding: 1rem;
+  }
+  
+  .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+  
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
