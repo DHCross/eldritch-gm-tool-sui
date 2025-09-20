@@ -210,27 +210,7 @@
             }
         };
 
-        // Define Threat Dice by category
-        const threatDiceByCategory = {
-            Minor: ['1d4','1d6','1d8','1d10','1d12'],
-            Standard: ['2d4','2d6','2d8','2d10','2d12'],
-            Exceptional: ['3d4','3d6','3d8','3d10','3d12'],
-            Legendary: ['3d12','3d14','3d16','3d18','3d20']
-        };
-
-        // Define HP multipliers based on size and nature
-        const hpMultipliers = {
-            'Minuscule': {'Mundane': 0.5, 'Magical': 1, 'Preternatural': 1.5, 'Supernatural': 2},
-            'Tiny': {'Mundane': 0.5, 'Magical': 1, 'Preternatural': 1.5, 'Supernatural': 2},
-            'Small': {'Mundane': 1, 'Magical': 1.5, 'Preternatural': 2, 'Supernatural': 2.5},
-            'Medium': {'Mundane': 1, 'Magical': 1.5, 'Preternatural': 2, 'Supernatural': 2.5},
-            'Large': {'Mundane': 1.5, 'Magical': 2, 'Preternatural': 2.5, 'Supernatural': 3},
-            'Huge': {'Mundane': 2, 'Magical': 2.5, 'Preternatural': 3, 'Supernatural': 3.5},
-            'Gargantuan': {'Mundane': 2.5, 'Magical': 3, 'Preternatural': 3.5, 'Supernatural': 4}
-        };
-
-        // Update slider values on input
-        function updateSliderValues() {
+        function updateSliderDisplays() {
             document.getElementById('partySizeValue').textContent = document.getElementById('partySize').value;
             document.getElementById('defenseLevelValue').textContent = defenseLevels[document.getElementById('defenseLevel').value - 1];
             document.getElementById('difficultyValue').textContent = difficultyLevels[document.getElementById('difficulty').value - 1];
@@ -240,165 +220,13 @@
         }
 
         // Attach event listeners to sliders
-        document.addEventListener('DOMContentLoaded', () => {
-            updateSliderValues(); // Initialize values on load
-
-            document.querySelectorAll('.slider').forEach(slider => {
-                slider.addEventListener('input', updateSliderValues);
-            });
+        document.querySelectorAll('.slider').forEach(slider => {
+            slider.addEventListener('input', updateSliderDisplays);
         });
 
-        // Utility function to get a random element from an array
-        function getRandomElement(array) {
-            return array[Math.floor(Math.random() * array.length)];
-        }
+        // Initial display update
+        updateSliderDisplays();
 
-        // Function to calculate Threat MV from threat dice
-        function calculateThreatMV(threatDice) {
-            const [count, sides] = threatDice.split('d').map(Number);
-            return count * sides;
-        }
-
-        // Function to calculate Hit Points based on base HP, size, and nature
-        function calculateHitPoints(baseHP, size, nature) {
-            const multiplier = hpMultipliers[size][nature];
-            return {
-                hitPoints: Math.round(baseHP * multiplier),
-                multiplier: multiplier
-            };
-        }
-
-        // Function to randomly select size, considering Non-Medium Size Percentage
-        function getRandomSize(nonMediumPercentage) {
-            const sizes = ['Minuscule', 'Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan'];
-            if (Math.random() * 100 < nonMediumPercentage) {
-                const nonMediumSizes = sizes.filter(size => size !== 'Medium');
-                return getRandomElement(nonMediumSizes);
-            }
-            return 'Medium';
-        }
-
-        // Function to randomly select nature, considering Non-Mundane Nature Percentage
-        function getRandomNature(nonMundanePercentage) {
-            const natures = ['Mundane', 'Magical', 'Preternatural', 'Supernatural'];
-            if (Math.random() * 100 < nonMundanePercentage) {
-                const nonMundaneNatures = natures.filter(nature => nature !== 'Mundane');
-                return getRandomElement(nonMundaneNatures);
-            }
-            return 'Mundane';
-        }
-
-        // Function to randomly determine creature type, considering Fast/Tough Creature Percentage
-        function getCreatureType(specialTypePercentage) {
-            if (Math.random() * 100 < specialTypePercentage) {
-                return Math.random() < 0.5 ? 'Fast' : 'Tough';
-            }
-            return 'Normal';
-        }
-
-        // Function to calculate Battle Phase based on Prowess Die
-        function calculateBattlePhase(prowessDie) {
-            switch(prowessDie) {
-                case 12: return 1;
-                case 10: return 2;
-                case 8: return 3;
-                case 6: return 4;
-                default: return 5;
-            }
-        }
-
-        // Function to assign Weapon Reach based on size
-        function assignWeaponReach(size) {
-            const reachMap = {
-                'Minuscule': 'short',
-                'Tiny': 'short',
-                'Small': 'short',
-                'Medium': 'medium',
-                'Large': 'medium',
-                'Huge': 'long',
-                'Gargantuan': 'long'
-            };
-            return reachMap[size] || 'medium';
-        }
-
-        // Function to generate a single monster
-        function generateMonster(maxThreat, selectedTypes, nonMediumPercentage, nonMundanePercentage, specialTypePercentage) {
-            const category = getRandomElement(selectedTypes);
-            const threatDice = getRandomElement(threatDiceByCategory[category]);
-            const threatMV = calculateThreatMV(threatDice);
-            const size = getRandomSize(nonMediumPercentage);
-            const nature = getRandomNature(nonMundanePercentage);
-            const creatureType = getCreatureType(specialTypePercentage);
-
-            const baseHP = threatMV;
-            const { hitPoints, multiplier } = calculateHitPoints(baseHP, size, nature);
-
-            let activeDefense, passiveDefense;
-            if (creatureType === 'Fast') {
-                activeDefense = Math.round(hitPoints * 0.75);
-                passiveDefense = hitPoints - activeDefense;
-            } else if (creatureType === 'Tough') {
-                passiveDefense = Math.round(hitPoints * 0.75);
-                activeDefense = hitPoints - passiveDefense;
-            } else {
-                activeDefense = Math.round(hitPoints / 2);
-                passiveDefense = hitPoints - activeDefense;
-            }
-
-            // Assign a Prowess Die value for Battle Phase based on Threat Dice
-            // Assuming Prowess Die corresponds to TD sides
-            let prowessDie;
-            switch(threatDice) {
-                case '1d4':
-                case '2d4':
-                case '3d4':
-                    prowessDie = 4;
-                    break;
-                case '1d6':
-                case '2d6':
-                case '3d6':
-                    prowessDie = 6;
-                    break;
-                case '1d8':
-                case '2d8':
-                case '3d8':
-                    prowessDie = 8;
-                    break;
-                case '1d10':
-                case '2d10':
-                case '3d10':
-                    prowessDie = 10;
-                    break;
-                case '1d12':
-                case '2d12':
-                case '3d12':
-                case '3d14':
-                case '3d16':
-                case '3d18':
-                case '3d20':
-                    prowessDie = 12;
-                    break;
-                default:
-                    prowessDie = 6;
-            }
-
-            const battlePhase = calculateBattlePhase(prowessDie);
-            const weaponReach = assignWeaponReach(size);
-
-            // Define Saving Throw based on category
-            const savingThrow = category === 'Legendary' ? 'd12' : `d${Math.min(12, 4 * ['Minor', 'Standard', 'Exceptional', 'Legendary'].indexOf(category) + 4)}`;
-
-            return {
-                category, threatDice, threatMV, size, nature, creatureType,
-                hitPoints, multiplier, activeDefense, passiveDefense,
-                savingThrow: savingThrow,
-                battlePhase: battlePhase,
-                prowessDie: prowessDie,
-                weaponReach: weaponReach
-            };
-        }
-
-        // Function to generate the entire encounter
         function generateEncounter() {
             const partySize = parseInt(document.getElementById('partySize').value);
             const defenseLevel = defenseLevels[document.getElementById('defenseLevel').value - 1];
@@ -425,13 +253,10 @@
             let monsters = [];
 
             while (remainingThreat > 0) {
-                const maxThreat = Math.min(remainingThreat, 36); // Assuming max threat per creature is 36
-                const monster = generateMonster(maxThreat, selectedTypes, nonMediumPercentage, nonMundanePercentage, specialTypePercentage);
+                const monster = generateMonsterForEncounter(remainingThreat, selectedTypes, nonMediumPercentage, nonMundanePercentage, specialTypePercentage);
                 monsters.push(monster);
                 remainingThreat -= monster.threatMV;
-
-                // To prevent an infinite loop, break if no progress is made
-                if (monster.threatMV === 0) break;
+                if (monster.threatMV === 0) break; 
             }
 
             monsters.forEach((monster, index) => {
@@ -443,6 +268,86 @@
             });
 
             document.getElementById('encounterOutput').textContent = output;
+        }
+
+        function generateMonsterForEncounter(maxThreat, selectedTypes, nonMediumPercentage, nonMundanePercentage, specialTypePercentage) {
+            const category = selectedTypes[Math.floor(Math.random() * selectedTypes.length)];
+            const threatDice = threatDiceByCategory[category][Math.floor(Math.random() * threatDiceByCategory[category].length)];
+            const threatMV = parseInt(threatDice.split('d')[0]) * parseInt(threatDice.split('d')[1]);
+            
+            const sizes = ['Minuscule', 'Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan'];
+            let size = 'Medium';
+            if (Math.random() * 100 < nonMediumPercentage) {
+                const nonMediumSizes = sizes.filter(s => s !== 'Medium');
+                size = nonMediumSizes[Math.floor(Math.random() * nonMediumSizes.length)];
+            }
+
+            const natures = ['Mundane', 'Magical', 'Preternatural', 'Supernatural'];
+            let nature = 'Mundane';
+            if (Math.random() * 100 < nonMundanePercentage) {
+                const nonMundaneNatures = natures.filter(n => n !== 'Mundane');
+                nature = nonMundaneNatures[Math.floor(Math.random() * nonMundaneNatures.length)];
+            }
+
+            let creatureType = 'Normal';
+            if (Math.random() * 100 < specialTypePercentage) {
+                creatureType = Math.random() < 0.5 ? 'Fast' : 'Tough';
+            }
+            
+            const { hitPoints, multiplier } = calculateHitPoints(threatMV, size, nature);
+            
+            let activeDefense, passiveDefense;
+            if (creatureType === 'Fast') {
+                activeDefense = Math.round(hitPoints * 0.75);
+                passiveDefense = hitPoints - activeDefense;
+            } else if (creatureType === 'Tough') {
+                passiveDefense = Math.round(hitPoints * 0.75);
+                activeDefense = hitPoints - passiveDefense;
+            } else {
+                activeDefense = Math.round(hitPoints / 2);
+                passiveDefense = hitPoints - activeDefense;
+            }
+
+            const prowessDie = parseInt(threatDice.split('d')[1]);
+            const battlePhase = calculateBattlePhase(prowessDie);
+            const savingThrow = `d${4 * (['Minor', 'Standard', 'Exceptional', 'Legendary'].indexOf(category) + 1)}`;
+            
+            return {
+                category, threatDice, threatMV, size, nature, creatureType,
+                hitPoints, multiplier, activeDefense, passiveDefense,
+                savingThrow, battlePhase
+            };
+        }
+
+        const threatDiceByCategory = {
+            Minor: ['1d4', '1d6', '1d8', '1d10', '1d12'],
+            Standard: ['2d4', '2d6', '2d8', '2d10', '2d12'],
+            Exceptional: ['3d4', '3d6', '3d8', '3d10', '3d12'],
+            Legendary: ['3d12', '3d14', '3d16', '3d18', '3d20']
+        };
+
+        const hpMultipliers = {
+            'Minuscule': {'Mundane': 0.5, 'Magical': 1, 'Preternatural': 1.5, 'Supernatural': 2},
+            'Tiny': {'Mundane': 0.5, 'Magical': 1, 'Preternatural': 1.5, 'Supernatural': 2},
+            'Small': {'Mundane': 1, 'Magical': 1.5, 'Preternatural': 2, 'Supernatural': 2.5},
+            'Medium': {'Mundane': 1, 'Magical': 1.5, 'Preternatural': 2, 'Supernatural': 2.5},
+            'Large': {'Mundane': 1.5, 'Magical': 2, 'Preternatural': 2.5, 'Supernatural': 3},
+            'Huge': {'Mundane': 2, 'Magical': 2.5, 'Preternatural': 3, 'Supernatural': 3.5},
+            'Gargantuan': {'Mundane': 2.5, 'Magical': 3, 'Preternatural': 3.5, 'Supernatural': 4}
+        };
+
+        function calculateHitPoints(threatMV, size, nature) {
+            const multiplier = hpMultipliers[size][nature];
+            const hitPoints = Math.round(threatMV * multiplier);
+            return { hitPoints, multiplier };
+        }
+
+        function calculateBattlePhase(prowessDie) {
+            if (prowessDie >= 12) return 1;
+            if (prowessDie >= 10) return 2;
+            if (prowessDie >= 8) return 3;
+            if (prowessDie >= 6) return 4;
+            return 5;
         }
     </script>
 </body>

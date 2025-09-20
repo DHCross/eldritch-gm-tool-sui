@@ -64,6 +64,10 @@ header {
     transition: transform 0.3s, box-shadow 0.3s;
 }
 
+.card-links { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+
+.card-links .btn { display: inline-block; }
+
 .tool-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 25px rgba(76, 175, 80, 0.3);

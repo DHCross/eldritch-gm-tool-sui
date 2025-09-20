@@ -620,18 +620,46 @@ function applyEncounterPartySelection() {
     const total = totalAD + totalPD;
     const info = getDefenseLevel(total, selectedIds.length);
     const labelPrefix = type === 'npc' ? 'NPC Group' : 'PC Party';
+    const summaryLines = [];
     if (checkboxes.length === 0) {
-        summary.textContent = 'This group has no entries yet.';
+        summaryLines.push('This group has no entries yet.');
     } else if (selectedIds.length === 0) {
-        summary.textContent = 'No members selected.';
+        summaryLines.push('No members selected.');
     } else {
-        summary.textContent = `${labelPrefix}: ${names.join(', ')} — ${selectedIds.length} selected — AD ${totalAD} / PD ${totalPD} (Total ${total}) → ${info.label}${info.range ? ' (' + info.range + ')' : ''}`;
+        summaryLines.push(`${labelPrefix}: ${names.join(', ')} — ${selectedIds.length} selected — AD ${totalAD} / PD ${totalPD} (Total ${total}) → ${info.label}${info.range ? ' (' + info.range + ')' : ''}`);
     }
+    // Combined totals across all cached selections (PC + NPC)
+    const snapshot = getRosterDataSnapshot();
+    let combinedAD = 0;
+    let combinedPD = 0;
+    let combinedCount = 0;
+    Object.entries(encounterPartySelectionCache).forEach(([key, ids]) => {
+        if (!Array.isArray(ids) || !ids.length) return;
+        const keyType = key.split(':')[0];
+        const keyIndex = parseInt(key.split('::').pop(), 10);
+        const folderRef = Number.isNaN(keyIndex) ? null : (keyType === 'npc' ? snapshot.npcFolders[keyIndex] : snapshot.folders[keyIndex]);
+        if (!folderRef) return;
+        const datasetRef = keyType === 'npc' ? snapshot.npcRecords : snapshot.pcs;
+        ids.forEach(id => {
+            const entry = datasetRef[id];
+            if (!entry) return;
+            combinedAD += Number(entry.AD || 0);
+            combinedPD += Number(entry.PD || 0);
+            combinedCount += 1;
+        });
+    });
+    if (combinedCount > 0) {
+        const combinedTotal = combinedAD + combinedPD;
+        const combinedInfo = getDefenseLevel(combinedTotal, combinedCount);
+        summaryLines.push(`Combined Selection: ${combinedCount} members — AD ${combinedAD} / PD ${combinedPD} (Total ${combinedTotal}) → ${combinedInfo.label}${combinedInfo.range ? ' (' + combinedInfo.range + ')' : ''}`);
+    }
+    summary.innerHTML = summaryLines.join('<br>');
     const partySizeInput = document.getElementById('partySize');
-    if (partySizeInput && selectedIds.length) {
-        const max = parseInt(partySizeInput.max || selectedIds.length, 10);
+    const participantCount = combinedCount > 0 ? combinedCount : selectedIds.length;
+    if (partySizeInput && participantCount) {
+        const max = parseInt(partySizeInput.max || participantCount, 10);
         const min = parseInt(partySizeInput.min || '1', 10);
-        const newValue = Math.max(min, Math.min(selectedIds.length, max));
+        const newValue = Math.max(min, Math.min(participantCount, max));
         partySizeInput.value = String(newValue);
         EncounterGenerator.updateSliderValues();
     } else if (partySizeInput) {
