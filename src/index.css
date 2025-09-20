@@ -419,11 +419,31 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Main content area alignment fix */
 .main-content-area {
-  width: 100%;
-  max-width: none;
+  max-width: 100%;
   margin: 0;
   padding: 1rem 1.5rem;
   box-sizing: border-box;
+}
+
+.main-content-area > * {
+  max-width: 100%;
+}
+
+.main-content-area :where(.tool-content) {
+  max-width: 100%;
+}
+
+.main-content-area :where(.bg-card) {
+  max-width: 100%;
+}
+
+.main-content-area :where(.card) {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.main-content-area :where(.card > *) {
+  min-width: 0;
 }
 
 @media (min-width: 768px) {
@@ -469,28 +489,14 @@ html, body {
   overflow-x: hidden;
 }
 
-/* Ensure all containers respect the viewport width */
-.w-full {
-  width: 100% !important;
-  max-width: 100% !important;
-}
-
 /* Fix any potential grid overflow issues */
-.grid {
-  width: 100%;
+.main-content-area :where(.grid) {
   max-width: 100%;
 }
 
 /* Ensure form elements don't overflow */
 input, select, textarea {
   max-width: 100%;
-}
-
-/* Better responsive card layout */
-.card {
-  width: 100%;
-  max-width: 100%;
-  overflow: hidden;
 }
 
 /* Improved mobile layout */
