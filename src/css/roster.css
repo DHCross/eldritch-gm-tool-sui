@@ -1,0 +1,190 @@
+/* Roster page styles */
+.back-btn {
+  margin: 1em 0;
+  padding: 0.5em 1em;
+  font-size: 1em;
+}
+#party-controls {
+  margin-bottom: 1em;
+}
+
+#party-instructions {
+  margin: 0 0 1.25em 0;
+  padding: 0.75em 1em;
+  background: #ecf6f0;
+  border: 1px solid #b2dfbc;
+  border-radius: 8px;
+  color: #2c3e50;
+  font-size: 0.95em;
+}
+
+#party-instructions ol {
+  margin: 0.5em 0 0 1.25em;
+  padding: 0;
+}
+
+#defense-guide {
+  margin: 0 0 1.5em 0;
+  padding: 1em;
+  background: #edf2fb;
+  border: 1px solid #c5d3e8;
+  border-radius: 10px;
+  color: #283845;
+}
+
+#defense-guide h2 {
+  margin-top: 0;
+  color: #1f3b57;
+}
+
+#defense-guide table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.75em;
+  font-size: 0.95em;
+}
+
+#defense-guide th,
+#defense-guide td {
+  border: 1px solid #c5d3e8;
+  padding: 8px 10px;
+  text-align: center;
+}
+
+#defense-guide thead {
+  background: #dbe7f4;
+  font-weight: 700;
+}
+
+#defense-guide tbody tr:nth-child(even) {
+  background: #f5f8fc;
+}
+
+#manual-pc-form {
+  margin-bottom: 1.5em;
+  padding: 1.25em;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background: #f1f5f8;
+}
+
+#manual-pc-form h2 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+.manual-hint {
+  margin: 0 0 0.75em 0;
+  color: #546e7a;
+  font-size: 0.9em;
+}
+
+.manual-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.manual-grid label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95em;
+}
+
+.manual-grid label small {
+  font-weight: 400;
+  color: #607d8b;
+}
+
+.manual-grid input,
+.manual-grid select {
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #b0bec5;
+  background: #ffffff;
+  color: #2c3e50;
+}
+
+.manual-grid input:focus,
+.manual-grid select:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 1px rgba(76, 175, 80, 0.3);
+}
+
+.manual-submit {
+  display: inline-block;
+  background-color: #4CAF50;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.manual-submit:hover {
+  background-color: #45a049;
+}
+
+#folders-list {
+  margin-bottom: 2em;
+}
+.selected-folder-indicator,
+#selected-folder-indicator {
+  margin-left: 0.75em;
+  font-size: 0.95em;
+  color: #2c3e50;
+}
+.folder {
+  border: 1px solid #b0bec5;
+  padding: 0.65em 0.75em;
+  margin-bottom: 0.75em;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.folder > strong {
+  display: inline-block;
+  margin-right: 0.75em;
+  color: #2c3e50;
+  font-size: 1.05em;
+}
+.folder.selected {
+  background: #e8f5e9;
+  border-color: #81c784;
+}
+.folder-summary {
+  margin: 0.5em 0 0.5em 0;
+  font-size: 0.9em;
+  color: #37515c;
+  font-weight: 600;
+}
+.pcs {
+  margin-left: 1em;
+}
+.pc {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25em;
+}
+.pc-defense-tag {
+  margin-left: 0.75em;
+  padding: 2px 8px;
+  background: #eceff1;
+  border-radius: 999px;
+  font-size: 0.8em;
+  color: #37474f;
+}
+.pc input[type="checkbox"] {
+  margin-right: 0.5em;
+}
+#defense-summary {
+  margin-top: 1em;
+  font-weight: bold;
+}

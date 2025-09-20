@@ -62,6 +62,16 @@
 
     <div id="EncounterGenerator" class="tab-content" style="display: block;">
         <h2>Eldritch RPG Encounter Generator</h2>
+        <div class="encounter-party-toolbar">
+            <a href="roster.html" class="party-roster-link" target="_blank">Open Roster</a>
+            <label for="encounter-party-select">Party:</label>
+            <select id="encounter-party-select">
+                <option value="">Select a party from roster</option>
+            </select>
+            <button id="refresh-party-btn" type="button" title="Refresh parties">Refresh</button>
+        </div>
+        <div id="encounter-party-members" class="encounter-party-members"></div>
+        <div id="encounter-party-summary" class="encounter-party-summary">No party selected.</div>
         
         <div class="slider-container">
             <label for="partySize">Party Size: <span id="partySizeValue">4</span></label>
@@ -131,7 +141,9 @@
             <input type="checkbox" id="includeMagic" />
             <label for="includeMagic">Include Magical Properties for Iconic Items</label>
         </div>
-        <button onclick="generateCharacter()">Generate Character</button>
+        <button onclick="generateCharacter()">Generate NPC</button>
+        <button id="save-npc-roster-btn" class="secondary-btn" type="button" style="display:none;">Save to NPC Roster</button>
+        <a href="npc_roster.html" target="_blank" class="secondary-link">Open NPC Roster</a>
         <div id="character"></div>
     </div>
 

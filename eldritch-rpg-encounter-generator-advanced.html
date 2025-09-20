@@ -107,6 +107,11 @@
     </style>
 </head>
 <body>
+    <nav style="margin-bottom: 1em;">
+        <a href="index.html" style="display:inline-block;padding:8px 18px;background:#4CAF50;color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;box-shadow:0 2px 6px rgba(76,175,80,0.15);">← Back to Home</a>
+    </nav>
+    <button id="importPartyDefense" style="margin-bottom:1em;background:#2196F3;">Import Party Defense from Roster</button>
+    <div id="partyDefenseSummary" style="margin-bottom:1em;"></div>
     <h1>Eldritch RPG Encounter Generator</h1>
 
     <div class="slider-container">
@@ -151,6 +156,24 @@
     <div id="encounterOutput"></div>
 
     <script>
+        // Import party defense from localStorage and set sliders/values
+        document.getElementById('importPartyDefense').onclick = function() {
+            const data = localStorage.getItem('eldritch_party_defense');
+            if (!data) {
+                document.getElementById('partyDefenseSummary').textContent = 'No party defense found. Select PCs in Roster and try again.';
+                return;
+            }
+            const def = JSON.parse(data);
+            document.getElementById('partyDefenseSummary').textContent = `Imported: Active Defense ${def.totalAD}, Passive Defense ${def.totalPD}, Total ${def.total} → Tier: ${def.tier}`;
+            // Set defense level slider to match tier
+            const tierIdx = defenseLevels.indexOf(def.tier);
+            if (tierIdx >= 0) {
+                document.getElementById('defenseLevel').value = tierIdx + 1;
+                document.getElementById('defenseLevelValue').textContent = def.tier;
+            }
+            // Optionally set party size slider based on number of PCs
+            // Not implemented: would require passing PC count
+        };
         // Define difficulty and defense levels
         const difficultyLevels = ['Easy', 'Moderate', 'Difficult', 'Demanding', 'Formidable', 'Deadly'];
         const defenseLevels = ['Practitioner', 'Competent', 'Proficient', 'Advanced', 'Elite'];

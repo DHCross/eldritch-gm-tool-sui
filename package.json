@@ -2,17 +2,19 @@
   "name": "eldritch-gm-tools",
   "version": "1.0.0",
   "description": "A comprehensive suite of Game Master tools for the Eldritch RPG system",
-  "main": "index.html",
+  "main": "main.js",
   "scripts": {
     "start": "npx http-server . -p 3000 -o",
     "dev": "npx http-server . -p 3000 -o",
     "serve": "npx http-server . -p 3000",
     "build": "echo 'No build process required for static HTML/CSS/JS'",
-    "test": "echo 'No tests configured yet'"
+    "test": "echo 'No tests configured yet'",
+    "start:electron": "electron .",
+    "build:electron": "electron-builder --config electron-builder.json"
   },
   "keywords": [
     "eldritch",
-    "rpg", 
+    "rpg",
     "tabletop",
     "gm-tools",
     "game-master",
@@ -31,7 +33,12 @@
   },
   "homepage": "https://github.com/DHCross/Eldritch-GM-Tools#readme",
   "devDependencies": {
-    "http-server": "^14.1.1"
+    "@vitest/ui": "^3.2.4",
+    "electron": "^38.1.2",
+    "electron-builder": "^26.0.12",
+    "http-server": "^14.1.1",
+    "jsdom": "^27.0.0",
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": ">=14.0.0"

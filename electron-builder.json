@@ -1,0 +1,24 @@
+{
+  "appId": "com.eldritch.gmtools",
+  "productName": "Eldritch GM Tools",
+  "files": [
+    "**/*",
+    "!test",
+    "!node_modules/*/{test,__tests__,tests}/**"
+  ],
+  "directories": {
+    "buildResources": "assets"
+  },
+  "mac": {
+    "target": ["dmg", "zip"],
+    "icon": "assets/icon.png"
+  },
+  "win": {
+    "target": ["nsis", "zip"],
+    "icon": "assets/icon.png"
+  },
+  "linux": {
+    "target": ["AppImage", "deb", "zip"],
+    "icon": "assets/icon.png"
+  }
+}

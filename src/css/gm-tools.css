@@ -81,6 +81,100 @@ button:hover {
     background-color: #45a049;
 }
 
+.secondary-btn {
+    background-color: #2196F3;
+    margin-left: 8px;
+}
+
+.secondary-btn:hover {
+    background-color: #1b7dd6;
+}
+
+.secondary-link {
+    display: inline-block;
+    margin-left: 8px;
+    color: #81d4fa;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.secondary-link:hover {
+    text-decoration: underline;
+}
+
+.encounter-party-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.encounter-party-toolbar label {
+    margin: 0;
+}
+
+.encounter-party-toolbar button {
+    width: auto;
+    padding: 8px 10px;
+    text-transform: none;
+}
+
+.encounter-party-toolbar select {
+    width: auto;
+    min-width: 180px;
+}
+
+.party-roster-link {
+    color: #4CAF50;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.party-roster-link:hover {
+    text-decoration: underline;
+}
+
+.encounter-party-members {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.encounter-party-members label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid rgba(76, 175, 80, 0.4);
+    border-radius: 6px;
+    background-color: rgba(76, 175, 80, 0.1);
+    color: #e0e0e0;
+    font-weight: 500;
+}
+
+.encounter-party-summary {
+    margin-bottom: 16px;
+    font-size: 0.95em;
+    color: #e0e0e0;
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 8px 10px;
+    border-radius: 6px;
+}
+
+.encounter-party-placeholder {
+    color: #cfd8dc;
+    font-style: italic;
+}
+
+.encounter-party-header {
+    width: 100%;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #a5d6a7;
+}
+
 /* Sliders */
 .slider-container {
     margin-bottom: 20px;

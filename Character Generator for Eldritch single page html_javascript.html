@@ -71,9 +71,17 @@
     .custom-alert-button:hover {
         background-color: #2563eb;
     }
+    button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
   </style>
 </head>
+
 <body class="bg-gray-100 text-gray-800 antialiased">
+  <nav style="margin-bottom: 1em;">
+    <a href="index.html" style="display:inline-block;padding:8px 18px;background:#4CAF50;color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;box-shadow:0 2px 6px rgba(76,175,80,0.15);">← Back to Home</a>
+  </nav>
 
   <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-6xl">
     <header class="mb-8 text-center">
@@ -99,6 +107,11 @@
           <label for="level" class="block text-sm font-medium text-gray-700 mb-1">Level</label>
           <select id="level" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"></select>
         </div>
+        <!-- Gender Selection -->
+        <div>
+          <label for="gender" class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+          <select id="gender" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"></select>
+        </div>
         <!-- Magic Path (Conditional) -->
         <div id="magic-path-container" style="display:none;">
           <label for="magic-path" class="block text-sm font-medium text-gray-700 mb-1">Chosen Magic Path</label>
@@ -113,8 +126,19 @@
         </div>
         <div class="flex flex-wrap gap-2">
           <button id="generate-btn" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-md">Generate Character</button>
+          <button id="save-roster-btn" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-md" disabled aria-disabled="true">Save to Roster</button>
           <button id="export-md-btn" class="w-full sm:w-auto bg-white hover:bg-gray-100 text-blue-600 font-semibold py-2 px-4 border border-blue-600 rounded-lg shadow-sm transition-colors">Export Markdown</button>
           <button id="copy-md-btn" class="w-full sm:w-auto bg-white hover:bg-gray-100 text-blue-600 font-semibold py-2 px-4 border border-blue-600 rounded-lg shadow-sm transition-colors">Copy Markdown</button>
+        </div>
+        <div id="roster-metadata" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 border border-gray-200 rounded-xl p-4" style="display:none;">
+          <div>
+            <label for="character-name-input" class="block text-sm font-medium text-gray-700 mb-1">Character Name</label>
+            <input type="text" id="character-name-input" class="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5" placeholder="Enter character name" maxlength="120" autocomplete="off">
+          </div>
+          <div>
+            <label for="player-name-input" class="block text-sm font-medium text-gray-700 mb-1">Player Name</label>
+            <input type="text" id="player-name-input" class="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5" placeholder="Enter player name" maxlength="120" autocomplete="off">
+          </div>
         </div>
       </div>
     </div>
@@ -153,6 +177,41 @@
       Strength: ['Ferocity', 'Might'],
       Willpower: ['Courage', 'Resistance']
     };
+    const genders = ['Male', 'Female'];
+    const rosterButton = document.getElementById('save-roster-btn');
+    const rosterMetadataContainer = document.getElementById('roster-metadata');
+    const characterNameInput = document.getElementById('character-name-input');
+    const playerNameInput = document.getElementById('player-name-input');
+
+    function setRosterButtonEnabled(isEnabled) {
+      rosterButton.disabled = !isEnabled;
+      rosterButton.setAttribute('aria-disabled', (!isEnabled).toString());
+    }
+
+    function updateRosterControls() {
+      const hasCharacter = !!window.lastCharacter;
+      const characterName = characterNameInput ? characterNameInput.value.trim() : '';
+      const playerName = playerNameInput ? playerNameInput.value.trim() : '';
+      if (hasCharacter) {
+        const fallbackName = window.lastCharacter.defaultName || window.lastCharacter.characterName;
+        const desiredName = characterName.length > 0 ? characterName : fallbackName;
+        if (desiredName !== window.lastCharacter.characterName) {
+          window.lastCharacter.characterName = desiredName;
+          displayCharacter(window.lastCharacter);
+        }
+      }
+      const hasNames = characterName.length > 0 && playerName.length > 0;
+      setRosterButtonEnabled(hasCharacter && hasNames);
+    }
+
+    setRosterButtonEnabled(false);
+    window.lastCharacter = null;
+    if (rosterMetadataContainer) {
+      rosterMetadataContainer.style.display = 'none';
+    }
+    if (characterNameInput) characterNameInput.addEventListener('input', updateRosterControls);
+    if (playerNameInput) playerNameInput.addEventListener('input', updateRosterControls);
+    updateRosterControls();
     const races = ['Human', 'Elf', 'Dwarf', 'Gnome', 'Half-Elf', 'Half-Orc', 'Halfling', 'Drakkin'];
     const classes = ['Adept', 'Assassin', 'Barbarian', 'Mage', 'Mystic', 'Rogue', 'Theurgist', 'Warrior'];
     const levels = [1, 2, 3, 4, 5];
@@ -162,6 +221,40 @@
       Mage: ['Thaumaturgy', 'Elementalism', 'Sorcery'],
       Mystic: ['Mysticism'],
       Theurgist: ['Druidry', 'Hieraticism']
+    };
+    const defaultNamesByHeritage = {
+      Human: {
+        Male: { Adept: 'Adrian', Assassin: 'Brandon', Barbarian: 'Duncan', Mage: 'Julian', Mystic: 'Nathaniel', Rogue: 'Oliver', Theurgist: 'Patrick', Warrior: 'William' },
+        Female: { Adept: 'Amelia', Assassin: 'Bianca', Barbarian: 'Clara', Mage: 'Diana', Mystic: 'Fiona', Rogue: 'Isobel', Theurgist: 'Lydia', Warrior: 'Sophia' }
+      },
+      Elf: {
+        Male: { Adept: 'Ailill', Assassin: 'Cian', Barbarian: 'Conall', Mage: 'Cormac', Mystic: 'Domnall', Rogue: 'Eochaid', Theurgist: 'Fergus', Warrior: 'Flann' },
+        Female: { Adept: 'Aine', Assassin: 'Caitlin', Barbarian: 'Deirdre', Mage: 'Fionnghuala', Mystic: 'Gormlaith', Rogue: 'Mairead', Theurgist: 'Nuala', Warrior: 'Sorcha' }
+      },
+      Dwarf: {
+        Male: { Adept: 'Atli', Assassin: 'Bersi', Barbarian: 'Gunnarr', Mage: 'Ketill', Mystic: 'Oddleifr', Rogue: 'Snorri', Theurgist: 'Thorsteinn', Warrior: 'Starkathr' },
+        Female: { Adept: 'Astrid', Assassin: 'Bodil', Barbarian: 'Dagny', Mage: 'Gudrun', Mystic: 'Ingrid', Rogue: 'Kari', Theurgist: 'Solveig', Warrior: 'Tove' }
+      },
+      Gnome: {
+        Male: { Adept: 'Alun', Assassin: 'Cadogan', Barbarian: 'Emrys', Mage: 'Gareth', Mystic: 'Iolo', Rogue: 'Lleu', Theurgist: 'Owain', Warrior: 'Rhys' },
+        Female: { Adept: 'Angharad', Assassin: 'Blodwen', Barbarian: 'Eleri', Mage: 'Gwenllian', Mystic: 'Luned', Rogue: 'Morfudd', Theurgist: 'Nest', Warrior: 'Rhiannon' }
+      },
+      'Half-Elf': {
+        Male: { Adept: 'Austell', Assassin: 'Cador', Barbarian: 'Digory', Mage: 'Elid', Mystic: 'Jory', Rogue: 'Kenver', Theurgist: 'Perran', Warrior: 'Tristan' },
+        Female: { Adept: 'Adwen', Assassin: 'Demelza', Barbarian: 'Elowen', Mage: 'Kerensa', Mystic: 'Mabyn', Rogue: 'Morwenna', Theurgist: 'Tamsyn', Warrior: 'Wenna' }
+      },
+      'Half-Orc': {
+        Male: { Adept: 'Adalbert', Assassin: 'Bruno', Barbarian: 'Dietrich', Mage: 'Friedrich', Mystic: 'Gerhard', Rogue: 'Heinrich', Theurgist: 'Rudolf', Warrior: 'Wolfgang' },
+        Female: { Adept: 'Adele', Assassin: 'Brigitte', Barbarian: 'Claudia', Mage: 'Frida', Mystic: 'Gertrud', Rogue: 'Helga', Theurgist: 'Sabine', Warrior: 'Ursula' }
+      },
+      Halfling: {
+        Male: { Adept: 'Algernon', Assassin: 'Cedric', Barbarian: 'Digory', Mage: 'Emmet', Mystic: 'Otis', Rogue: 'Peregrine', Theurgist: 'Thorn', Warrior: 'Tully' },
+        Female: { Adept: 'Amethyst', Assassin: 'Blythe', Barbarian: 'Celia', Mage: 'Dora', Mystic: 'Eunice', Rogue: 'Lavinia', Theurgist: 'Prudence', Warrior: 'Tabitha' }
+      },
+      Drakkin: {
+        Male: { Adept: 'Achilles', Assassin: 'Damian', Barbarian: 'Leandros', Mage: 'Nikolas', Mystic: 'Odysseus', Rogue: 'Perikles', Theurgist: 'Stavros', Warrior: 'Zenon' },
+        Female: { Adept: 'Ariadne', Assassin: 'Eleni', Barbarian: 'Melina', Mage: 'Penelope', Mystic: 'Theodora', Rogue: 'Xanthe', Theurgist: 'Zephyra', Warrior: 'Athena' }
+      }
     };
     const levelInfo = [
       { level: 1, masteryDie: 'd4', usesPerDay: 2, cp_range: '10 to 100' },
@@ -272,6 +365,18 @@
     };
 
     // --- Helper Functions ---
+    function getDefaultCharacterName(race, characterClass, gender) {
+      const normalizedGender = (gender || 'Male').toString().trim();
+      const genderKey = normalizedGender.charAt(0).toUpperCase() + normalizedGender.slice(1).toLowerCase();
+      const raceNames = defaultNamesByHeritage[race];
+      const fallbackRace = defaultNamesByHeritage['Human'];
+      const genderNames = raceNames?.[genderKey] || fallbackRace?.[genderKey];
+      if (genderNames && genderNames[characterClass]) {
+        return genderNames[characterClass];
+      }
+      return `${race} ${characterClass}`;
+    }
+
     function getMV(val) { return val.startsWith('d') ? parseInt(val.substring(1)) : (val.startsWith('+') ? parseInt(val.substring(1)) : 0); }
     function dieSteps(dieRank) { return dieRanks.indexOf(dieRank); }
     function parseFocusNumber(val) { return val ? parseInt(val.replace('+', '')) : 0; }
@@ -289,10 +394,12 @@
       const raceSelect = document.getElementById('race');
       const classSelect = document.getElementById('class');
       const levelSelect = document.getElementById('level');
+      const genderSelect = document.getElementById('gender');
       
       raceSelect.innerHTML = '<option value="">Select Race</option>' + races.map(r => `<option value="${r}">${r}</option>`).join('');
       classSelect.innerHTML = '<option value="">Select Class</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
       levelSelect.innerHTML = '<option value="">Select Level</option>' + levels.map(l => `<option value="${l}">${l}</option>`).join('');
+      genderSelect.innerHTML = genders.map((g, idx) => `<option value="${g}"${idx === 0 ? ' selected' : ''}>${g}</option>`).join('');
 
       classSelect.addEventListener('change', () => {
         const selectedClass = classSelect.value;
@@ -316,14 +423,20 @@
       const level = parseInt(document.getElementById('level').value);
       const isMagicalItem = document.getElementById('magical-item-checkbox').checked;
       let magicPath = document.getElementById('magic-path').value;
+      const gender = document.getElementById('gender').value;
 
       if (!race || !characterClass || isNaN(level)) {
         showAlert("Please select a valid race, class, and level.");
         return;
       }
 
+      if (!gender) {
+        showAlert("Please select a gender.");
+        return;
+      }
+
       // 1. Initialize character object and stats
-      let character = { race, class: characterClass, level, abilities: {}, specialties: {}, focuses: {} };
+      let character = { race, class: characterClass, level, gender, abilities: {}, specialties: {}, focuses: {} };
       
       abilities.forEach(a => {
         character.abilities[a] = 'd4';
@@ -480,7 +593,10 @@
       }
 
       character.iconicItem = getIconicItem(character, isMagicalItem);
-      
+      const defaultName = getDefaultCharacterName(race, characterClass, gender);
+      character.defaultName = defaultName;
+      character.characterName = defaultName;
+
       if (character.iconicItem.type.includes('Iconic Weapon')) {
           let threatBonusString = '';
           if (character.class === 'Rogue') {
@@ -493,6 +609,14 @@
       }
       
       window.lastCharacter = character;
+      if (rosterMetadataContainer) {
+        rosterMetadataContainer.style.display = 'grid';
+      }
+      if (characterNameInput && playerNameInput) {
+        characterNameInput.value = character.characterName;
+        playerNameInput.value = '';
+      }
+      updateRosterControls();
       displayCharacter(character);
     }
 
@@ -668,7 +792,8 @@
 
       output.innerHTML = `
         <div class="card bg-white p-6 rounded-2xl shadow-lg fade-in">
-          <h2 class="text-2xl font-bold text-gray-900 border-b pb-2 mb-4">${character.race} ${character.class} - Level ${character.level}</h2>
+          <h2 class="text-2xl font-bold text-gray-900 border-b pb-2 mb-2">${character.characterName} — ${character.race} ${character.class} (Level ${character.level})</h2>
+          <p class="text-sm text-gray-600 mb-4">Gender: ${character.gender} | Heritage Default: ${character.defaultName}</p>
           
           <div class="grid md:grid-cols-3 gap-4 text-center mb-6 bg-gray-50 p-4 rounded-lg">
             <div><span class="text-sm text-gray-500 block">Spirit Points</span><span class="text-xl font-bold">${character.defensePools.spiritPoints}</span></div>
@@ -762,7 +887,12 @@
         showAlert('Generate a character first!');
         return '';
       }
-      let md = `# ${char.race} ${char.class} (Level ${char.level})\n\n`;
+      let md = `# ${char.characterName} — ${char.race} ${char.class} (Level ${char.level})\n\n`;
+      md += `- **Gender:** ${char.gender || 'Unspecified'}\n`;
+      if (char.defaultName) {
+        md += `- **Heritage Default Name:** ${char.defaultName}\n`;
+      }
+      md += `\n`;
       md += `### Core Stats\n`;
       md += `- **SP:** ${char.defensePools.spiritPoints} | **Active DP:** ${char.defensePools.activeDefense} | **Passive DP:** ${char.defensePools.passiveDefense}\n`;
       md += `- **Mastery Die:** ${char.masteryDie}\n`;
@@ -863,6 +993,47 @@
     });
 
     document.getElementById('generate-btn').addEventListener('click', generateCharacter);
+    rosterButton.addEventListener('click', function() {
+      const char = window.lastCharacter;
+      if (!characterNameInput || !playerNameInput) {
+        showAlert('Roster details inputs are unavailable. Please refresh and try again.');
+        return;
+      }
+      const characterName = characterNameInput.value.trim();
+      const playerName = playerNameInput.value.trim();
+      if (!char) {
+        showAlert('Generate a character first!');
+        return;
+      }
+      if (!characterName || !playerName) {
+        showAlert('Please add both a character name and player name before saving to the roster.');
+        return;
+      }
+      const generatedLabel = `${char.race} ${char.class} (Lvl ${char.level})`;
+      char.characterName = characterName;
+      char.playerName = playerName;
+      char.generatedLabel = generatedLabel;
+      // Prepare minimal PC object for Roster
+      const pc = {
+        name: characterName,
+        player: playerName,
+        gender: char.gender,
+        heritageDefaultName: char.defaultName,
+        summary: generatedLabel,
+        AD: Number(char.defensePools.activeDefense),
+        PD: Number(char.defensePools.passiveDefense),
+        details: char
+      };
+      // Load existing PCs
+      const PCS_KEY = 'eldritch_roster_pcs';
+      let pcs = {};
+      try { pcs = JSON.parse(localStorage.getItem(PCS_KEY) || '{}'); } catch(e) {}
+      // Generate unique ID
+      let id = `${char.race}_${char.class}_L${char.level}_${Date.now()}`;
+      pcs[id] = pc;
+      localStorage.setItem(PCS_KEY, JSON.stringify(pcs));
+      showAlert('Character saved to Roster!');
+    });
     document.addEventListener('DOMContentLoaded', populateDropdowns);
   </script>
 </body>

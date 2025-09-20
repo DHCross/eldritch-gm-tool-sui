@@ -1,0 +1,157 @@
+/* NPC Roster styles */
+.back-btn {
+  margin: 1em 0;
+  padding: 0.5em 1em;
+  font-size: 1em;
+}
+
+#npc-party-controls {
+  margin-bottom: 1em;
+}
+
+#npc-instructions {
+  margin: 0 0 1.25em 0;
+  padding: 0.75em 1em;
+  background: #f2f1ff;
+  border: 1px solid #c9c6ff;
+  border-radius: 8px;
+  color: #2c2c5a;
+  font-size: 0.95em;
+}
+
+#npc-instructions ol {
+  margin: 0.5em 0 0 1.25em;
+  padding: 0;
+}
+
+#manual-npc-form {
+  margin-bottom: 1.5em;
+  padding: 1.25em;
+  border: 1px solid #d4d9f3;
+  border-radius: 10px;
+  background: #f7f8ff;
+}
+
+#manual-npc-form h2 {
+  margin-top: 0;
+  color: #2c2c5a;
+}
+
+.manual-hint {
+  margin: 0 0 0.75em 0;
+  color: #4a4c6a;
+  font-size: 0.9em;
+}
+
+.manual-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.manual-grid label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+  color: #2c2c5a;
+  font-size: 0.95em;
+}
+
+.manual-grid input,
+.manual-grid select {
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #b0b5d9;
+  background: #ffffff;
+  color: #2c2c5a;
+}
+
+.manual-grid input:focus,
+.manual-grid select:focus {
+  outline: none;
+  border-color: #6c63ff;
+  box-shadow: 0 0 0 1px rgba(108, 99, 255, 0.3);
+}
+
+.manual-submit {
+  display: inline-block;
+  background-color: #6c63ff;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.manual-submit:hover {
+  background-color: #5a54d4;
+}
+
+#npc-folders-list {
+  margin-bottom: 2em;
+}
+
+.npc-folder {
+  border: 1px solid #d0d4f0;
+  padding: 0.65em 0.75em;
+  margin-bottom: 0.75em;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.npc-folder > strong {
+  display: inline-block;
+  margin-right: 0.75em;
+  color: #2c2c5a;
+  font-size: 1.05em;
+}
+
+.npc-folder.selected {
+  background: #edeafe;
+  border-color: #9b95ff;
+}
+
+.npc-folder-summary {
+  margin: 0.5em 0;
+  font-size: 0.9em;
+  color: #394260;
+  font-weight: 600;
+}
+
+.npc-entries {
+  margin-left: 1em;
+}
+
+.npc-entry {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.3em;
+}
+
+.npc-entry input[type="checkbox"] {
+  margin-right: 0.5em;
+}
+
+.npc-defense-tag {
+  margin-left: 0.75em;
+  padding: 2px 8px;
+  background: #eef1ff;
+  border-radius: 999px;
+  font-size: 0.8em;
+  color: #3f4762;
+}
+
+#npc-folder-controls {
+  margin-bottom: 2em;
+}
+
+#npc-selected-folder-indicator {
+  margin-left: 0.75em;
+  font-size: 0.95em;
+  color: #2c2c5a;
+}
