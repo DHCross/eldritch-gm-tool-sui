@@ -45,6 +45,8 @@ Thumbs.db
 dist/
 build/
 coverage/
+.next/
+out/
 
 # Temporary files
 *.tmp
