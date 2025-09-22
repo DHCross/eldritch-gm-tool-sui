@@ -15,7 +15,7 @@ export default function NPCRoster() {
       <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
         <h2 className="text-2xl font-bold mb-4">No NPCs Created Yet</h2>
         <p className="text-gray-600 mb-4">
-          You haven't created any NPCs yet. Use the NPC Generator to create characters
+          You haven&apos;t created any NPCs yet. Use the NPC Generator to create characters
           that will appear in this roster.
         </p>
         <div className="bg-gray-50 p-4 rounded">
