@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { saveCharacter, generateId, getCurrentUserId, calculateComputedStats } from '../utils/partyStorage';
+import { SavedCharacter } from '../types/party';
 
 // ======= DATA =======
 const dieRanks = ['d4', 'd6', 'd8', 'd10', 'd12'];
@@ -506,6 +508,59 @@ export default function CharacterGenerator() {
     });
   }
 
+  function saveCharacterToRoster() {
+    if (!character) {
+      showAlert('Generate a character first!');
+      return;
+    }
+
+    const charName = prompt('Enter character name:', `${character.race} ${character.class}`);
+    if (!charName) return;
+
+    const savedChar: SavedCharacter = {
+      id: generateId(),
+      user_id: getCurrentUserId(),
+      name: charName.trim(),
+      type: 'PC',
+      level: character.level,
+      race: character.race,
+      class: character.class,
+      abilities: {
+        prowess_mv: mv(character.abilities.Prowess),
+        agility_mv: mv(character.specialties.Prowess.Agility),
+        melee_mv: mv(character.specialties.Prowess.Melee),
+        fortitude_mv: mv(character.abilities.Fortitude),
+        endurance_mv: mv(character.specialties.Fortitude.Endurance),
+        strength_mv: mv(character.specialties.Fortitude.Strength),
+        competence_mv: mv(character.abilities.Competence),
+        willpower_mv: mv(character.specialties.Fortitude.Willpower),
+        expertise_mv: mv(character.specialties.Competence.Expertise),
+        perception_mv: mv(character.specialties.Competence.Perception),
+        adroitness_mv: mv(character.specialties.Competence.Adroitness),
+        precision_mv: mv(character.specialties.Prowess.Precision)
+      },
+      computed: {
+        active_dp: character.pools.active,
+        passive_dp: character.pools.passive,
+        spirit_pts: character.pools.spirit
+      },
+      status: {
+        current_hp_active: character.pools.active,
+        current_hp_passive: character.pools.passive,
+        status_flags: [],
+        gear: character.equipment || [],
+        notes: ''
+      },
+      tags: [buildStyle, `Level ${character.level}`],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      full_data: character as unknown as Record<string, unknown>
+    };
+
+    saveCharacter(savedChar);
+    showAlert(`Character "${charName}" saved to roster!`);
+  }
+
   const warnings = character && showWeakness ? weaknessReport(character) : [];
 
   return (
@@ -665,6 +720,14 @@ export default function CharacterGenerator() {
                 >
                   Generate
                 </button>
+                {character && (
+                  <button
+                    onClick={saveCharacterToRoster}
+                    className="rounded-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-4 shadow"
+                  >
+                    Save to Roster
+                  </button>
+                )}
                 <button
                   onClick={exportMD}
                   className="rounded-full bg-white hover:bg-gray-100 text-blue-600 font-semibold py-2.5 px-4 border border-blue-600 shadow"
