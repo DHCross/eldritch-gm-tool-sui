@@ -1,322 +1,290 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Monster,
-  MonsterCategory,
-  CreatureTrope,
-  threatDiceByCategory,
-  tropeConfig
-} from '../data/monsterData';
-import {
-  generateMonster,
-  exportMonsterToMarkdown,
-  validateMonsterSettings
-} from '../utils/monsterUtils';
+
+interface MonsterCalculatorResult {
+  hitPoints: number;
+  threatLevel: string;
+  totalThreatMV: number;
+}
 
 export default function MonsterGenerator() {
-  const [monster, setMonster] = useState<Monster | null>(null);
-  const [selectedCategories, setSelectedCategories] = useState<MonsterCategory[]>(['Minor', 'Standard', 'Exceptional', 'Legendary']);
-  const [selectedTropes, setSelectedTropes] = useState<CreatureTrope[]>(['Human', 'Goblinoid', 'Beast', 'Undead']);
-  const [nonMediumPercentage, setNonMediumPercentage] = useState(10);
-  const [nonMundanePercentage, setNonMundanePercentage] = useState(20);
-  const [specialTypePercentage, setSpecialTypePercentage] = useState(30);
-  const [warnings, setWarnings] = useState<string[]>([]);
+  const [monsterNature, setMonsterNature] = useState('1'); // Mundane
+  const [monsterSize, setMonsterSize] = useState('1'); // Small or Medium
+  const [tier1Threat, setTier1Threat] = useState('4'); // d4
+  const [tier2Threat, setTier2Threat] = useState('0'); // None
+  const [tier3Threat, setTier3Threat] = useState('0'); // None
+  const [monsterArmor, setMonsterArmor] = useState('0'); // None
+  const [result, setResult] = useState<MonsterCalculatorResult | null>(null);
 
-  const handleGenerateMonster = () => {
-    const settings = {
-      categories: selectedCategories,
-      tropes: selectedTropes,
-      nonMediumPercentage,
-      nonMundanePercentage,
-      specialTypePercentage
-    };
+  const monsterNatures = [
+    { value: '1', label: 'Mundane' },
+    { value: '2', label: 'Magical' },
+    { value: '3', label: 'Preternatural' },
+    { value: '4', label: 'Supernatural' }
+  ];
 
-    const validationWarnings = validateMonsterSettings(settings);
-    setWarnings(validationWarnings);
+  const monsterSizes = [
+    { value: '0', label: 'Minuscule or Tiny' },
+    { value: '1', label: 'Small or Medium' },
+    { value: '2', label: 'Large' },
+    { value: '3', label: 'Huge' },
+    { value: '4', label: 'Gargantuan' }
+  ];
 
-    if (validationWarnings.length === 0) {
-      const newMonster = generateMonster(
-        selectedCategories,
-        selectedTropes,
-        nonMediumPercentage,
-        nonMundanePercentage,
-        specialTypePercentage
-      );
-      setMonster(newMonster);
+  const threatDice = [
+    { value: '0', label: 'None' },
+    { value: '4', label: 'd4' },
+    { value: '6', label: 'd6' },
+    { value: '8', label: 'd8' },
+    { value: '10', label: 'd10' },
+    { value: '12', label: 'd12' },
+    { value: '14', label: 'd14' },
+    { value: '16', label: 'd16' },
+    { value: '18', label: 'd18' },
+    { value: '20', label: 'd20' }
+  ];
+
+  const armorTypes = [
+    { value: '0', label: 'None' },
+    { value: '2', label: 'Hide' },
+    { value: '3', label: 'Leather' },
+    { value: '4', label: 'Chain' },
+    { value: '5', label: 'Plate' },
+    { value: '6', label: 'Magical' }
+  ];
+
+  function calculateHitPoints(
+    threatMinor: number,
+    threatStandard: number,
+    threatExceptional: number,
+    creatureSize: number,
+    creatureNature: number,
+    armorBonus: number
+  ): number {
+    const sizeModifier = parseFloat(creatureSize.toString());
+    const natureModifier = parseFloat(creatureNature.toString());
+
+    const totalModifier = (sizeModifier + natureModifier) / 2;
+    const totalHitPoints = threatMinor + threatStandard + threatExceptional;
+    let finalHitPoints = Math.ceil(totalHitPoints * totalModifier);
+
+    finalHitPoints += armorBonus; // Add armor bonus to final hit points
+
+    return finalHitPoints;
+  }
+
+  function determineThreatLevel(minor: string, standard: string, exceptional: string): string {
+    if (minor !== "0" && standard === "0" && exceptional === "0") {
+      return "a Minor";
+    } else if (standard === "0" && exceptional !== "0") {
+      return "a Standard";
+    } else if (standard !== "0" && exceptional === "0") {
+      return "a Standard";
+    } else if (standard === "0" && exceptional === "0") {
+      return "a Minor";
+    } else {
+      return "an Exceptional";
     }
-  };
+  }
 
-  const handleExportToMarkdown = () => {
-    if (monster) {
-      const markdown = exportMonsterToMarkdown(monster);
-      navigator.clipboard.writeText(markdown);
-      alert('Monster stat block copied to clipboard!');
-    }
-  };
+  const handleCalculate = (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const handleCategoryToggle = (category: MonsterCategory) => {
-    setSelectedCategories(prev =>
-      prev.includes(category)
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
+    const minor = parseInt(tier1Threat);
+    const standard = parseInt(tier2Threat);
+    const exceptional = parseInt(tier3Threat);
+    const armorBonus = parseFloat(monsterArmor);
+
+    const totalThreatMV = minor + standard + exceptional;
+    const threatLevel = determineThreatLevel(tier1Threat, tier2Threat, tier3Threat);
+
+    const hitPoints = calculateHitPoints(
+      minor,
+      standard,
+      exceptional,
+      parseFloat(monsterSize),
+      parseFloat(monsterNature),
+      armorBonus
     );
-  };
 
-  const handleTropeToggle = (trope: CreatureTrope) => {
-    setSelectedTropes(prev =>
-      prev.includes(trope)
-        ? prev.filter(t => t !== trope)
-        : [...prev, trope]
-    );
+    setResult({
+      hitPoints,
+      threatLevel,
+      totalThreatMV
+    });
   };
-
-  const categories: MonsterCategory[] = ['Minor', 'Standard', 'Exceptional', 'Legendary'];
-  const tropes: CreatureTrope[] = ['Human', 'Goblinoid', 'Beast', 'Undead', 'Construct', 'Elemental', 'Aberration', 'Fey', 'Dragon', 'Ooze', 'Demon'];
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Monster Generator
+          Eldritch RPG Monster HP Calculator
         </h1>
         <p className="text-gray-600">
-          Generate balanced creatures for Eldritch RPG 2nd Edition
+          Calculate monster hit points based on threat tiers, size, nature, and armor
         </p>
       </div>
 
-      {/* Controls */}
       <div className="bg-white rounded-lg shadow-lg p-6">
-        <div className="flex flex-wrap gap-4 mb-6">
-          <button
-            onClick={handleGenerateMonster}
-            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors"
-          >
-            Generate Monster
-          </button>
-          {monster && (
-            <button
-              onClick={handleExportToMarkdown}
-              className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition-colors"
+        <form onSubmit={handleCalculate} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Monster Nature */}
+            <div>
+              <label htmlFor="monsterNature" className="block text-sm font-medium text-gray-700 mb-2">
+                Monster Nature:
+              </label>
+              <select
+                id="monsterNature"
+                value={monsterNature}
+                onChange={(e) => setMonsterNature(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-center"
+              >
+                {monsterNatures.map(nature => (
+                  <option key={nature.value} value={nature.value}>{nature.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Monster Size */}
+            <div>
+              <label htmlFor="monsterSize" className="block text-sm font-medium text-gray-700 mb-2">
+                Monster Size:
+              </label>
+              <select
+                id="monsterSize"
+                value={monsterSize}
+                onChange={(e) => setMonsterSize(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-center"
+              >
+                {monsterSizes.map(size => (
+                  <option key={size.value} value={size.value}>{size.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Threat Tier 1 */}
+            <div>
+              <label htmlFor="tier1Threat" className="block text-sm font-medium text-gray-700 mb-2">
+                Threat Tier 1 (MV):
+              </label>
+              <select
+                id="tier1Threat"
+                value={tier1Threat}
+                onChange={(e) => setTier1Threat(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-center"
+              >
+                {threatDice.filter(die => die.value !== '0').map(die => (
+                  <option key={die.value} value={die.value}>{die.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Threat Tier 2 */}
+            <div>
+              <label htmlFor="tier2Threat" className="block text-sm font-medium text-gray-700 mb-2">
+                Threat Tier 2 (MV):
+              </label>
+              <select
+                id="tier2Threat"
+                value={tier2Threat}
+                onChange={(e) => setTier2Threat(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-center"
+              >
+                {threatDice.map(die => (
+                  <option key={die.value} value={die.value}>{die.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Threat Tier 3 */}
+            <div>
+              <label htmlFor="tier3Threat" className="block text-sm font-medium text-gray-700 mb-2">
+                Threat Tier 3 (MV):
+              </label>
+              <select
+                id="tier3Threat"
+                value={tier3Threat}
+                onChange={(e) => setTier3Threat(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-center"
+              >
+                {threatDice.map(die => (
+                  <option key={die.value} value={die.value}>{die.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Monster Armor */}
+          <div>
+            <label htmlFor="monsterArmor" className="block text-sm font-medium text-gray-700 mb-2">
+              Monster Armor:
+            </label>
+            <select
+              id="monsterArmor"
+              value={monsterArmor}
+              onChange={(e) => setMonsterArmor(e.target.value)}
+              className="w-full md:w-1/2 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-center"
             >
-              Export to Markdown
+              {armorTypes.map(armor => (
+                <option key={armor.value} value={armor.value}>{armor.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="text-center">
+            <button
+              type="submit"
+              className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+            >
+              Calculate Hit Points
             </button>
-          )}
-        </div>
-
-        {/* Warnings */}
-        {warnings.length > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <h3 className="font-bold text-red-800 mb-2">Configuration Issues:</h3>
-            <ul className="list-disc list-inside text-red-700">
-              {warnings.map((warning, index) => (
-                <li key={index}>{warning}</li>
-              ))}
-            </ul>
           </div>
-        )}
+        </form>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Categories */}
-          <div>
-            <h3 className="text-lg font-bold mb-3">Monster Categories</h3>
-            <div className="space-y-2">
-              {categories.map(category => (
-                <label key={category} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={selectedCategories.includes(category)}
-                    onChange={() => handleCategoryToggle(category)}
-                    className="mr-2"
-                  />
-                  <span className="flex-1">{category}</span>
-                  <span className="text-sm text-gray-500 ml-2">
-                    ({threatDiceByCategory[category].join(', ')})
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Tropes */}
-          <div>
-            <h3 className="text-lg font-bold mb-3">Creature Tropes</h3>
-            <div className="space-y-2">
-              {tropes.map(trope => (
-                <label key={trope} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={selectedTropes.includes(trope)}
-                    onChange={() => handleTropeToggle(trope)}
-                    className="mr-2"
-                  />
-                  <span>{trope}</span>
-                </label>
-              ))}
+      {/* Results */}
+      {result && (
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Calculation Results</h2>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+              <div className="text-3xl font-bold text-red-600 mb-2">
+                {result.hitPoints} Hit Points
+              </div>
+              <div className="text-lg text-gray-700">
+                This creature is <strong>{result.threatLevel}</strong> threat (MV {result.totalThreatMV}).
+              </div>
             </div>
           </div>
         </div>
+      )}
 
-        {/* Generation Settings */}
-        <div className="mt-6 pt-6 border-t">
-          <h3 className="text-lg font-bold mb-4">Generation Settings</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Non-Medium Size %
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={nonMediumPercentage}
-                onChange={(e) => setNonMediumPercentage(parseInt(e.target.value))}
-                className="w-full"
-              />
-              <div className="text-center text-sm text-gray-600">{nonMediumPercentage}%</div>
-              <p className="text-xs text-gray-500 mt-1">
-                Chance for creatures to be sizes other than Medium
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Non-Mundane Nature %
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={nonMundanePercentage}
-                onChange={(e) => setNonMundanePercentage(parseInt(e.target.value))}
-                className="w-full"
-              />
-              <div className="text-center text-sm text-gray-600">{nonMundanePercentage}%</div>
-              <p className="text-xs text-gray-500 mt-1">
-                Chance for magical/supernatural natures
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Special Type %
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={specialTypePercentage}
-                onChange={(e) => setSpecialTypePercentage(parseInt(e.target.value))}
-                className="w-full"
-              />
-              <div className="text-center text-sm text-gray-600">{specialTypePercentage}%</div>
-              <p className="text-xs text-gray-500 mt-1">
-                Chance for Fast/Tough creature types
-              </p>
-            </div>
-          </div>
+      {/* Additional Notes */}
+      <div className="bg-gray-50 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">Calculation Notes</h3>
+        <div className="text-sm text-gray-700 space-y-2">
+          <p><strong>Size and Nature Modifier:</strong> (Size Value + Nature Value) ÷ 2</p>
+          <p><strong>Base Hit Points:</strong> Tier 1 + Tier 2 + Tier 3 threat dice values</p>
+          <p><strong>Final Hit Points:</strong> Ceil(Base HP × Modifier) + Armor Bonus</p>
         </div>
       </div>
 
-      {/* Monster Display */}
-      {monster && (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">{monster.name}</h2>
-            <div className="text-lg text-gray-600">
-              {monster.size} {monster.trope} {monster.category}
-            </div>
-            <div className="text-sm text-gray-500 mt-1">
-              {monster.nature} • {monster.creatureType}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Core Stats */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="font-bold text-gray-900 mb-3">Core Stats</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Threat Dice:</span>
-                  <span className="font-medium">{monster.threatDice}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Threat MV:</span>
-                  <span className="font-medium">{monster.threatMV}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">HP Multiplier:</span>
-                  <span className="font-medium">{monster.multiplier}x</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Battle Phase:</span>
-                  <span className="font-medium">{monster.battlePhase}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Combat Stats */}
-            <div className="bg-red-50 rounded-lg p-4">
-              <h3 className="font-bold text-gray-900 mb-3">Combat Stats</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Hit Points:</span>
-                  <span className="font-bold text-red-600">{monster.hitPoints}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Active Defense:</span>
-                  <span className="font-medium">{monster.activeDefense}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Passive Defense:</span>
-                  <span className="font-medium">{monster.passiveDefense}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Saving Throw:</span>
-                  <span className="font-medium">{monster.savingThrow}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Physical Traits */}
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h3 className="font-bold text-gray-900 mb-3">Physical Traits</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Armor:</span>
-                  <span className="font-medium">
-                    {monster.armorType}
-                    {monster.armorBonus > 0 && ` (+${monster.armorBonus})`}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Weapon Reach:</span>
-                  <span className="font-medium">{monster.weaponReach}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Prowess Die:</span>
-                  <span className="font-medium">d{monster.prowessDie}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Creature Type Effects */}
-          {monster.creatureType !== 'Normal' && (
-            <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <h3 className="font-bold text-yellow-800 mb-2">
-                {monster.creatureType} Creature Effects:
-              </h3>
-              <p className="text-yellow-700">
-                {monster.creatureType === 'Fast' &&
-                  'This creature emphasizes Active Defense Pool (75% of total HP) for evasion and mobility.'}
-                {monster.creatureType === 'Tough' &&
-                  'This creature emphasizes Passive Defense Pool (75% of total HP) for durability and resilience.'}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Attack Type Selector (from legacy) */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">Primary Attack Type</h3>
+        <select className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-center">
+          <option>Melee attack is highest potential harm</option>
+          <option>Natural weapons is highest potential harm</option>
+          <option>Ranged attack is highest potential harm</option>
+          <option>Arcane attack is highest potential harm</option>
+        </select>
+        <p className="text-sm text-gray-500 mt-2">
+          This selection helps you determine which attack type should be the monster&apos;s primary threat.
+        </p>
+      </div>
     </div>
   );
 }
