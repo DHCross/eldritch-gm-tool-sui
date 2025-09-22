@@ -10,6 +10,14 @@ import {
   savePartyMembership,
   getPartyMemberships
 } from '../utils/partyStorage';
+import {
+  generateRandomName,
+  generateNameSuggestions,
+  getNameSuggestionsForCharacter,
+  Gender,
+  NameCulture,
+  RACE_CULTURE_MAP
+} from '../utils/nameGenerator';
 import { SavedCharacter, PartyFolder, PartyMembership } from '../types/party';
 
 // ======= DATA =======
@@ -369,6 +377,13 @@ export default function CharacterGenerator() {
   const [showWeakness, setShowWeakness] = useState(true);
   const [character, setCharacter] = useState<Character | null>(null);
 
+  // PC-specific fields
+  const [pcName, setPcName] = useState('');
+  const [playerName, setPlayerName] = useState('');
+  const [characterGender, setCharacterGender] = useState<Gender>('Male');
+  const [nameCulture, setNameCulture] = useState<NameCulture>('English');
+  const [suggestedNames, setSuggestedNames] = useState<Array<{firstName: string; familyName?: string; culture: NameCulture; suggestion: string}>>([]);
+
   // Party assignment state
   const [partyFolders, setPartyFolders] = useState<PartyFolder[]>([]);
   const [selectedParty, setSelectedParty] = useState<string>('');
@@ -379,6 +394,26 @@ export default function CharacterGenerator() {
     const pcFolders = getAllPartyFolders().filter(folder => folder.folder_type === 'PC_party');
     setPartyFolders(pcFolders);
   }, []);
+
+  // Update name culture when character race changes
+  useEffect(() => {
+    if (character?.race && RACE_CULTURE_MAP[character.race]) {
+      setNameCulture(RACE_CULTURE_MAP[character.race]);
+    }
+  }, [character?.race]);
+
+  // Generate name suggestions when race, class, or gender changes
+  useEffect(() => {
+    if (character?.race && character?.class) {
+      const suggestions = getNameSuggestionsForCharacter(
+        character.race,
+        character.class,
+        characterGender,
+        5
+      );
+      setSuggestedNames(suggestions);
+    }
+  }, [character?.race, character?.class, characterGender]);
 
   const [lastCharacter, setLastCharacter] = useState<{
     ch: Character;
@@ -539,7 +574,8 @@ export default function CharacterGenerator() {
   function confirmSaveCharacter() {
     if (!character) return;
 
-    const charName = prompt('Enter character name:', `${character.race} ${character.class}`);
+    // Use PC name if provided, otherwise prompt
+    const charName = pcName.trim() || prompt('Enter character name:', `${character.race} ${character.class}`);
     if (!charName) return;
 
     const savedChar: SavedCharacter = {
@@ -574,12 +610,17 @@ export default function CharacterGenerator() {
         current_hp_passive: character.pools.passive,
         status_flags: [],
         gear: character.equipment || [],
-        notes: ''
+        notes: playerName ? `Player: ${playerName}` : ''
       },
-      tags: [buildStyle, `Level ${character.level}`],
+      tags: [buildStyle, `Level ${character.level}`, characterGender],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      full_data: character as unknown as Record<string, unknown>
+      full_data: {
+        ...character as unknown as Record<string, unknown>,
+        player_name: playerName,
+        character_gender: characterGender,
+        name_culture: nameCulture
+      }
     };
 
     saveCharacter(savedChar);
@@ -605,6 +646,19 @@ export default function CharacterGenerator() {
     setShowPartyAssignment(false);
     setSelectedParty('');
   }
+
+  // Generate random name
+  const generateRandomCharacterName = () => {
+    if (!character?.race) return;
+
+    const nameResult = generateRandomName(characterGender, nameCulture, true, character.race);
+    setPcName(`${nameResult.firstName}${nameResult.familyName ? ` ${nameResult.familyName}` : ''}`);
+  };
+
+  // Use suggested name
+  const applySuggestedName = (suggestion: typeof suggestedNames[0]) => {
+    setPcName(`${suggestion.firstName}${suggestion.familyName ? ` ${suggestion.familyName}` : ''}`);
+  };
 
   const warnings = character && showWeakness ? weaknessReport(character) : [];
 
@@ -923,8 +977,92 @@ export default function CharacterGenerator() {
         {/* Party Assignment Modal */}
         {showPartyAssignment && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
               <h3 className="text-lg font-bold mb-4">Save Character to Roster</h3>
+
+              {/* Character Details */}
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-semibold mb-3">Character Details</h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Character Name</label>
+                    <input
+                      type="text"
+                      value={pcName}
+                      onChange={(e) => setPcName(e.target.value)}
+                      placeholder="Enter character name"
+                      className="w-full border border-gray-300 rounded p-2 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Player Name</label>
+                    <input
+                      type="text"
+                      value={playerName}
+                      onChange={(e) => setPlayerName(e.target.value)}
+                      placeholder="Enter player name"
+                      className="w-full border border-gray-300 rounded p-2 text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Gender</label>
+                    <select
+                      value={characterGender}
+                      onChange={(e) => setCharacterGender(e.target.value as Gender)}
+                      className="w-full border border-gray-300 rounded p-2 text-sm"
+                    >
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Non-binary">Non-binary</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Name Culture</label>
+                    <select
+                      value={nameCulture}
+                      onChange={(e) => setNameCulture(e.target.value as NameCulture)}
+                      className="w-full border border-gray-300 rounded p-2 text-sm"
+                    >
+                      <option value="English">English</option>
+                      <option value="Scottish">Scottish</option>
+                      <option value="Welsh">Welsh</option>
+                      <option value="Irish">Irish</option>
+                      <option value="Norse">Norse</option>
+                      <option value="French">French</option>
+                      <option value="Germanic">Germanic</option>
+                      <option value="Fantasy">Fantasy</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-medium">Name Suggestions</label>
+                    <button
+                      onClick={generateRandomCharacterName}
+                      className="text-xs bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
+                    >
+                      Random Name
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-1">
+                    {suggestedNames.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => useSuggestedName(suggestion)}
+                        className="text-left text-xs p-2 bg-white border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-300"
+                      >
+                        {suggestion.firstName} {suggestion.familyName}
+                        <span className="text-gray-500 ml-2">({suggestion.culture})</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-2">
