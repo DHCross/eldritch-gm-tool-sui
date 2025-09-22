@@ -5,14 +5,12 @@ import {
   saveCharacter,
   generateId,
   getCurrentUserId,
-  calculateComputedStats,
   getAllPartyFolders,
   savePartyMembership,
   getPartyMemberships
 } from '../utils/partyStorage';
 import {
   generateRandomName,
-  generateNameSuggestions,
   getNameSuggestionsForCharacter,
   Gender,
   NameCulture,
@@ -220,23 +218,6 @@ function applyMinima(ch: Character, minima: Record<string, string>) {
 //   }
 //   return sc;
 // }
-
-const order = { 'd4': 0, 'd6': 1, 'd8': 2, 'd10': 3, 'd12': 4 };
-function breadthFloors(ch: Character, rank: string) {
-  return Object.values(ch.abilities).every(r => order[r as keyof typeof order] >= order[rank as keyof typeof order]);
-}
-function floors(ch: Character, rank: string) {
-  return Object.values(ch.abilities).every(r => order[r as keyof typeof order] >= order[rank as keyof typeof order]);
-}
-function countSpecsAtOrAbove(ch: Character, rank: string) {
-  let n = 0;
-  for (const a of abilities) {
-    for (const s of specs[a as keyof typeof specs]) {
-      if (order[ch.specialties[a][s] as keyof typeof order] >= order[rank as keyof typeof order]) n++;
-    }
-  }
-  return n;
-}
 
 function buildWeights(klass: string, style: string) {
   const axis = classAxes[klass as keyof typeof classAxes] || [];
@@ -1053,7 +1034,7 @@ export default function CharacterGenerator() {
                     {suggestedNames.map((suggestion, index) => (
                       <button
                         key={index}
-                        onClick={() => useSuggestedName(suggestion)}
+                        onClick={() => applySuggestedName(suggestion)}
                         className="text-left text-xs p-2 bg-white border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-300"
                       >
                         {suggestion.firstName} {suggestion.familyName}

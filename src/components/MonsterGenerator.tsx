@@ -18,7 +18,6 @@ import {
   generateBattlePhase,
   generateSavingThrow,
   getSuggestedTropes,
-  CREATURE_TROPES,
   parseThreatDice
 } from '../utils/monsterUtils';
 import {
@@ -30,7 +29,8 @@ import {
   CreatureSize,
   DefenseSplit,
   ThreatType,
-  ThreatDice
+  ThreatDice,
+  MovementCalculation
 } from '../types/party';
 
 interface QSBResult {
@@ -46,8 +46,8 @@ interface QSBResult {
   threat_mv: number;
 
   // Calculated Stats
-  hp_calculation: any;
-  movement_calculation: any;
+  hp_calculation: MonsterData['hp_calculation'];
+  movement_calculation: MovementCalculation;
   battle_phase: string;
   saving_throw: string;
 
