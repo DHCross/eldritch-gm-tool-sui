@@ -1,8 +1,16 @@
 'use client';
 
-import { useState } from 'react';
-import { saveCharacter, generateId, getCurrentUserId, calculateComputedStats } from '../utils/partyStorage';
-import { SavedCharacter } from '../types/party';
+import { useState, useEffect } from 'react';
+import {
+  saveCharacter,
+  generateId,
+  getCurrentUserId,
+  calculateComputedStats,
+  getAllPartyFolders,
+  savePartyMembership,
+  getPartyMemberships
+} from '../utils/partyStorage';
+import { SavedCharacter, PartyFolder, PartyMembership } from '../types/party';
 
 // ======= DATA =======
 const dieRanks = ['d4', 'd6', 'd8', 'd10', 'd12'];
@@ -360,6 +368,18 @@ export default function CharacterGenerator() {
   const [npcMode, setNpcMode] = useState(false);
   const [showWeakness, setShowWeakness] = useState(true);
   const [character, setCharacter] = useState<Character | null>(null);
+
+  // Party assignment state
+  const [partyFolders, setPartyFolders] = useState<PartyFolder[]>([]);
+  const [selectedParty, setSelectedParty] = useState<string>('');
+  const [showPartyAssignment, setShowPartyAssignment] = useState(false);
+
+  useEffect(() => {
+    // Load PC party folders for character assignment
+    const pcFolders = getAllPartyFolders().filter(folder => folder.folder_type === 'PC_party');
+    setPartyFolders(pcFolders);
+  }, []);
+
   const [lastCharacter, setLastCharacter] = useState<{
     ch: Character;
     base: Character;
@@ -513,6 +533,11 @@ export default function CharacterGenerator() {
       showAlert('Generate a character first!');
       return;
     }
+    setShowPartyAssignment(true);
+  }
+
+  function confirmSaveCharacter() {
+    if (!character) return;
 
     const charName = prompt('Enter character name:', `${character.race} ${character.class}`);
     if (!charName) return;
@@ -558,7 +583,27 @@ export default function CharacterGenerator() {
     };
 
     saveCharacter(savedChar);
-    showAlert(`Character "${charName}" saved to roster!`);
+
+    // Add to selected party if one was chosen
+    if (selectedParty) {
+      const existingMemberships = getPartyMemberships(selectedParty);
+      const membership: PartyMembership = {
+        id: generateId(),
+        party_id: selectedParty,
+        character_id: savedChar.id,
+        order_index: existingMemberships.length,
+        active: true
+      };
+      savePartyMembership(membership);
+
+      const partyName = partyFolders.find(f => f.id === selectedParty)?.name || 'party';
+      showAlert(`Character "${charName}" saved to roster and added to ${partyName}!`);
+    } else {
+      showAlert(`Character "${charName}" saved to roster!`);
+    }
+
+    setShowPartyAssignment(false);
+    setSelectedParty('');
   }
 
   const warnings = character && showWeakness ? weaknessReport(character) : [];
@@ -870,6 +915,56 @@ export default function CharacterGenerator() {
                     </tbody>
                   </table>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Party Assignment Modal */}
+        {showPartyAssignment && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <h3 className="text-lg font-bold mb-4">Save Character to Roster</h3>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">
+                  Assign to Party (Optional)
+                </label>
+                <select
+                  value={selectedParty}
+                  onChange={(e) => setSelectedParty(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg p-2"
+                >
+                  <option value="">No party assignment</option>
+                  {partyFolders.map(folder => (
+                    <option key={folder.id} value={folder.id}>
+                      {folder.name}
+                    </option>
+                  ))}
+                </select>
+                {partyFolders.length === 0 && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    No PC party folders available. Create one in the Party Management page.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={confirmSaveCharacter}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded"
+                >
+                  Save Character
+                </button>
+                <button
+                  onClick={() => {
+                    setShowPartyAssignment(false);
+                    setSelectedParty('');
+                  }}
+                  className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded"
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           </div>

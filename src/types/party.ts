@@ -48,19 +48,66 @@ export interface SavedCharacter {
   full_data?: Record<string, unknown>;
 }
 
+export type CreatureCategory = 'Minor' | 'Standard' | 'Exceptional' | 'Legendary';
+export type CreatureNature = 'Mundane' | 'Magical' | 'Preternatural' | 'Supernatural';
+export type CreatureSize = 'Minuscule' | 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Gargantuan';
+export type DefenseSplit = 'Regular' | 'Tough' | 'Fast';
+export type ThreatType = 'Melee' | 'Natural' | 'Ranged' | 'Arcane';
+
+export interface ThreatDice {
+  melee: string;
+  natural: string;
+  ranged: string;
+  arcane: string;
+}
+
+export interface MovementCalculation {
+  base_movement_per_phase: number;
+  battle_phase_mv: number;
+  agility_mv?: number;
+  size_modifier: number;
+  speed_modifiers: string[];
+  final_movement_per_phase: number;
+}
+
 export interface MonsterData extends SavedCharacter {
   type: 'Monster';
+  // Official Eldritch Classifications
+  creature_category: CreatureCategory;
+  creature_nature: CreatureNature;
+  creature_size: CreatureSize;
+  defense_split: DefenseSplit;
+
+  // Threat System
+  threat_dice: ThreatDice;
+  primary_threat_type: ThreatType;
+  threat_mv: number; // MV of highest threat dice
+
+  // QSB Components
+  extra_attacks: string[];
+  damage_reduction: string;
+  saving_throw: string;
+  battle_phase: string;
+
+  // Movement
+  movement_calculation: MovementCalculation;
+
+  // Legacy/Additional
   monster_trope: string;
-  threat_dice: string;
-  threat_mv: number;
   preferred_encounter_roles: ('minion' | 'boss' | 'ambush' | 'elite' | 'brute' | 'caster')[];
-  recommended_xp_value?: number;
   hp_calculation: {
     base_hp: number;
     size_modifier: number;
     nature_modifier: number;
+    hp_multiplier: number;
     final_hp: number;
+    active_hp: number;
+    passive_hp: number;
   };
+
+  // Quick reference for encounter building
+  notes: string;
+  weapons_armor_treasure: string[];
 }
 
 export type FolderType = 'PC_party' | 'NPC_roster' | 'Monster_trope';

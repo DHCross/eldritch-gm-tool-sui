@@ -1,282 +1,278 @@
+// Official Eldritch RPG Monster/QSB Construction Utilities
+
 import {
-  Monster,
-  MonsterCategory,
-  MonsterSize,
-  MonsterNature,
-  CreatureType,
-  CreatureTrope,
-  ArmorType,
-  threatDiceByCategory,
-  hpMultipliers,
-  armorBonuses,
-  tropeConfig,
-  monsterNames
-} from '../data/monsterData';
+  CreatureCategory,
+  CreatureNature,
+  CreatureSize,
+  DefenseSplit,
+  ThreatType,
+  ThreatDice,
+  MovementCalculation
+} from '../types/party';
 
-export function weightedRandom(weights: Record<string, number>): string {
-  const entries = Object.entries(weights);
-  const total = entries.reduce((sum, [, w]) => sum + w, 0);
-  let r = Math.random() * total;
+// Size Modifiers (for HP calculation)
+export const SIZE_MODIFIERS: Record<CreatureSize, number> = {
+  'Minuscule': 0,
+  'Tiny': 0,
+  'Small': 1,
+  'Medium': 1,
+  'Large': 2,
+  'Huge': 3,
+  'Gargantuan': 4
+};
 
-  for (const [key, w] of entries) {
-    if ((r -= w) <= 0) return key;
+// Nature Modifiers (for HP calculation)
+export const NATURE_MODIFIERS: Record<CreatureNature, number> = {
+  'Mundane': 1,
+  'Magical': 2,
+  'Preternatural': 3,
+  'Supernatural': 4
+};
+
+// Movement Size Modifiers (per phase)
+export const MOVEMENT_SIZE_MODIFIERS: Record<CreatureSize, number> = {
+  'Minuscule': -1,
+  'Tiny': -1,
+  'Small': -1,
+  'Medium': 0,
+  'Large': 1,
+  'Huge': 2,
+  'Gargantuan': 3
+};
+
+// Parse threat dice string to get maximum value
+export function parseThreatDice(diceString: string): number {
+  if (!diceString || diceString === 'None') return 0;
+
+  // Handle formats like "2d8", "3d12", "1d6"
+  const match = diceString.match(/(\d+)d(\d+)/);
+  if (match) {
+    const count = parseInt(match[1], 10);
+    const sides = parseInt(match[2], 10);
+    return count * sides;
   }
 
-  return entries[entries.length - 1][0];
-}
-
-export function getRandomElement<T>(array: T[]): T {
-  return array[Math.floor(Math.random() * array.length)];
-}
-
-export function calculateThreatMV(threatDice: string): number {
-  const match = threatDice.match(/(\d+)d(\d+)/);
-  if (!match) return 0;
-
-  const [, count, sides] = match.map(Number);
-  return count * sides;
-}
-
-export function getRandomSizeForTrope(trope: CreatureTrope, nonMediumPercentage: number): MonsterSize {
-  const config = tropeConfig[trope];
-
-  if (Math.random() * 100 > nonMediumPercentage && config.sizeWeights.Medium) {
-    return 'Medium';
+  // Handle single die like "d8"
+  const singleMatch = diceString.match(/d(\d+)/);
+  if (singleMatch) {
+    return parseInt(singleMatch[1], 10);
   }
 
-  return weightedRandom(config.sizeWeights) as MonsterSize;
+  return 0;
 }
 
-export function getRandomNatureForTrope(trope: CreatureTrope, nonMundanePercentage: number): MonsterNature {
-  const config = tropeConfig[trope];
+// Determine creature category based on threat dice
+export function determineCreatureCategory(threatDice: ThreatDice): CreatureCategory {
+  const maxMV = Math.max(
+    parseThreatDice(threatDice.melee),
+    parseThreatDice(threatDice.natural),
+    parseThreatDice(threatDice.ranged),
+    parseThreatDice(threatDice.arcane)
+  );
 
-  if (Math.random() * 100 > nonMundanePercentage && config.natureWeights.Mundane) {
-    return 'Mundane';
-  }
+  // Count total dice to determine if legendary
+  const totalDiceCount = Object.values(threatDice).reduce((total, diceStr) => {
+    if (!diceStr || diceStr === 'None') return total;
+    const match = diceStr.match(/(\d+)d\d+/);
+    return total + (match ? parseInt(match[1], 10) : 1);
+  }, 0);
 
-  return weightedRandom(config.natureWeights) as MonsterNature;
+  if (totalDiceCount >= 3 && maxMV > 36) return 'Legendary';
+  if (maxMV > 24) return 'Exceptional';
+  if (maxMV > 12) return 'Standard';
+  return 'Minor';
 }
 
-export function getCreatureType(specialTypePercentage: number): CreatureType {
-  if (Math.random() * 100 > specialTypePercentage) {
-    return 'Normal';
-  }
-
-  const types: CreatureType[] = ['Fast', 'Tough'];
-  return getRandomElement(types);
-}
-
-export function calculateHitPointsAdvanced(
-  baseHP: number,
-  size: MonsterSize,
-  nature: MonsterNature,
-  armorBonus: number = 0
-): { hitPoints: number; multiplier: number } {
-  const multiplier = hpMultipliers[size][nature];
-  const hitPoints = Math.round(baseHP * multiplier) + armorBonus;
-
-  return { hitPoints, multiplier };
-}
-
-export function calculateDefenses(
-  hitPoints: number,
-  creatureType: CreatureType
-): { activeDefense: number; passiveDefense: number } {
-  let activeDefense: number, passiveDefense: number;
-
-  if (creatureType === 'Fast') {
-    activeDefense = Math.round(hitPoints * 0.75);
-    passiveDefense = hitPoints - activeDefense;
-  } else if (creatureType === 'Tough') {
-    passiveDefense = Math.round(hitPoints * 0.75);
-    activeDefense = hitPoints - passiveDefense;
-  } else { // Normal
-    activeDefense = Math.round(hitPoints / 2);
-    passiveDefense = hitPoints - activeDefense;
-  }
-
-  return { activeDefense, passiveDefense };
-}
-
-export function assignProwessDie(threatDice: string): number {
-  const match = threatDice.match(/\d*d(\d+)/);
-  if (!match) return 6;
-
-  const sides = parseInt(match[1]);
-
-  switch (sides) {
-    case 4: return 4;
-    case 6: return 6;
-    case 8: return 8;
-    case 10: return 10;
-    case 12:
-    case 14:
-    case 16:
-    case 18:
-    case 20: return 12;
-    default: return 6;
-  }
-}
-
-export function calculateBattlePhase(prowessDie: number): number {
-  switch (prowessDie) {
-    case 12: return 1;
-    case 10: return 2;
-    case 8: return 3;
-    case 6: return 4;
-    default: return 5;
-  }
-}
-
-export function assignWeaponReach(size: MonsterSize): string {
-  const reachMap: Record<MonsterSize, string> = {
-    'Minuscule': 'Short',
-    'Tiny': 'Short',
-    'Small': 'Short',
-    'Medium': 'Medium',
-    'Large': 'Medium',
-    'Huge': 'Long',
-    'Gargantuan': 'Long'
+// Get primary threat type (highest MV)
+export function getPrimaryThreatType(threatDice: ThreatDice): ThreatType {
+  const threatValues = {
+    'Melee': parseThreatDice(threatDice.melee),
+    'Natural': parseThreatDice(threatDice.natural),
+    'Ranged': parseThreatDice(threatDice.ranged),
+    'Arcane': parseThreatDice(threatDice.arcane)
   };
 
-  return reachMap[size] || 'Medium';
+  return Object.entries(threatValues).reduce((max, [type, value]) =>
+    value > threatValues[max] ? type as ThreatType : max
+  , 'Melee' as ThreatType);
 }
 
-export function calculateSavingThrow(category: MonsterCategory): string {
-  const categoryToSave: Record<MonsterCategory, string> = {
-    'Minor': 'd4',
-    'Standard': 'd6',
-    'Exceptional': 'd8',
-    'Legendary': 'd12'
-  };
+// Calculate Hit Points using official QSB formula
+export function calculateMonsterHP(
+  baseThreatMV: number,
+  size: CreatureSize,
+  nature: CreatureNature,
+  defenseSplit: DefenseSplit = 'Regular'
+): {
+  base_hp: number;
+  size_modifier: number;
+  nature_modifier: number;
+  hp_multiplier: number;
+  final_hp: number;
+  active_hp: number;
+  passive_hp: number;
+} {
+  const sizeModifier = SIZE_MODIFIERS[size];
+  const natureModifier = NATURE_MODIFIERS[nature];
 
-  return categoryToSave[category];
-}
+  // HP Multiplier = (Size Modifier + Nature Modifier) ÷ 2
+  const hpMultiplier = (sizeModifier + natureModifier) / 2;
 
-export function generateRandomName(trope: CreatureTrope): string {
-  const names = monsterNames[trope];
-  return getRandomElement(names);
-}
+  // Total HP = ceil(Base HP × HP Multiplier)
+  const finalHP = Math.ceil(baseThreatMV * hpMultiplier);
 
-export function generateMonster(
-  selectedCategories: MonsterCategory[] = ['Minor', 'Standard', 'Exceptional', 'Legendary'],
-  selectedTropes: CreatureTrope[] = ['Human', 'Goblinoid', 'Beast', 'Undead'],
-  nonMediumPercentage: number = 10,
-  nonMundanePercentage: number = 20,
-  specialTypePercentage: number = 30
-): Monster {
-  // Select random category and trope
-  const category = getRandomElement(selectedCategories);
-  const trope = getRandomElement(selectedTropes);
-
-  // Generate threat dice and calculate MV
-  const threatDice = getRandomElement(threatDiceByCategory[category]);
-  const threatMV = calculateThreatMV(threatDice);
-
-  // Determine size and nature based on trope and percentages
-  const size = getRandomSizeForTrope(trope, nonMediumPercentage);
-  const nature = getRandomNatureForTrope(trope, nonMundanePercentage);
-
-  // Determine creature type (Fast/Tough/Normal)
-  const creatureType = getCreatureType(specialTypePercentage);
-
-  // Determine armor type (weighted toward none/light armor)
-  const armorTypes: ArmorType[] = ['None', 'None', 'None', 'Hide', 'Leather', 'Chain', 'Plate'];
-  const armorType = getRandomElement(armorTypes);
-  const armorBonus = armorBonuses[armorType];
-
-  // Calculate hit points
-  const baseHP = threatMV;
-  const { hitPoints, multiplier } = calculateHitPointsAdvanced(baseHP, size, nature, armorBonus);
-
-  // Calculate defenses
-  const { activeDefense, passiveDefense } = calculateDefenses(hitPoints, creatureType);
-
-  // Calculate battle mechanics
-  const prowessDie = assignProwessDie(threatDice);
-  const battlePhase = calculateBattlePhase(prowessDie);
-  const weaponReach = assignWeaponReach(size);
-  const savingThrow = calculateSavingThrow(category);
-
-  // Generate name
-  const name = generateRandomName(trope);
+  // Apply defense split
+  let activeHP: number, passiveHP: number;
+  switch (defenseSplit) {
+    case 'Fast': // 75% Active / 25% Passive
+      activeHP = Math.ceil(finalHP * 0.75);
+      passiveHP = Math.floor(finalHP * 0.25);
+      break;
+    case 'Tough': // 25% Active / 75% Passive
+      activeHP = Math.floor(finalHP * 0.25);
+      passiveHP = Math.ceil(finalHP * 0.75);
+      break;
+    case 'Regular': // 50% Active / 50% Passive
+    default:
+      activeHP = Math.ceil(finalHP * 0.5);
+      passiveHP = Math.floor(finalHP * 0.5);
+      break;
+  }
 
   return {
-    name,
-    trope,
-    category,
-    threatDice,
-    threatMV,
-    size,
-    nature,
-    creatureType,
-    hitPoints,
-    activeDefense,
-    passiveDefense,
-    multiplier,
-    savingThrow,
-    battlePhase,
-    prowessDie,
-    weaponReach,
-    armorType,
-    armorBonus
+    base_hp: baseThreatMV,
+    size_modifier: sizeModifier,
+    nature_modifier: natureModifier,
+    hp_multiplier: hpMultiplier,
+    final_hp: finalHP,
+    active_hp: activeHP,
+    passive_hp: passiveHP
   };
 }
 
-export function exportMonsterToMarkdown(monster: Monster): string {
-  return `# ${monster.name}
+// Calculate Movement Rate using official formula
+export function calculateMovementRate(
+  battlePhaseMV: number,
+  size: CreatureSize,
+  agilityMV: number = 0,
+  speedModifiers: string[] = []
+): MovementCalculation {
+  // Base Movement Formula: (12 + BP MV [+ Agility MV]) ÷ 5
+  const baseMovement = (12 + battlePhaseMV + agilityMV) / 5;
 
-**Type:** ${monster.trope} ${monster.category}
-**Size:** ${monster.size}
-**Nature:** ${monster.nature}
-**Creature Type:** ${monster.creatureType}
+  // Round up if has Agility specialty, down if not
+  const hasAgilitySpecialty = agilityMV > 0;
+  const roundedBase = hasAgilitySpecialty ? Math.ceil(baseMovement) : Math.floor(baseMovement);
 
-## Combat Stats
-- **Threat Dice:** ${monster.threatDice}
-- **Threat MV:** ${monster.threatMV}
-- **Hit Points:** ${monster.hitPoints} (${monster.multiplier}x multiplier)
-- **Active Defense Pool:** ${monster.activeDefense}
-- **Passive Defense Pool:** ${monster.passiveDefense}
-- **Saving Throw:** ${monster.savingThrow}
+  // Apply size modifier
+  const sizeModifier = MOVEMENT_SIZE_MODIFIERS[size];
+  let finalMovement = roundedBase + sizeModifier;
 
-## Physical Attributes
-- **Armor:** ${monster.armorType}${monster.armorBonus > 0 ? ` (+${monster.armorBonus} HP)` : ''}
-- **Weapon Reach:** ${monster.weaponReach}
-- **Prowess Die:** d${monster.prowessDie}
-- **Battle Phase:** ${monster.battlePhase}
+  // Apply speed modifiers
+  speedModifiers.forEach(modifier => {
+    switch (modifier) {
+      case 'Fast':
+        finalMovement += 1;
+        break;
+      case 'Especially Speedy':
+        finalMovement += 4; // Replaces Fast
+        break;
+      case 'Speed Focus d4-d6':
+        finalMovement += 1;
+        break;
+      case 'Speed Focus d8-d10':
+        finalMovement += 2;
+        break;
+      case 'Speed Focus d12+':
+        finalMovement += 3;
+        break;
+    }
+  });
 
----
-*Generated with Eldritch GM Tools*`;
+  // Minimum 1 square per phase
+  finalMovement = Math.max(1, finalMovement);
+
+  return {
+    base_movement_per_phase: roundedBase,
+    battle_phase_mv: battlePhaseMV,
+    agility_mv: agilityMV,
+    size_modifier: sizeModifier,
+    speed_modifiers: speedModifiers,
+    final_movement_per_phase: finalMovement
+  };
 }
 
-export function validateMonsterSettings(settings: {
-  categories: MonsterCategory[];
-  tropes: CreatureTrope[];
-  nonMediumPercentage: number;
-  nonMundanePercentage: number;
-  specialTypePercentage: number;
-}): string[] {
-  const warnings: string[] = [];
+// Generate appropriate Battle Phase die based on creature category
+export function generateBattlePhase(category: CreatureCategory, nature: CreatureNature): string {
+  const baseRanks = {
+    'Minor': ['d4', 'd6'],
+    'Standard': ['d6', 'd8'],
+    'Exceptional': ['d8', 'd10'],
+    'Legendary': ['d10', 'd12', 'd14', 'd16']
+  };
 
-  if (settings.categories.length === 0) {
-    warnings.push('At least one monster category must be selected');
+  const ranks = baseRanks[category];
+
+  // Nature can influence battle phase (supernatural creatures tend to be faster)
+  if (nature === 'Supernatural' && category !== 'Minor') {
+    return ranks[ranks.length - 1]; // Use highest rank
   }
 
-  if (settings.tropes.length === 0) {
-    warnings.push('At least one creature trope must be selected');
+  // Random selection from appropriate range
+  return ranks[Math.floor(Math.random() * ranks.length)];
+}
+
+// Generate appropriate Saving Throw die
+export function generateSavingThrow(category: CreatureCategory, nature: CreatureNature): string {
+  const baseRanks = {
+    'Minor': ['d4', 'd6'],
+    'Standard': ['d6', 'd8'],
+    'Exceptional': ['d8', 'd10'],
+    'Legendary': ['d12', 'd14', 'd16', 'd20', 'd30']
+  };
+
+  const ranks = baseRanks[category];
+
+  // Nature influences saving throws (preternatural and supernatural are more resilient)
+  if ((nature === 'Preternatural' || nature === 'Supernatural') && ranks.length > 1) {
+    return ranks[ranks.length - 1];
   }
 
-  if (settings.nonMediumPercentage < 0 || settings.nonMediumPercentage > 100) {
-    warnings.push('Non-medium percentage must be between 0 and 100');
+  return ranks[Math.floor(Math.random() * ranks.length)];
+}
+
+// Common creature tropes based on nature and category
+export const CREATURE_TROPES: Record<CreatureNature, string[]> = {
+  'Mundane': [
+    'human-soldier', 'human-bandit', 'human-guard', 'human-cultist',
+    'wolf-pack', 'bear', 'boar', 'hawk', 'snake'
+  ],
+  'Magical': [
+    'fey-sprite', 'fey-dryad', 'elemental-fire', 'elemental-water',
+    'elemental-earth', 'elemental-air', 'wizard', 'sorcerer', 'druid'
+  ],
+  'Preternatural': [
+    'undead-skeleton', 'undead-zombie', 'undead-ghost', 'undead-wight',
+    'werewolf', 'vampire', 'shapeshifter', 'nightmare', 'shadow'
+  ],
+  'Supernatural': [
+    'angel', 'demon', 'devil', 'titan', 'elder-dragon',
+    'god-avatar', 'primordial', 'archfey', 'lich-lord'
+  ]
+};
+
+// Get suggested tropes for nature/category combination
+export function getSuggestedTropes(nature: CreatureNature, category: CreatureCategory): string[] {
+  const baseTropes = CREATURE_TROPES[nature] || [];
+
+  // Filter by category appropriateness
+  if (category === 'Legendary') {
+    return baseTropes.filter(trope =>
+      trope.includes('elder') || trope.includes('lord') ||
+      trope.includes('god') || trope.includes('titan') ||
+      trope.includes('primordial')
+    );
   }
 
-  if (settings.nonMundanePercentage < 0 || settings.nonMundanePercentage > 100) {
-    warnings.push('Non-mundane percentage must be between 0 and 100');
-  }
-
-  if (settings.specialTypePercentage < 0 || settings.specialTypePercentage > 100) {
-    warnings.push('Special type percentage must be between 0 and 100');
-  }
-
-  return warnings;
+  return baseTropes;
 }
