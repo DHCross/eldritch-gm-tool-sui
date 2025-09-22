@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import {
-  Combatant,
   BattleState,
   CombatantCategory,
   WeaponReach,
