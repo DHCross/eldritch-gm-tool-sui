@@ -121,6 +121,24 @@ export default function Roster() {
         </p>
       </header>
 
+
+      <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <h2 className="text-2xl font-bold mb-4">No Characters Created Yet</h2>
+        <p className="text-gray-600 mb-4">
+          You haven&apos;t created any player characters yet. Use the Character Generator to create
+          characters that will appear in this roster.
+        </p>
+        <div className="bg-gray-50 p-4 rounded">
+          <p className="text-sm text-gray-600">
+            Your character roster will display:
+          </p>
+          <ul className="list-disc list-inside text-sm text-gray-600 mt-2">
+            <li>Character names and levels</li>
+            <li>Party organization and management</li>
+            <li>Defense level calculations</li>
+            <li>Encounter balancing integration</li>
+          </ul>
+
       {/* Character Selection Panel */}
       <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
         <div className="flex justify-between items-center mb-4">
@@ -139,6 +157,7 @@ export default function Roster() {
               New Party
             </button>
           </div>
+
         </div>
 
         {characters.length === 0 ? (

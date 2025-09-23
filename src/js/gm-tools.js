@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // GM Tools JavaScript Module
 // Contains all the functionality for the GM Tools suite
 

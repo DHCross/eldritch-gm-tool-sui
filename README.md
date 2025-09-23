@@ -1,180 +1,91 @@
-# Eldritch RPG GM Tools Suite
+# Eldritch RPG GM Tools (Next.js Edition)
 
-A comprehensive collection of Game Master tools for the Eldritch RPG system, including encounter generators, character creators, NPC generators, and battle calculators.
+A modernized web application for running Eldritch RPG campaigns. The suite provides encounter building utilities, reference material, and campaign management helpers inside a Next.js app that can be deployed directly to Vercel.
 
-## 🎲 Features
+## ✨ Features
 
-- **GM Tool Suite**: All-in-one toolkit with tabbed interface
-- **Advanced Encounter Generator**: Create balanced encounters with detailed threat calculations
-- **Character Generator**: Generate complete player characters for Eldritch RPG 2nd Edition
-- **NPC Generator**: Create detailed non-player characters with stats and equipment
-- **Monster Generator**: Generate creatures for encounters
-- **Battle Phase Calculator**: Track initiative and manage combat rounds
-- **Monster HP Calculator**: Calculate hit points with size and nature modifiers
+- **Landing Hub** – Jump to any tool in the suite from an accessible overview page.
+- **Encounter Generator** – Build randomized encounters that respect party size, defense level, and threat preferences.
+- **GM Suite Navigation** – Quick links to character, NPC, monster, roster, and documentation pages.
+- **Static References** – Browse the Eldritch rules compendium and supporting documents bundled with the project.
 
-## 🚀 Quick Start
+> The original HTML utilities and reference spreadsheets are still shipped alongside the app inside the repository. They can be opened directly if you prefer the legacy experience.
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js (version 14 or higher)
-- A modern web browser
+- Node.js 18 or higher (matching the Vercel runtime used by Next.js 15)
+- npm 9+
 
 ### Installation
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/DHCross/Eldritch-GM-Tools.git
-   cd Eldritch-GM-Tools
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Start the development server:**
-   ```bash
-   npm start
-   ```
-
-   This will start a local HTTP server on `http://localhost:3000` and automatically open the tools in your browser.
-
-### Alternative Setup (No Node.js)
-
-If you don't have Node.js installed, you can still use the tools:
-
-1. Download or clone the repository
-2. Open `index.html` in your web browser
-3. Navigate to the different tools from the main page
-
-## 📁 Project Structure
-
-```
-Eldritch-GM-Tools/
-├── index.html                     # Main landing page
-├── gm_tools.html                 # Unified GM tools interface
-├── src/                          # Source files
-│   ├── css/                      # Stylesheets
-│   │   ├── main.css             # Main styles
-│   │   └── gm-tools.css         # GM tools specific styles
-│   └── js/                       # JavaScript modules
-│       ├── main.js              # Main utilities
-│       └── gm-tools.js          # GM tools functionality
-├── tools/                        # Individual tool HTML files
-├── assets/                       # Static assets
-├── package.json                  # Node.js dependencies and scripts
-├── .gitignore                   # Git ignore rules
-└── README.md                    # This file
+```bash
+npm install
 ```
 
-## 🛠️ Development
+### Local Development
 
-### Available Scripts
+```bash
+npm run dev
+```
 
-- `npm start` or `npm run dev` - Start development server with auto-open
-- `npm run serve` - Start server without auto-opening browser
-- `npm run build` - No build process needed (static files)
+The app boots on [http://localhost:3000](http://localhost:3000). Any edits inside `src/` will hot reload automatically.
 
-### Making Changes
+### Building for Production
 
-1. **CSS Changes**: Edit files in `src/css/`
-2. **JavaScript Changes**: Edit files in `src/js/`
-3. **HTML Changes**: Edit the individual HTML files
-4. **New Features**: Add new modules to the appropriate directories
+```bash
+npm run build
+npm start
+```
 
-### Adding New Tools
+`next build` compiles the application and outputs an optimized production build that can be served with `next start` or deployed to a platform such as Vercel.
 
-1. Create a new HTML file for the tool
-2. Add corresponding CSS in `src/css/`
-3. Add JavaScript functionality in `src/js/`
-4. Update the main `index.html` to link to your new tool
-5. Update this README
+## ☁️ Deploying on Vercel
 
-## 🎮 Using the Tools
+1. Push your fork to GitHub (or another Git provider).
+2. Import the repository in the [Vercel dashboard](https://vercel.com/new) and select the `work` branch.
+3. Leave the defaults (Framework Preset: **Next.js**). Vercel will detect the `build` and `start` scripts automatically.
+4. Trigger the first deployment – subsequent pushes to the same branch redeploy automatically.
 
-### GM Tool Suite (`gm_tools.html`)
-The unified interface provides access to all tools in a tabbed format:
-- Encounter Generator
-- NPC Generator  
-- Character Generator
-- Battle Calculator
-- Monster HP Calculator
+Vercel handles environment creation, HTTPS, and CDN caching out of the box. No Spark integration or custom build steps are required.
 
-### Individual Tools
-Each tool can also be accessed directly via its HTML file for specialized use.
+## 🧱 Project Structure
 
-## 🔧 Configuration
+```
+├── public/                     # Static assets (favicons, Open Graph images, etc.)
+├── src/
+│   ├── app/                    # Next.js App Router routes
+│   │   ├── page.tsx            # Landing page
+│   │   ├── gm-tools/           # GM tools overview
+│   │   ├── encounter-generator/# Interactive encounter builder
+│   │   ├── ...                 # Additional tool routes (NPCs, monsters, docs)
+│   ├── css/                    # Legacy stylesheets for the classic HTML pages
+│   └── js/                     # Legacy vanilla JS utilities
+├── Resources/                  # Eldritch RPG rulebooks, spreadsheets, references
+├── package.json                # Scripts and dependencies
+├── next.config.ts              # Next.js configuration
+└── README.md                   # This guide
+```
 
-The tools use local storage to save preferences where applicable. No external configuration is required.
+## 🧪 Scripts
 
-## 📊 Data Files
+- `npm run dev` – Start the development server with Turbopack.
+- `npm run build` – Generate an optimized production build.
+- `npm start` – Run the compiled production server locally.
+- `npm run lint` – Lint the TypeScript and React sources.
 
-- `Eldritch Rules 8.17.2025.txt` - Game rules reference
-- `grimoire_index sheets - Grimoire.csv` - Spell and magic reference data
+## 💾 Data Persistence
 
-## 🤝 Contributing
+The modernized encounter generator stores imported party defense information in `localStorage`. Future roster and generator pages will follow the same pattern to keep your data on-device without any backend dependencies.
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Commit your changes (`git commit -m 'Add amazing feature'`)
-5. Push to the branch (`git push origin feature/amazing-feature`)
-6. Open a Pull Request
+## 📚 Legacy Tools
 
-### Code Style Guidelines
+The repository still contains self-contained HTML tools (`*.html`) and JavaScript modules under `src/js/`. They remain untouched for archival purposes and can be opened directly in a browser or hosted as static files.
 
-- Use consistent indentation (2 spaces)
-- Follow existing naming conventions
-- Comment complex logic
-- Test changes across different browsers
+## 🛡️ License
 
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**Tools not loading properly:**
-- Ensure you're serving the files through HTTP (not file://)
-- Check browser console for JavaScript errors
-- Verify all CSS and JS files are loading correctly
-
-**Styles not applying:**
-- Check that CSS files are properly linked
-- Verify file paths are correct
-- Clear browser cache and reload
-
-**JavaScript errors:**
-- Check browser console for specific error messages
-- Ensure all required files are present
-- Verify JavaScript modules are properly linked
-
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🎯 Roadmap
-
-- [ ] Add more creature types and templates
-- [ ] Implement save/load functionality for generated content
-- [ ] Add export options (PDF, JSON)
-- [ ] Create mobile-responsive designs
-- [ ] Add more customization options
-- [ ] Integrate with virtual tabletop platforms
-
-## 📞 Support
-
-If you encounter any issues or have questions:
-
-1. Check the troubleshooting section above
-2. Search existing [GitHub Issues](https://github.com/DHCross/Eldritch-GM-Tools/issues)
-3. Create a new issue if your problem isn't covered
-
-## 🏷️ Version History
-
-### v1.0.0 (Current)
-- Initial release with core GM tools
-- Modular architecture with separated CSS/JS
-- Local development setup
-- Comprehensive documentation
+Released under the MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
