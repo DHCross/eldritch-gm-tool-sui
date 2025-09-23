@@ -116,6 +116,20 @@ export default function MonsterGenerator() {
   const [speedModifiers, setSpeedModifiers] = useState<string[]>([]);
   const [agilityMV, setAgilityMV] = useState(0);
 
+  // Legacy HP calculator state (still used by the UI below)
+  const [monsterNature, setMonsterNature] = useState('1');
+  const [monsterSize, setMonsterSize] = useState('1');
+  const [tier1Threat, setTier1Threat] = useState('4');
+  const [tier2Threat, setTier2Threat] = useState('0');
+  const [tier3Threat, setTier3Threat] = useState('0');
+  const [monsterArmor, setMonsterArmor] = useState('0');
+  const [primaryAttack, setPrimaryAttack] = useState('Melee attack is highest potential harm');
+  const [result, setResult] = useState<{
+    hitPoints: number;
+    threatLevel: string;
+    totalThreatMV: number;
+  } | null>(null);
+
   // Results and Saving
   const [qsbResult, setQSBResult] = useState<QSBResult | null>(null);
   const [monsterName, setMonsterName] = useState('');
@@ -153,6 +167,42 @@ export default function MonsterGenerator() {
   const multiThreatDiceOptions = ['None', '1d4', '1d6', '1d8', '1d10', '1d12', '2d4', '2d6', '2d8', '2d10', '2d12', '3d4', '3d6', '3d8', '3d10', '3d12', '3d14', '3d16', '3d18', '3d20'];
 
   const speedModifierOptions = ['Fast', 'Especially Speedy', 'Speed Focus d4-d6', 'Speed Focus d8-d10', 'Speed Focus d12+'];
+
+  const monsterNatures = creatureNatures.map((nature, index) => ({
+    value: String(index + 1),
+    label: nature
+  }));
+
+  const monsterSizes = [
+    { value: '0', label: 'Minuscule or Tiny' },
+    { value: '1', label: 'Small or Medium' },
+    { value: '2', label: 'Large' },
+    { value: '3', label: 'Huge' },
+    { value: '4', label: 'Gargantuan' }
+  ];
+
+  const legacyThreatDiceOptions = [
+    { value: '0', label: 'None' },
+    { value: '4', label: 'd4' },
+    { value: '6', label: 'd6' },
+    { value: '8', label: 'd8' },
+    { value: '10', label: 'd10' },
+    { value: '12', label: 'd12' },
+    { value: '14', label: 'd14' },
+    { value: '16', label: 'd16' },
+    { value: '18', label: 'd18' },
+    { value: '20', label: 'd20' },
+    { value: '30', label: 'd30' }
+  ];
+
+  const armorTypes = [
+    { value: '0', label: 'None' },
+    { value: '2', label: 'Hide' },
+    { value: '3', label: 'Leather' },
+    { value: '4', label: 'Chain' },
+    { value: '5', label: 'Plate' },
+    { value: '6', label: 'Magical' }
+  ];
 
   const commonTropes = getSuggestedTropes(creatureNature, qsbResult?.creature_category || 'Minor');
 
@@ -276,11 +326,117 @@ export default function MonsterGenerator() {
     setShowSaveDialog(true);
   };
 
+  const getCreatureNatureFromLegacy = (value: string): CreatureNature => {
+    switch (value) {
+      case '2':
+        return 'Magical';
+      case '3':
+        return 'Preternatural';
+      case '4':
+        return 'Supernatural';
+      default:
+        return 'Mundane';
+    }
+  };
+
+  const getCreatureSizeFromLegacy = (value: string): CreatureSize => {
+    switch (value) {
+      case '0':
+        return 'Minuscule';
+      case '2':
+        return 'Large';
+      case '3':
+        return 'Huge';
+      case '4':
+        return 'Gargantuan';
+      case '1':
+      default:
+        return 'Medium';
+    }
+  };
+
+  const mapPrimaryAttackToThreatType = (selection: string): ThreatType | null => {
+    if (selection.includes('Melee')) return 'Melee';
+    if (selection.includes('Natural')) return 'Natural';
+    if (selection.includes('Ranged')) return 'Ranged';
+    if (selection.includes('Arcane')) return 'Arcane';
+    return null;
+  };
+
   const confirmSaveMonster = () => {
     if (!result || !monsterName.trim()) {
       alert('Please enter a monster name');
       return;
     }
+
+
+    const creatureNatureValue = getCreatureNatureFromLegacy(monsterNature);
+    const creatureSizeValue = getCreatureSizeFromLegacy(monsterSize);
+    const defenseSplitValue = defenseSplit;
+
+    const tierValues = [tier1Threat, tier2Threat, tier3Threat];
+    const tierNumbers = tierValues.map(value => parseInt(value, 10) || 0);
+    const totalThreatMV = tierNumbers.reduce((sum, current) => sum + current, 0);
+
+    const primaryOverride = mapPrimaryAttackToThreatType(primaryAttack);
+    const threatTypeOrder: ThreatType[] = ['Melee', 'Natural', 'Ranged', 'Arcane'];
+    const prioritizedThreatTypes = primaryOverride
+      ? [primaryOverride, ...threatTypeOrder.filter(type => type !== primaryOverride)]
+      : threatTypeOrder;
+
+    const toThreatDie = (value: string) => (value !== '0' ? `d${value}` : 'None');
+    const fallbackThreatDice: ThreatDice = {
+      melee: 'None',
+      natural: 'None',
+      ranged: 'None',
+      arcane: 'None'
+    };
+
+    prioritizedThreatTypes.forEach((type, index) => {
+      if (index >= tierValues.length) return;
+      const die = toThreatDie(tierValues[index]);
+      switch (type) {
+        case 'Melee':
+          fallbackThreatDice.melee = die;
+          break;
+        case 'Natural':
+          fallbackThreatDice.natural = die;
+          break;
+        case 'Ranged':
+          fallbackThreatDice.ranged = die;
+          break;
+        case 'Arcane':
+          fallbackThreatDice.arcane = die;
+          break;
+      }
+    });
+
+    const threatDiceForSave: ThreatDice = qsbResult
+      ? { ...qsbResult.threat_dice }
+      : fallbackThreatDice;
+
+    const threatMV = qsbResult?.threat_mv ?? Math.max(
+      parseThreatDice(threatDiceForSave.melee),
+      parseThreatDice(threatDiceForSave.natural),
+      parseThreatDice(threatDiceForSave.ranged),
+      parseThreatDice(threatDiceForSave.arcane)
+    );
+
+    if (threatMV === 0) {
+      alert('Please configure threat dice before saving the monster.');
+      return;
+    }
+
+    const creatureCategory = qsbResult?.creature_category ?? determineCreatureCategory(threatDiceForSave);
+    const battlePhase = qsbResult?.battle_phase ?? generateBattlePhase(creatureCategory, creatureNatureValue);
+    const savingThrow = qsbResult?.saving_throw ?? generateSavingThrow(creatureCategory, creatureNatureValue);
+    const movementCalculation = qsbResult?.movement_calculation ??
+      calculateMovementRate(parseThreatDice(battlePhase), creatureSizeValue, agilityMV, speedModifiers);
+    const hpCalculation = qsbResult?.hp_calculation ??
+      calculateMonsterHP(threatMV, creatureSizeValue, creatureNatureValue, defenseSplitValue);
+
+    const primaryThreatType = primaryOverride ?? qsbResult?.primary_threat_type ?? getPrimaryThreatType(threatDiceForSave);
+    const abilitySource = Math.max(threatMV, totalThreatMV, 1);
 
     const selectedNature = monsterNatures.find(nature => nature.value === monsterNature) ?? monsterNatures[0];
     const selectedSize = monsterSizes.find(size => size.value === monsterSize) ?? monsterSizes[3];
@@ -361,21 +517,47 @@ export default function MonsterGenerator() {
     };
     setQSBResult(qsbSnapshot);
 
-    // Create basic abilities based on threat level
+
     const baseAbilities = {
-      prowess_mv: Math.max(4, Math.min(12, result.totalThreatMV / 3)),
-      agility_mv: Math.max(4, Math.min(12, result.totalThreatMV / 3)),
-      melee_mv: Math.max(4, Math.min(12, result.totalThreatMV / 2)),
-      fortitude_mv: Math.max(4, Math.min(12, result.totalThreatMV / 3)),
-      endurance_mv: Math.max(4, Math.min(12, result.totalThreatMV / 3)),
-      strength_mv: Math.max(4, Math.min(12, result.totalThreatMV / 3)),
-      competence_mv: Math.max(4, Math.min(8, result.totalThreatMV / 4)),
-      willpower_mv: Math.max(4, Math.min(8, result.totalThreatMV / 4)),
-      expertise_mv: Math.max(4, Math.min(8, result.totalThreatMV / 4)),
-      perception_mv: Math.max(4, Math.min(8, result.totalThreatMV / 4)),
-      adroitness_mv: Math.max(4, Math.min(8, result.totalThreatMV / 4)),
-      precision_mv: Math.max(4, Math.min(8, result.totalThreatMV / 4))
+      prowess_mv: Math.max(4, Math.min(12, abilitySource / 3)),
+      agility_mv: Math.max(4, Math.min(12, abilitySource / 3)),
+      melee_mv: Math.max(4, Math.min(12, abilitySource / 2)),
+      fortitude_mv: Math.max(4, Math.min(12, abilitySource / 3)),
+      endurance_mv: Math.max(4, Math.min(12, abilitySource / 3)),
+      strength_mv: Math.max(4, Math.min(12, abilitySource / 3)),
+      competence_mv: Math.max(4, Math.min(8, abilitySource / 4)),
+      willpower_mv: Math.max(4, Math.min(8, abilitySource / 4)),
+      expertise_mv: Math.max(4, Math.min(8, abilitySource / 4)),
+      perception_mv: Math.max(4, Math.min(8, abilitySource / 4)),
+      adroitness_mv: Math.max(4, Math.min(8, abilitySource / 4)),
+      precision_mv: Math.max(4, Math.min(8, abilitySource / 4))
     };
+
+
+    const levelSource = Math.max(threatMV, totalThreatMV);
+    const level = Math.max(1, Math.floor(levelSource / 6));
+
+    const natureLabel = monsterNatures.find(nature => nature.value === monsterNature)?.label || creatureNatureValue;
+    const sizeLabel = monsterSizes.find(size => size.value === monsterSize)?.label || creatureSizeValue;
+
+    const statusNotesParts = [
+      `Size: ${sizeLabel}`,
+      `Nature: ${natureLabel}`,
+      `Defense Split: ${defenseSplitValue}`,
+      `Primary Threat: ${primaryThreatType}`
+    ];
+
+    if (notes.trim()) {
+      statusNotesParts.push(notes.trim());
+    }
+
+    const statusNotes = statusNotesParts.join(' | ');
+    const finalNotes = notes.trim() || statusNotes;
+
+    const tags = Array.from(new Set([
+      monsterTrope,
+      primaryThreatType.toLowerCase()
+    ].filter(Boolean)));
 
     const roles = determineThreatRoles(resolvedThreatMV, resolvedPrimaryThreatType);
     const statusNotes = `Size: ${selectedSize.label}, Nature: ${selectedNature.label}, Primary Threat: ${resolvedPrimaryThreatType}`;
@@ -384,13 +566,19 @@ export default function MonsterGenerator() {
     const tags = [monsterTrope, resolvedPrimaryThreatType.toLowerCase()].filter(Boolean) as string[];
     const timestamp = new Date().toISOString();
 
+
     const savedMonster: MonsterData = {
       id: generateId(),
       user_id: getCurrentUserId(),
       name: monsterName.trim(),
       type: 'Monster',
+
+      level,
+      race: `${creatureNatureValue} ${creatureSizeValue} Creature`,
+
       level: Math.max(1, Math.floor(result.totalThreatMV / 6)),
       race: `${selectedNature.label} Creature`,
+
       class: 'Monster',
       abilities: baseAbilities,
       computed: calculateComputedStats(baseAbilities),
@@ -399,6 +587,20 @@ export default function MonsterGenerator() {
         current_hp_passive: hpCalculation.passive_hp,
         status_flags: [],
         gear: weaponsArmorTreasure,
+
+        notes: statusNotes
+      },
+      tags,
+      monster_trope: monsterTrope,
+      threat_dice: threatDiceForSave,
+      primary_threat_type: primaryThreatType,
+      threat_mv: threatMV,
+      preferred_encounter_roles: determineThreatRoles(threatMV, primaryThreatType),
+      creature_category: creatureCategory,
+      creature_nature: creatureNatureValue,
+      creature_size: creatureSizeValue,
+      defense_split: defenseSplitValue,
+
         notes: combinedStatusNotes
       },
       tags,
@@ -410,11 +612,43 @@ export default function MonsterGenerator() {
       threat_dice: threatDiceForMonster,
       primary_threat_type: resolvedPrimaryThreatType,
       threat_mv: resolvedThreatMV,
+
       extra_attacks: extraAttacks,
       damage_reduction: damageReduction,
       saving_throw: savingThrow,
       battle_phase: battlePhase,
       movement_calculation: movementCalculation,
+
+      hp_calculation: hpCalculation,
+      notes: finalNotes,
+      weapons_armor_treasure: weaponsArmorTreasure,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      full_data: {
+        legacy: {
+          monsterNature,
+          monsterSize,
+          tier1Threat,
+          tier2Threat,
+          tier3Threat,
+          monsterArmor,
+          primaryAttack,
+          totalThreatMV
+        },
+        qsb: {
+          defenseSplit: defenseSplitValue,
+          threatDice: threatDiceForSave,
+          primaryThreatType,
+          battlePhase,
+          savingThrow,
+          movementCalculation,
+          hpCalculation,
+          speedModifiers,
+          agilityMV,
+          extraAttacks,
+          damageReduction
+        }
+
       preferred_encounter_roles: roles,
       hp_calculation: hpCalculation,
       notes: userNotes || statusNotes,
@@ -440,12 +674,12 @@ export default function MonsterGenerator() {
         saving_throw: savingThrow,
         battle_phase: battlePhase,
         movement_calculation: movementCalculation
+
       }
     };
 
     saveCharacter(savedMonster);
 
-    // Add to selected party if one was chosen
     if (selectedParty) {
       const existingMemberships = getPartyMemberships(selectedParty);
       const membership: PartyMembership = {
@@ -468,6 +702,38 @@ export default function MonsterGenerator() {
     setMonsterTrope('');
     setSelectedParty('');
   };
+
+
+  const determineThreatRoles = (
+    threatMV: number,
+    primaryThreat: ThreatType
+  ): ('minion' | 'boss' | 'ambush' | 'elite' | 'brute' | 'caster')[] => {
+    const roles = new Set<'minion' | 'boss' | 'ambush' | 'elite' | 'brute' | 'caster'>();
+
+    if (threatMV <= 12) {
+      roles.add('minion');
+    } else if (threatMV <= 18) {
+      roles.add('elite');
+    } else if (threatMV <= 24) {
+      roles.add('brute');
+    } else {
+      roles.add('boss');
+    }
+
+    switch (primaryThreat) {
+      case 'Melee':
+      case 'Natural':
+        roles.add('brute');
+        break;
+      case 'Ranged':
+        roles.add('ambush');
+        break;
+      case 'Arcane':
+        roles.add('caster');
+        break;
+    }
+
+    return Array.from(roles);
 
   const determineThreatRoles = (threatMV: number, primaryType: ThreatType): ('minion' | 'boss' | 'ambush' | 'elite' | 'brute' | 'caster')[] => {
     const roles: ('minion' | 'boss' | 'ambush' | 'elite' | 'brute' | 'caster')[] = [];
@@ -492,6 +758,7 @@ export default function MonsterGenerator() {
     }
 
     return Array.from(new Set(roles));
+
   };
 
   return (
@@ -569,7 +836,11 @@ export default function MonsterGenerator() {
                 onChange={(e) => setTier1Threat(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-center"
               >
+
+                {legacyThreatDiceOptions.filter(die => die.value !== '0').map(die => (
+
                 {threatDieSelections.filter(die => die.value !== '0').map(die => (
+
                   <option key={die.value} value={die.value}>{die.label}</option>
                 ))}
               </select>
@@ -586,7 +857,11 @@ export default function MonsterGenerator() {
                 onChange={(e) => setTier2Threat(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-center"
               >
+
+                {legacyThreatDiceOptions.map(die => (
+
                 {threatDieSelections.map(die => (
+
                   <option key={die.value} value={die.value}>{die.label}</option>
                 ))}
               </select>
@@ -603,7 +878,11 @@ export default function MonsterGenerator() {
                 onChange={(e) => setTier3Threat(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-center"
               >
+
+                {legacyThreatDiceOptions.map(die => (
+
                 {threatDieSelections.map(die => (
+
                   <option key={die.value} value={die.value}>{die.label}</option>
                 ))}
               </select>
