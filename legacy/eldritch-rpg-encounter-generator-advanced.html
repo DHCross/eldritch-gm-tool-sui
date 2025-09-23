@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced Eldritch RPG Encounter Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Styling with greens and dark hues */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a2327;
+            color: #e0e0e0;
+        }
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .slider-container {
+            margin-bottom: 20px;
+            background-color: #2c3e50;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .slider {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 15px;
+            border-radius: 5px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+        }
+        .slider:hover {
+            opacity: 1;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+#encounterOutput {
+    white-space: pre-wrap;
+    font-family: 'Arial', sans-serif; /* Changed to Arial for better readability */
+    border: 1px solid #000;
+    padding: 15px;
+    margin-top: 20px;
+    background-color: #fff; /* Set background to white */
+    color: #000; /* Set text color to black */
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Adjust for subtle shadow if needed */
+    line-height: 1.5; /* Adds a bit of space between lines for better readability */
+}
+
+        .checkbox-container {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            background-color: #2c3e50;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .checkbox-container label {
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .checkbox-container input[type="checkbox"] {
+            margin-right: 5px;
+        }
+        button {
+            margin: 10px 0;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <nav style="margin-bottom: 1em;">
+        <a href="index.html" style="display:inline-block;padding:8px 18px;background:#4CAF50;color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;box-shadow:0 2px 6px rgba(76,175,80,0.15);">← Back to Home</a>
+    </nav>
+    <button id="importPartyDefense" style="margin-bottom:1em;background:#2196F3;">Import Party Defense from Roster</button>
+    <div id="partyDefenseSummary" style="margin-bottom:1em;"></div>
+    <h1>Eldritch RPG Encounter Generator</h1>
+
+    <div class="slider-container">
+        <label for="partySize">Party Size: <span id="partySizeValue">4</span></label>
+        <input type="range" id="partySize" min="1" max="4" value="4" class="slider">
+    </div>
+
+    <div class="slider-container">
+        <label for="defenseLevel">Party Defense Level: <span id="defenseLevelValue">Practitioner</span></label>
+        <input type="range" id="defenseLevel" min="1" max="5" value="1" class="slider">
+    </div>
+
+    <div class="slider-container">
+        <label for="difficulty">Desired Difficulty: <span id="difficultyValue">Moderate</span></label>
+        <input type="range" id="difficulty" min="1" max="6" value="2" class="slider">
+    </div>
+
+    <div class="slider-container">
+        <label for="nonMediumPercentage">Non-Medium Size Percentage: <span id="nonMediumPercentageValue">10</span>%</label>
+        <input type="range" id="nonMediumPercentage" min="0" max="100" value="10" class="slider">
+    </div>
+
+    <div class="slider-container">
+        <label for="nonMundanePercentage">Non-Mundane Nature Percentage: <span id="nonMundanePercentageValue">20</span>%</label>
+        <input type="range" id="nonMundanePercentage" min="0" max="100" value="20" class="slider">
+    </div>
+
+    <div class="slider-container">
+        <label for="specialTypePercentage">Fast/Tough Creature Percentage: <span id="specialTypePercentageValue">30</span>%</label>
+        <input type="range" id="specialTypePercentage" min="0" max="100" value="30" class="slider">
+    </div>
+
+    <div class="checkbox-container">
+        <label><input type="checkbox" name="creatureTypes" value="Minor" checked> Minor</label>
+        <label><input type="checkbox" name="creatureTypes" value="Standard" checked> Standard</label>
+        <label><input type="checkbox" name="creatureTypes" value="Exceptional" checked> Exceptional</label>
+        <label><input type="checkbox" name="creatureTypes" value="Legendary"> Legendary</label>
+    </div>
+
+    <button onclick="generateEncounter()">Generate Encounter</button>
+
+    <div id="encounterOutput"></div>
+
+    <script>
+        // Import party defense from localStorage and set sliders/values
+        document.getElementById('importPartyDefense').onclick = function() {
+            const data = localStorage.getItem('eldritch_party_defense');
+            if (!data) {
+                document.getElementById('partyDefenseSummary').textContent = 'No party defense found. Select PCs in Roster and try again.';
+                return;
+            }
+            const def = JSON.parse(data);
+            document.getElementById('partyDefenseSummary').textContent = `Imported: Active Defense ${def.totalAD}, Passive Defense ${def.totalPD}, Total ${def.total} → Tier: ${def.tier}`;
+            // Set defense level slider to match tier
+            const tierIdx = defenseLevels.indexOf(def.tier);
+            if (tierIdx >= 0) {
+                document.getElementById('defenseLevel').value = tierIdx + 1;
+                document.getElementById('defenseLevelValue').textContent = def.tier;
+            }
+            // Optionally set party size slider based on number of PCs
+            // Not implemented: would require passing PC count
+        };
+        // Define difficulty and defense levels
+        const difficultyLevels = ['Easy', 'Moderate', 'Difficult', 'Demanding', 'Formidable', 'Deadly'];
+        const defenseLevels = ['Practitioner', 'Competent', 'Proficient', 'Advanced', 'Elite'];
+
+        // Define encounter difficulty thresholds based on party size and defense level
+        const encounterDifficultyTable = {
+            1: {
+                Practitioner: [7,10,12,14,16,18],
+                Competent: [14,20,24,28,32,36],
+                Proficient: [21,29,36,42,48,55],
+                Advanced: [28,39,48,56,64,73],
+                Elite: [35,49,60,70,80,110]
+            },
+            2: {
+                Practitioner: [14,20,24,28,32,36],
+                Competent: [28,39,48,56,64,73],
+                Proficient: [42,59,72,84,96,108],
+                Advanced: [56,77,96,112,128,144],
+                Elite: [70,95,120,140,160,190]
+            },
+            3: {
+                Practitioner: [21,30,36,42,48,54],
+                Competent: [42,59,72,84,96,108],
+                Proficient: [63,84,108,126,144,162],
+                Advanced: [84,111,144,168,192,216],
+                Elite: [105,140,180,210,240,270]
+            },
+            4: {
+                Practitioner: [28,42,50,56,64,72],
+                Competent: [56,77,96,112,128,144],
+                Proficient: [84,111,144,168,192,216],
+                Advanced: [112,147,180,224,256,288],
+                Elite: [140,185,228,280,320,360]
+            }
+        };
+
+        function updateSliderDisplays() {
+            document.getElementById('partySizeValue').textContent = document.getElementById('partySize').value;
+            document.getElementById('defenseLevelValue').textContent = defenseLevels[document.getElementById('defenseLevel').value - 1];
+            document.getElementById('difficultyValue').textContent = difficultyLevels[document.getElementById('difficulty').value - 1];
+            document.getElementById('nonMediumPercentageValue').textContent = document.getElementById('nonMediumPercentage').value;
+            document.getElementById('nonMundanePercentageValue').textContent = document.getElementById('nonMundanePercentage').value;
+            document.getElementById('specialTypePercentageValue').textContent = document.getElementById('specialTypePercentage').value;
+        }
+
+        // Attach event listeners to sliders
+        document.querySelectorAll('.slider').forEach(slider => {
+            slider.addEventListener('input', updateSliderDisplays);
+        });
+
+        // Initial display update
+        updateSliderDisplays();
+
+        function generateEncounter() {
+            const partySize = parseInt(document.getElementById('partySize').value);
+            const defenseLevel = defenseLevels[document.getElementById('defenseLevel').value - 1];
+            const difficulty = parseInt(document.getElementById('difficulty').value);
+            const nonMediumPercentage = parseInt(document.getElementById('nonMediumPercentage').value);
+            const nonMundanePercentage = parseInt(document.getElementById('nonMundanePercentage').value);
+            const specialTypePercentage = parseInt(document.getElementById('specialTypePercentage').value);
+            const selectedTypes = Array.from(document.querySelectorAll('input[name="creatureTypes"]:checked')).map(checkbox => checkbox.value);
+
+            if (selectedTypes.length === 0) {
+                alert("Please select at least one creature type.");
+                return;
+            }
+
+            const threatScore = encounterDifficultyTable[partySize][defenseLevel][difficulty - 1];
+            let output = `Eldritch RPG Encounter\n=========================\n`;
+            output += `Party Size: ${partySize}\n`;
+            output += `Defense Level: ${defenseLevel}\n`;
+            output += `Difficulty: ${difficultyLevels[difficulty - 1]}\n`;
+            output += `Total Threat Score: ${threatScore}\n\n`;
+            output += `Creatures:\n=========================\n`;
+
+            let remainingThreat = threatScore;
+            let monsters = [];
+
+            while (remainingThreat > 0) {
+                const monster = generateMonsterForEncounter(remainingThreat, selectedTypes, nonMediumPercentage, nonMundanePercentage, specialTypePercentage);
+                monsters.push(monster);
+                remainingThreat -= monster.threatMV;
+                if (monster.threatMV === 0) break; 
+            }
+
+            monsters.forEach((monster, index) => {
+                output += `Monster ${index + 1}\n`;
+                output += `Type: ${monster.category} | TD: ${monster.threatDice} | `;
+                output += `HP: ${monster.hitPoints} (${monster.activeDefense}/${monster.passiveDefense}) `;
+                output += `[${monster.size}, ${monster.nature}; ×${monster.multiplier}] ${monster.creatureType}\n`;
+                output += `ST: ${monster.savingThrow} | BP: ${monster.battlePhase}\n\n`;
+            });
+
+            document.getElementById('encounterOutput').textContent = output;
+        }
+
+        function generateMonsterForEncounter(maxThreat, selectedTypes, nonMediumPercentage, nonMundanePercentage, specialTypePercentage) {
+            const category = selectedTypes[Math.floor(Math.random() * selectedTypes.length)];
+            const threatDice = threatDiceByCategory[category][Math.floor(Math.random() * threatDiceByCategory[category].length)];
+            const threatMV = parseInt(threatDice.split('d')[0]) * parseInt(threatDice.split('d')[1]);
+            
+            const sizes = ['Minuscule', 'Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan'];
+            let size = 'Medium';
+            if (Math.random() * 100 < nonMediumPercentage) {
+                const nonMediumSizes = sizes.filter(s => s !== 'Medium');
+                size = nonMediumSizes[Math.floor(Math.random() * nonMediumSizes.length)];
+            }
+
+            const natures = ['Mundane', 'Magical', 'Preternatural', 'Supernatural'];
+            let nature = 'Mundane';
+            if (Math.random() * 100 < nonMundanePercentage) {
+                const nonMundaneNatures = natures.filter(n => n !== 'Mundane');
+                nature = nonMundaneNatures[Math.floor(Math.random() * nonMundaneNatures.length)];
+            }
+
+            let creatureType = 'Normal';
+            if (Math.random() * 100 < specialTypePercentage) {
+                creatureType = Math.random() < 0.5 ? 'Fast' : 'Tough';
+            }
+            
+            const { hitPoints, multiplier } = calculateHitPoints(threatMV, size, nature);
+            
+            let activeDefense, passiveDefense;
+            if (creatureType === 'Fast') {
+                activeDefense = Math.round(hitPoints * 0.75);
+                passiveDefense = hitPoints - activeDefense;
+            } else if (creatureType === 'Tough') {
+                passiveDefense = Math.round(hitPoints * 0.75);
+                activeDefense = hitPoints - passiveDefense;
+            } else {
+                activeDefense = Math.round(hitPoints / 2);
+                passiveDefense = hitPoints - activeDefense;
+            }
+
+            const prowessDie = parseInt(threatDice.split('d')[1]);
+            const battlePhase = calculateBattlePhase(prowessDie);
+            const savingThrow = `d${4 * (['Minor', 'Standard', 'Exceptional', 'Legendary'].indexOf(category) + 1)}`;
+            
+            return {
+                category, threatDice, threatMV, size, nature, creatureType,
+                hitPoints, multiplier, activeDefense, passiveDefense,
+                savingThrow, battlePhase
+            };
+        }
+
+        const threatDiceByCategory = {
+            Minor: ['1d4', '1d6', '1d8', '1d10', '1d12'],
+            Standard: ['2d4', '2d6', '2d8', '2d10', '2d12'],
+            Exceptional: ['3d4', '3d6', '3d8', '3d10', '3d12'],
+            Legendary: ['3d12', '3d14', '3d16', '3d18', '3d20']
+        };
+
+        const hpMultipliers = {
+            'Minuscule': {'Mundane': 0.5, 'Magical': 1, 'Preternatural': 1.5, 'Supernatural': 2},
+            'Tiny': {'Mundane': 0.5, 'Magical': 1, 'Preternatural': 1.5, 'Supernatural': 2},
+            'Small': {'Mundane': 1, 'Magical': 1.5, 'Preternatural': 2, 'Supernatural': 2.5},
+            'Medium': {'Mundane': 1, 'Magical': 1.5, 'Preternatural': 2, 'Supernatural': 2.5},
+            'Large': {'Mundane': 1.5, 'Magical': 2, 'Preternatural': 2.5, 'Supernatural': 3},
+            'Huge': {'Mundane': 2, 'Magical': 2.5, 'Preternatural': 3, 'Supernatural': 3.5},
+            'Gargantuan': {'Mundane': 2.5, 'Magical': 3, 'Preternatural': 3.5, 'Supernatural': 4}
+        };
+
+        function calculateHitPoints(threatMV, size, nature) {
+            const multiplier = hpMultipliers[size][nature];
+            const hitPoints = Math.round(threatMV * multiplier);
+            return { hitPoints, multiplier };
+        }
+
+        function calculateBattlePhase(prowessDie) {
+            if (prowessDie >= 12) return 1;
+            if (prowessDie >= 10) return 2;
+            if (prowessDie >= 8) return 3;
+            if (prowessDie >= 6) return 4;
+            return 5;
+        }
+    </script>
+</body>
+</html>

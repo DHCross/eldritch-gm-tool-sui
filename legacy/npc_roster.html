@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NPC Roster - Eldritch GM Tools</title>
+  <link rel="stylesheet" href="src/css/main.css">
+  <link rel="stylesheet" href="src/css/npc-roster.css">
+</head>
+<body>
+  <button onclick="window.location.href='index.html'" class="back-btn">Back to Home</button>
+  <h1>NPC Roster</h1>
+  <div id="npc-party-controls">
+    <input type="text" id="npc-folder-name" placeholder="New Region or Story Arc">
+    <button id="npc-add-folder-btn">Add Folder</button>
+  </div>
+  <div id="npc-instructions">
+    <p><strong>How it works:</strong></p>
+    <ol>
+      <li>Name a location, adventure, or faction to create its folder.</li>
+      <li>Add NPCs manually or save them from the generator, then move them into the appropriate folder.</li>
+      <li>Use the folder’s <em>Select</em> button or individual checkboxes to stage NPCs for encounters or reference.</li>
+    </ol>
+  </div>
+  <form id="manual-npc-form" class="manual-npc-form">
+    <h2>Add NPC Manually</h2>
+    <p class="manual-hint">Capture key details about an NPC. If the character might join the PCs or feature in combat, include their defensive totals.</p>
+    <div class="manual-grid">
+      <label>
+        NPC Name
+        <input type="text" id="manual-npc-name" required placeholder="E.g. Captain Serah" autocomplete="off">
+      </label>
+      <label>
+        Role / Notes
+        <input type="text" id="manual-npc-notes" placeholder="Steward of the Emerald Tower" autocomplete="off">
+      </label>
+      <label>
+        Active Defense (optional)
+        <input type="text" id="manual-npc-ad" inputmode="numeric" pattern="[0-9]*" placeholder="0" autocomplete="off">
+      </label>
+      <label>
+        Passive Defense (optional)
+        <input type="text" id="manual-npc-pd" inputmode="numeric" pattern="[0-9]*" placeholder="0" autocomplete="off">
+      </label>
+      <label>
+        Add to Existing Folder
+        <select id="manual-npc-folder-select">
+          <option value="">-- No folder --</option>
+        </select>
+      </label>
+      <label>
+        Or Create Folder
+        <input type="text" id="manual-npc-new-folder" placeholder="Optional new folder name">
+      </label>
+    </div>
+    <button type="submit" class="manual-submit">Add NPC to Roster</button>
+  </form>
+  <div id="npc-folders-list"></div>
+  <div id="npc-list"></div>
+  <div id="npc-folder-controls">
+    <select id="npc-folder-select"></select>
+    <span id="npc-selected-folder-indicator">Target Folder: <strong id="npc-selected-folder-name">None</strong></span>
+    <button id="npc-add-to-folder-btn">Move Selected NPCs to Folder</button>
+    <button id="npc-remove-from-folder-btn">Remove Selected NPCs from Folder</button>
+  </div>
+  <script src="src/js/npc-roster.js"></script>
+</body>
+</html>

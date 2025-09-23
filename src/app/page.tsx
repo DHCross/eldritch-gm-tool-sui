@@ -122,16 +122,24 @@ export default function Home() {
           </div>
 
           <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-            <h2 className="text-2xl font-bold mb-3">🗂️ Roster</h2>
+            <h2 className="text-2xl font-bold mb-3">🗂️ Party Management</h2>
             <p className="text-gray-600 mb-4">
-              Manage created PCs, organize parties, and calculate party defense levels for encounter balancing.
+              Organize characters into party folders, manage groups, and calculate party defense levels for encounter balancing.
             </p>
-            <Link
-              href="/roster"
-              className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded inline-block transition-colors"
-            >
-              Open Roster
-            </Link>
+            <div className="space-y-2">
+              <Link
+                href="/party-management"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-block transition-colors mr-2"
+              >
+                Party Manager
+              </Link>
+              <Link
+                href="/roster"
+                className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded inline-block transition-colors"
+              >
+                PC Roster
+              </Link>
+            </div>
           </div>
         </div>
       </main>

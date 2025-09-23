@@ -1,7 +1,15 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
+import {
+  getAllPartyFolders,
+  getPartyCharacters,
+  calculatePartyDefenseProfile,
+  getCharactersByType,
+  initializeDefaultFolders
+} from '../../utils/partyStorage';
+import { PartyFolder, SavedCharacter, MonsterData, PartyDefenseProfile } from '../../types/party';
 
 const difficultyLevels = ['Easy', 'Moderate', 'Difficult', 'Demanding', 'Formidable', 'Deadly'] as const;
 const defenseLevels = ['Practitioner', 'Competent', 'Proficient', 'Advanced', 'Elite'] as const;
@@ -186,10 +194,64 @@ export default function EncounterGeneratorPage() {
     Legendary: false,
   });
   const [encounterOutput, setEncounterOutput] = useState<string>('');
-  const [importSummary, setImportSummary] = useState<string>('');
+
+  // Party management state
+  const [partyFolders, setPartyFolders] = useState<PartyFolder[]>([]);
+  const [selectedPartyIds, setSelectedPartyIds] = useState<string[]>([]);
+  const [selectedCharacterIds, setSelectedCharacterIds] = useState<string[]>([]);
+  const [availableCharacters, setAvailableCharacters] = useState<SavedCharacter[]>([]);
+  const [usePartyStats, setUsePartyStats] = useState<boolean>(false);
+  const [partyDefenseProfile, setPartyDefenseProfile] = useState<PartyDefenseProfile | null>(null);
+  const [availableMonsters, setAvailableMonsters] = useState<MonsterData[]>([]);
 
   const activeDefenseLevel = defenseLevels[defenseLevelIndex];
   const activeDifficultyLabel = difficultyLevels[difficultyIndex];
+
+  useEffect(() => {
+    initializeDefaultFolders();
+    // Load party folders and characters
+    const pcFolders = getAllPartyFolders().filter(f => f.folder_type === 'PC_party');
+    const npcFolders = getAllPartyFolders().filter(f => f.folder_type === 'NPC_roster');
+    setPartyFolders([...pcFolders, ...npcFolders]);
+
+    const allChars = getCharactersByType('PC').concat(getCharactersByType('NPC'));
+    setAvailableCharacters(allChars);
+
+    const monsters = getCharactersByType('Monster') as MonsterData[];
+    setAvailableMonsters(monsters);
+  }, []);
+
+  useEffect(() => {
+    // Calculate party defense profile when selection changes
+    if (usePartyStats && (selectedPartyIds.length > 0 || selectedCharacterIds.length > 0)) {
+      let allSelectedCharIds: string[] = [...selectedCharacterIds];
+
+      // Add characters from selected parties
+      selectedPartyIds.forEach(partyId => {
+        const partyChars = getPartyCharacters(partyId);
+        allSelectedCharIds = [...allSelectedCharIds, ...partyChars.map(c => c.id)];
+      });
+
+      // Remove duplicates
+      allSelectedCharIds = Array.from(new Set(allSelectedCharIds));
+
+      if (allSelectedCharIds.length > 0) {
+        const profile = calculatePartyDefenseProfile(allSelectedCharIds);
+        setPartyDefenseProfile(profile);
+
+        // Auto-update party size and defense level based on party
+        setPartySize(profile.character_count);
+        const defenseIndex = defenseLevels.indexOf(profile.defense_tier as typeof defenseLevels[number]);
+        if (defenseIndex >= 0) {
+          setDefenseLevelIndex(defenseIndex);
+        }
+      } else {
+        setPartyDefenseProfile(null);
+      }
+    } else {
+      setPartyDefenseProfile(null);
+    }
+  }, [selectedPartyIds, selectedCharacterIds, usePartyStats]);
 
   const toggleCreatureType = useCallback((type: CreatureCategory) => {
     setSelectedTypes(prev => ({ ...prev, [type]: !prev[type] }));
@@ -202,33 +264,57 @@ export default function EncounterGeneratorPage() {
       return;
     }
 
-    const difficultyBand = encounterDifficultyTable[partySize];
-    const targetThreat = difficultyBand[activeDefenseLevel][difficultyIndex];
+    // Always use calculated defense tier if party stats are enabled
+    let defenseTier = activeDefenseLevel;
+    let partySz = partySize;
+    if (usePartyStats && partyDefenseProfile) {
+      defenseTier = partyDefenseProfile.defense_tier;
+      partySz = partyDefenseProfile.character_count;
+    }
+    const difficultyBand = encounterDifficultyTable[partySz];
+    const targetThreat = difficultyBand[defenseTier][difficultyIndex];
 
-    let remainingThreat = targetThreat;
+    // Generate monsters so that their total threatMV matches or is just under the targetThreat
+    let totalThreatMV = 0;
     const monsters: MonsterResult[] = [];
-
-    while (remainingThreat > 0) {
+    let safety = 0;
+    while (totalThreatMV < targetThreat) {
       const monster = generateMonster(
         enabledTypes,
         nonMediumPercentage,
         nonMundanePercentage,
         specialTypePercentage,
       );
-      monsters.push(monster);
-      remainingThreat -= monster.threatMV;
       if (monster.threatMV === 0) break;
-      if (monsters.length > 100) {
-        // avoid edge case infinite loops if data changes unexpectedly
-        break;
-      }
+      if (totalThreatMV + monster.threatMV > targetThreat) break;
+      monsters.push(monster);
+      totalThreatMV += monster.threatMV;
+      safety++;
+      if (safety > 100) break;
     }
 
     const lines: string[] = [];
     lines.push('Eldritch RPG Encounter');
     lines.push('=========================');
-    lines.push(`Party Size: ${partySize}`);
-    lines.push(`Defense Level: ${activeDefenseLevel}`);
+
+    // Add party information if using party stats
+    if (usePartyStats && partyDefenseProfile) {
+      lines.push('Party Information:');
+      lines.push(`Selected Parties: ${selectedPartyIds.map(id => partyFolders.find(f => f.id === id)?.name).filter(Boolean).join(', ') || 'None'}`);
+      lines.push(`Party Size: ${partyDefenseProfile.character_count} characters`);
+      lines.push(`Active DP: ${partyDefenseProfile.total_active_dp} | Passive DP: ${partyDefenseProfile.total_passive_dp} | Spirit: ${partyDefenseProfile.total_spirit_pts}`);
+      lines.push(`Calculated Defense Tier: ${partyDefenseProfile.defense_tier}`);
+      lines.push('');
+      lines.push('Character Breakdown:');
+      partyDefenseProfile.character_breakdown.forEach((char) => {
+        lines.push(`  ${char.name}: A${char.active_dp}/P${char.passive_dp}/S${char.spirit_pts}`);
+      });
+      lines.push('');
+    } else {
+      lines.push(`Party Size: ${partySize}`);
+      lines.push(`Defense Level: ${activeDefenseLevel}`);
+    }
+
     lines.push(`Difficulty: ${activeDifficultyLabel}`);
     lines.push(`Total Threat Score: ${targetThreat}`);
     lines.push('');
@@ -244,6 +330,40 @@ export default function EncounterGeneratorPage() {
       lines.push('');
     });
 
+    // Add monster suggestions from saved library
+    if (availableMonsters.length > 0) {
+      lines.push('Saved Monster Suggestions:');
+      lines.push('=========================');
+
+      // Find monsters that fit within the threat budget
+      const suitableMonsters = availableMonsters.filter(monster => {
+        const monsterThreat = monster.threat_mv;
+        return monsterThreat <= targetThreat && monsterThreat >= targetThreat * 0.1; // Within 10% to 100% of budget
+      });
+
+      if (suitableMonsters.length > 0) {
+        // Group by trope
+        const monstersByTrope = suitableMonsters.reduce((acc, monster) => {
+          if (!acc[monster.monster_trope]) acc[monster.monster_trope] = [];
+          acc[monster.monster_trope].push(monster);
+          return acc;
+        }, {} as Record<string, MonsterData[]>);
+
+        Object.entries(monstersByTrope).forEach(([trope, monsters]) => {
+          lines.push(`${trope.toUpperCase()}:`);
+          monsters.slice(0, 3).forEach(monster => { // Limit to 3 per trope
+            const roles = monster.preferred_encounter_roles.join(', ');
+            lines.push(`  ${monster.name} (Threat MV ${monster.threat_mv}, HP ${monster.hp_calculation.final_hp}) [${roles}]`);
+          });
+          lines.push('');
+        });
+      } else {
+        lines.push('No saved monsters match the current threat budget.');
+        lines.push('Consider creating monsters in the Monster Generator.');
+        lines.push('');
+      }
+    }
+
     setEncounterOutput(lines.join('\n'));
   }, [
     selectedTypes,
@@ -254,6 +374,11 @@ export default function EncounterGeneratorPage() {
     nonMediumPercentage,
     nonMundanePercentage,
     specialTypePercentage,
+    usePartyStats,
+    partyDefenseProfile,
+    selectedPartyIds,
+    partyFolders,
+    availableMonsters,
   ]);
 
   const selectedCount = useMemo(
@@ -261,51 +386,127 @@ export default function EncounterGeneratorPage() {
     [selectedTypes],
   );
 
-  const handleImportPartyDefense = useCallback(() => {
-    const partyDefense = readLocalPartyDefense();
-    if (!partyDefense) {
-      setImportSummary('No party defense found. Select PCs in the roster first and try again.');
-      return;
-    }
-
-    setImportSummary(
-      `Imported: Active Defense ${partyDefense.totalAD}, Passive Defense ${partyDefense.totalPD}, Total ${partyDefense.total} → Tier: ${partyDefense.tier}${partyDefense.range ? ` (${partyDefense.range})` : ''}`,
-    );
-
-    const tierIndex = defenseLevels.indexOf(partyDefense.tier);
-    if (tierIndex !== -1) {
-      setDefenseLevelIndex(tierIndex);
-    }
-  }, []);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-10 sm:px-6 lg:px-8">
-        <header className="flex items-center justify-between gap-4">
+        <header className="flex items-center gap-4">
           <Link
             href="/"
             className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
           >
             ← Back to Home
           </Link>
-          <button
-            type="button"
-            onClick={handleImportPartyDefense}
-            className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400"
-          >
-            Import Party Defense
-          </button>
         </header>
 
-        {importSummary && (
-          <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-4 text-sm text-slate-200 shadow-inner">
-            {importSummary}
-          </div>
-        )}
 
         <h1 className="text-center text-3xl font-bold tracking-tight text-emerald-400 sm:text-4xl">
           Eldritch RPG Encounter Generator
         </h1>
+
+        {/* Party Selection Section */}
+        <section className="rounded-lg border border-slate-700 bg-slate-900/70 p-6 shadow">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-emerald-300">Party Selection</h2>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={usePartyStats}
+                onChange={(e) => setUsePartyStats(e.target.checked)}
+                className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              <span className="text-sm text-slate-200">Use saved party stats</span>
+            </label>
+          </div>
+
+          {usePartyStats && (
+            <div className="space-y-4">
+              {/* Party Folder Selection */}
+              <div>
+                <label className="block text-sm font-medium text-emerald-300 mb-2">
+                  Select Party Folders
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {partyFolders.map(folder => (
+                    <label key={folder.id} className="flex items-center space-x-2 p-2 bg-slate-800 rounded">
+                      <input
+                        type="checkbox"
+                        checked={selectedPartyIds.includes(folder.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedPartyIds([...selectedPartyIds, folder.id]);
+                          } else {
+                            setSelectedPartyIds(selectedPartyIds.filter(id => id !== folder.id));
+                          }
+                        }}
+                        className="rounded border-gray-300 text-emerald-600"
+                      />
+                      <span className="text-sm text-slate-200">
+                        {folder.name} ({folder.folder_type === 'PC_party' ? 'PC' : 'NPC'})
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Individual Character Selection */}
+              <div>
+                <label className="block text-sm font-medium text-emerald-300 mb-2">
+                  Additional Individual Characters
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {availableCharacters.map(character => (
+                    <label key={character.id} className="flex items-center space-x-2 p-2 bg-slate-800 rounded">
+                      <input
+                        type="checkbox"
+                        checked={selectedCharacterIds.includes(character.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedCharacterIds([...selectedCharacterIds, character.id]);
+                          } else {
+                            setSelectedCharacterIds(selectedCharacterIds.filter(id => id !== character.id));
+                          }
+                        }}
+                        className="rounded border-gray-300 text-emerald-600"
+                      />
+                      <span className="text-xs text-slate-200">
+                        {character.name} ({character.type})
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Party Stats Display */}
+              {partyDefenseProfile && (
+                <div className="mt-4 p-4 bg-slate-800 rounded-lg">
+                  <h3 className="text-lg font-semibold text-emerald-300 mb-2">Calculated Party Stats</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="text-slate-400">Party Size:</span>
+                      <div className="text-emerald-400 font-bold">{partyDefenseProfile.character_count}</div>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Defense Tier:</span>
+                      <div className="text-emerald-400 font-bold">{partyDefenseProfile.defense_tier}</div>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Active DP:</span>
+                      <div className="text-emerald-400 font-bold">{partyDefenseProfile.total_active_dp}</div>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Passive DP:</span>
+                      <div className="text-emerald-400 font-bold">{partyDefenseProfile.total_passive_dp}</div>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-xs text-slate-500">
+                    Auto-updating manual party size and defense level settings based on calculated values.
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </section>
 
         <section className="space-y-6">
           <Slider

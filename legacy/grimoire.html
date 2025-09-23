@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eldritch RPG - Grimoire Index</title>
+    <link rel="stylesheet" href="src/css/main.css">
+    <link rel="stylesheet" href="src/css/grimoire.css">
+</head>
+<body>
+  <nav style="margin-bottom: 1em;">
+    <a href="index.html" style="display:inline-block;padding:8px 18px;background:#4CAF50;color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;box-shadow:0 2px 6px rgba(76,175,80,0.15);">← Back to Home</a>
+  </nav>
+  <div class="container">
+        <header>
+            <h1>📚 Eldritch RPG Grimoire</h1>
+            <p class="subtitle">Comprehensive spell and magic reference</p>
+            <nav class="breadcrumb">
+                <a href="index.html">← Back to GM Tools</a>
+            </nav>
+        </header>
+
+        <main>
+            <div class="search-controls">
+                <div class="search-bar">
+                    <input type="text" id="spellSearch" placeholder="Search spells by name, path, or effect...">
+                    <button id="clearSearch">Clear</button>
+                </div>
+                
+                <div class="filters">
+                    <select id="pathFilter">
+                        <option value="">All Paths</option>
+                    </select>
+                    
+                    <select id="rarityFilter">
+                        <option value="">All Rarities</option>
+                    </select>
+                    
+                    <select id="effectFilter">
+                        <option value="">All Effects</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="spell-stats">
+                <span id="spellCount">Loading spells...</span>
+            </div>
+
+            <div class="grimoire-table-container">
+                <table id="grimoireTable" class="grimoire-table">
+                    <thead>
+                        <tr>
+                            <th data-sort="spell">Spell Name <span class="sort-arrow">↕</span></th>
+                            <th data-sort="path">Path <span class="sort-arrow">↕</span></th>
+                            <th data-sort="rarity">Rarity <span class="sort-arrow">↕</span></th>
+                            <th data-sort="rank">Rank/Die <span class="sort-arrow">↕</span></th>
+                            <th data-sort="effects">Effects <span class="sort-arrow">↕</span></th>
+                            <th data-sort="notes">Notes <span class="sort-arrow">↕</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="spellTableBody">
+                        <!-- Spells will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Loading grimoire data...</p>
+            </div>
+
+            <div class="error-message" id="errorMessage" style="display: none;">
+                <p>Failed to load grimoire data. Please check that the CSV file is available.</p>
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <p>&copy; 2025 Eldritch RPG GM Tools</p>
+                <p>Grimoire data for the Eldritch RPG system</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="src/js/grimoire.js"></script>
+</body>
+</html>
