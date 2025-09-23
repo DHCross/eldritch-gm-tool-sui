@@ -10,6 +10,10 @@ import {
   MovementCalculation
 } from '../types/party';
 
+type EncounterRole = 'minion' | 'boss' | 'ambush' | 'elite' | 'brute' | 'caster';
+
+const ROLE_PRIORITY: EncounterRole[] = ['minion', 'ambush', 'elite', 'brute', 'caster', 'boss'];
+
 // Size Modifiers (for HP calculation)
 export const SIZE_MODIFIERS: Record<CreatureSize, number> = {
   'Minuscule': 0,
@@ -95,6 +99,62 @@ export function getPrimaryThreatType(threatDice: ThreatDice): ThreatType {
   return Object.entries(threatValues).reduce((max, [type, value]) =>
     value > threatValues[max] ? type as ThreatType : max
   , 'Melee' as ThreatType);
+}
+
+export function determineThreatRoles(
+  threatMV: number,
+  primaryType: ThreatType
+): EncounterRole[] {
+  const roles = new Set<EncounterRole>();
+
+  if (threatMV <= 12) {
+    roles.add('minion');
+  }
+
+  if (threatMV > 12) {
+    roles.add('elite');
+  }
+
+  if (threatMV >= 30) {
+    roles.add('boss');
+  }
+
+  switch (primaryType) {
+    case 'Melee':
+      if (threatMV >= 16) {
+        roles.add('brute');
+      } else {
+        roles.add('minion');
+      }
+      break;
+    case 'Natural':
+      if (threatMV <= 12) {
+        roles.add('ambush');
+      } else {
+        roles.add('brute');
+      }
+      break;
+    case 'Ranged':
+      roles.add('ambush');
+      if (threatMV >= 24) {
+        roles.add('elite');
+      }
+      break;
+    case 'Arcane':
+      roles.add('caster');
+      if (threatMV >= 24) {
+        roles.add('boss');
+      } else {
+        roles.add('elite');
+      }
+      break;
+  }
+
+  if (roles.size === 0) {
+    roles.add('elite');
+  }
+
+  return ROLE_PRIORITY.filter(role => roles.has(role));
 }
 
 // Calculate Hit Points using official QSB formula
