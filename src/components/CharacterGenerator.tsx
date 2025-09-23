@@ -354,7 +354,6 @@ export default function CharacterGenerator() {
   const [rookieProfile, setRookieProfile] = useState('off');
   const [enforceSoftcaps, setEnforceSoftcaps] = useState(true);
   const [iconicArcane, setIconicArcane] = useState(false);
-  const [npcMode, setNpcMode] = useState(false);
   const [showWeakness, setShowWeakness] = useState(true);
   const [character, setCharacter] = useState<Character | null>(null);
 
@@ -460,7 +459,7 @@ export default function CharacterGenerator() {
     }
 
     if (!(level === 1 && rookieProfile === 'pure')) {
-      spendCP(ch, cpBudget, buildStyle, level, npcMode, enforceSoftcaps);
+      spendCP(ch, cpBudget, buildStyle, level, false, enforceSoftcaps);
     }
 
     ch.masteryDie = levelInfo[level - 1].masteryDie;
@@ -772,16 +771,6 @@ export default function CharacterGenerator() {
                   onChange={(e) => setIconicArcane(e.target.checked)}
                 />
                 <label htmlFor="iconic-arcane" className="text-sm">Iconic Arcane Inheritance <span className="text-xs text-gray-500">(Costs 4 CP)</span></label>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  id="npc-mode"
-                  type="checkbox"
-                  className="h-4 w-4 rounded"
-                  checked={npcMode}
-                  onChange={(e) => setNpcMode(e.target.checked)}
-                />
-                <label htmlFor="npc-mode" className="text-sm">NPC Mode <span className="text-xs text-gray-500">(favor breadth / avoid d12 at low level)</span></label>
               </div>
               <div className="flex items-center gap-2">
                 <input

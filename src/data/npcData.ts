@@ -24,6 +24,86 @@ export interface QuickNPC {
   notes?: string;
 }
 
+export interface DetailedNPC {
+  id: number;
+  name: string;
+  race: string;
+  role: string;
+  level: number;
+  gender: 'Male' | 'Female';
+
+  // Full Ability System (like legacy generator)
+  abilities: {
+    competence: string;
+    prowess: string;
+    fortitude: string;
+  };
+
+  specialties: {
+    competence: {
+      expertise: string;
+      perception: string;
+      adroitness: string;
+    };
+    prowess: {
+      melee: string;
+      agility: string;
+      precision: string;
+    };
+    fortitude: {
+      endurance: string;
+      strength: string;
+      willpower: string;
+    };
+  };
+
+  focuses: {
+    [specialty: string]: {
+      [focus: string]: string;
+    };
+  };
+
+  // Combat Stats
+  activeDefense: number;
+  passiveDefense: number;
+  spiritPoints: number;
+  masteryDie: string;
+  armor: string;
+
+  // Personality & Background
+  personality: string[];
+  motivation: string;
+  appearance: string;
+  quirks: string[];
+  secrets: string[];
+  relationships: string[];
+  background: string;
+
+  // Iconic Item System
+  iconicItem?: IconicItem;
+
+  // Story Elements
+  rumors: string[];
+  plotHooks: string[];
+
+  // Notes
+  notes?: string;
+}
+
+export interface IconicItem {
+  type: 'Iconic Weapon' | 'Iconic Magic Focus' | 'Iconic Inspirational Item';
+  name: string;
+  description: string;
+  rarity?: 'Common' | 'Uncommon' | 'Esoteric' | 'Occult' | 'Legendary';
+  potency?: string;
+  energyPoints?: number;
+  activationCost?: number;
+  magicalProperties?: {
+    effect: string;
+    description: string;
+  };
+}
+
 export interface NPCTemplate {
   role: string;
   primaryAbility: 'Competence' | 'Prowess' | 'Fortitude';
@@ -173,3 +253,120 @@ export const npcMotivations = [
   'Seeking wealth', 'Protecting family', 'Following orders', 'Personal glory', 'Religious duty',
   'Revenge', 'Knowledge', 'Power', 'Freedom', 'Justice', 'Survival', 'Love'
 ];
+
+export const npcAppearances = [
+  'Tall and imposing', 'Short and stocky', 'Average height, athletic build', 'Lean and wiry',
+  'Heavyset and strong', 'Graceful and elegant', 'Weathered and scarred', 'Young and fresh-faced',
+  'Middle-aged and experienced', 'Elderly and wise', 'Mysterious hooded figure', 'Well-dressed and refined'
+];
+
+export const npcQuirks = [
+  'Always taps fingers when thinking', 'Speaks in riddles', 'Collects unusual trinkets',
+  'Never makes direct eye contact', 'Constantly adjusts their clothing', 'Whistles old tavern songs',
+  'Has a pet that follows them everywhere', 'Chews on a toothpick', 'Counts everything in threes',
+  'Never sits with their back to a door', 'Always carries a lucky charm', 'Speaks to themselves quietly'
+];
+
+export const npcSecrets = [
+  'Is secretly working for a rival faction', 'Has a hidden magical ability', 'Is not who they claim to be',
+  'Owes a significant debt to dangerous people', 'Is related to someone important', 'Witnessed a terrible crime',
+  'Knows the location of hidden treasure', 'Is being blackmailed', 'Has a forbidden love affair',
+  'Is planning to leave town soon', 'Carries a cursed item', 'Is immortal but hiding it'
+];
+
+export const npcRelationships = [
+  'Has a brother in the city guard', 'Is married to a local merchant', 'Owes money to the tavern keeper',
+  'Is childhood friends with the mayor', 'Has a rivalry with another NPC', 'Is the cousin of a noble',
+  'Was trained by a famous warrior', 'Is the apprentice of a renowned mage', 'Has a secret lover',
+  'Is estranged from their family', 'Mentors young adventurers', 'Is allied with a thieves guild'
+];
+
+export const npcBackgrounds = [
+  'Former soldier who saw too much war', 'Merchant who lost everything in a bad deal',
+  'Scholar seeking forbidden knowledge', 'Exile from a distant kingdom', 'Retired adventurer',
+  'Orphan who grew up on the streets', 'Noble who fell from grace', 'Faithful servant of the temple',
+  'Craftsperson with a family tradition', 'Wanderer searching for their destiny',
+  'Survivor of a great tragedy', 'Reformed criminal trying to make amends'
+];
+
+export const npcRumors = [
+  'They say he knows where the old king buried his treasure',
+  'Some claim she can speak to the dead',
+  'Word is he\'s got connections with smugglers',
+  'They whisper she once killed a dragon',
+  'People say he can predict the weather perfectly',
+  'Rumor has it she\'s got noble blood',
+  'They claim he was once a famous thief',
+  'Some believe she\'s cursed with bad luck',
+  'Word is he fought in the great war',
+  'People whisper she knows ancient magic'
+];
+
+export const npcPlotHooks = [
+  'Needs help recovering a stolen family heirloom',
+  'Has information about mysterious disappearances in town',
+  'Seeks brave souls to explore an ancient ruin',
+  'Is being stalked by unknown assassins',
+  'Has a map to a lost temple but needs protection',
+  'Wants to hire guards for a dangerous journey',
+  'Knows the secret entrance to a villain\'s hideout',
+  'Has witnessed strange cult activities',
+  'Is planning a heist and needs accomplices',
+  'Holds the key to solving a local mystery'
+];
+
+// Race ability minimums (from legacy generator)
+export const raceMinimums = {
+  Human: { competence: 'd6', prowess: 'd6', fortitude: 'd4', willpower: 'd6' },
+  Elf: { competence: 'd6', prowess: 'd8', fortitude: 'd4', willpower: 'd6' },
+  Dwarf: { competence: 'd6', prowess: 'd6', fortitude: 'd8', willpower: 'd4' },
+  Gnome: { competence: 'd6', prowess: 'd4', fortitude: 'd6', willpower: 'd6' },
+  'Half-Elf': { competence: 'd6', prowess: 'd6', fortitude: 'd6', willpower: 'd6' },
+  'Half-Orc': { competence: 'd6', prowess: 'd8', fortitude: 'd6', willpower: 'd4' },
+  Halfling: { competence: 'd6', prowess: 'd4', fortitude: 'd4', willpower: 'd6' },
+  Tiefling: { competence: 'd8', prowess: 'd6', fortitude: 'd4', willpower: 'd8' }
+};
+
+// Role ability minimums (from legacy generator)
+export const roleMinimums = {
+  Warrior: { prowess: 'd8', melee: 'd6', fortitude: 'd6' },
+  Rogue: { prowess: 'd6', agility: 'd6', fortitude: 'd4' },
+  Adept: { competence: 'd6', expertise: 'd6', willpower: 'd6' },
+  Mage: { competence: 'd8', expertise: 'd6', willpower: 'd8' },
+  Mystic: { competence: 'd6', expertise: 'd6', willpower: 'd8' },
+  Theurgist: { competence: 'd8', expertise: 'd6', willpower: 'd8' },
+  Barbarian: { prowess: 'd8', melee: 'd6', fortitude: 'd6' },
+  Guard: { prowess: 'd6', melee: 'd6', fortitude: 'd6' }
+};
+
+export const magicalEffects = {
+  weapon: [
+    { effect: 'Harm', description: 'Inflicts additional elemental damage (e.g., fire, ice).' },
+    { effect: 'Afflict', description: 'Has a chance to inflict status ailments (e.g., paralysis).' },
+    { effect: 'Modify', description: 'Enhances weapon\'s sharpness, increasing damage output.' }
+  ],
+  focus: [
+    { effect: 'Activate', description: 'Allows casting of specific spells (e.g., teleportation).' },
+    { effect: 'Restore', description: 'Augments healing spells, restoring more health.' },
+    { effect: 'Protect', description: 'Strengthens defensive spells, providing better protection.' }
+  ],
+  inspirational: [
+    { effect: 'Modify', description: 'Enhances attributes (e.g., increased agility).' },
+    { effect: 'Afflict', description: 'Can impose disadvantages on opponents in social encounters.' },
+    { effect: 'Activate', description: 'Triggers specific events (e.g., unlocking hidden doors).' }
+  ]
+};
+
+export const potencyLevels = ['d4', 'd6', 'd8', 'd10', 'd12'];
+
+export const energyPointsByRarity = {
+  Common: 8,
+  Uncommon: 12,
+  Esoteric: 16,
+  Occult: 20,
+  Legendary: 30
+};
+
+export const dieValues = {
+  'd4': 4, 'd6': 6, 'd8': 8, 'd10': 10, 'd12': 12
+};

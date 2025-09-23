@@ -278,20 +278,34 @@ export default function EncounterGeneratorPage() {
     let totalThreatMV = 0;
     const monsters: MonsterResult[] = [];
     let safety = 0;
-    while (totalThreatMV < targetThreat) {
+    let remainingBudget = targetThreat;
+
+    while (remainingBudget > 0 && safety < 100) {
       const monster = generateMonster(
         enabledTypes,
         nonMediumPercentage,
         nonMundanePercentage,
         specialTypePercentage,
       );
+
       if (monster.threatMV === 0) break;
-      if (totalThreatMV + monster.threatMV > targetThreat) break;
-      monsters.push(monster);
-      totalThreatMV += monster.threatMV;
+
+      // Only add monster if it fits within the remaining budget
+      if (monster.threatMV <= remainingBudget) {
+        monsters.push(monster);
+        totalThreatMV += monster.threatMV;
+        remainingBudget -= monster.threatMV;
+      }
+
       safety++;
-      if (safety > 100) break;
+
+      // Stop if remaining budget is too small for any meaningful threat
+      if (remainingBudget < 4) break;
     }
+
+    // Check if encounter exceeds budget (should not happen with new logic)
+    const budgetExceeded = totalThreatMV > targetThreat;
+    const budgetUtilization = targetThreat > 0 ? (totalThreatMV / targetThreat) * 100 : 0;
 
     const lines: string[] = [];
     lines.push('Eldritch RPG Encounter');
@@ -316,7 +330,15 @@ export default function EncounterGeneratorPage() {
     }
 
     lines.push(`Difficulty: ${activeDifficultyLabel}`);
-    lines.push(`Total Threat Score: ${targetThreat}`);
+    lines.push(`Target Threat Budget: ${targetThreat}`);
+    lines.push(`Generated Total Threat: ${totalThreatMV} (${budgetUtilization.toFixed(1)}% of budget)`);
+
+    if (budgetExceeded) {
+      lines.push('⚠️  WARNING: Generated encounter exceeds target threat budget!');
+    } else if (budgetUtilization < 80) {
+      lines.push(`ℹ️  Note: Encounter uses ${budgetUtilization.toFixed(1)}% of available threat budget`);
+    }
+
     lines.push('');
     lines.push('Creatures:');
     lines.push('=========================');
@@ -423,37 +445,87 @@ export default function EncounterGeneratorPage() {
             <div className="space-y-4">
               {/* Party Folder Selection */}
               <div>
-                <label className="block text-sm font-medium text-emerald-300 mb-2">
-                  Select Party Folders
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-emerald-300">
+                    Select Party Folders
+                  </label>
+                  <div className="flex space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPartyIds(partyFolders.map(f => f.id))}
+                      className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded"
+                    >
+                      Select All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPartyIds([])}
+                      className="text-xs bg-slate-600 hover:bg-slate-700 text-white px-2 py-1 rounded"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {partyFolders.map(folder => (
-                    <label key={folder.id} className="flex items-center space-x-2 p-2 bg-slate-800 rounded">
-                      <input
-                        type="checkbox"
-                        checked={selectedPartyIds.includes(folder.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedPartyIds([...selectedPartyIds, folder.id]);
-                          } else {
-                            setSelectedPartyIds(selectedPartyIds.filter(id => id !== folder.id));
-                          }
-                        }}
-                        className="rounded border-gray-300 text-emerald-600"
-                      />
-                      <span className="text-sm text-slate-200">
-                        {folder.name} ({folder.folder_type === 'PC_party' ? 'PC' : 'NPC'})
-                      </span>
-                    </label>
-                  ))}
+                  {partyFolders.map(folder => {
+                    const folderChars = getPartyCharacters(folder.id);
+                    return (
+                      <label key={folder.id} className="flex items-center space-x-2 p-2 bg-slate-800 rounded">
+                        <input
+                          type="checkbox"
+                          checked={selectedPartyIds.includes(folder.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedPartyIds([...selectedPartyIds, folder.id]);
+                            } else {
+                              setSelectedPartyIds(selectedPartyIds.filter(id => id !== folder.id));
+                            }
+                          }}
+                          className="rounded border-gray-300 text-emerald-600"
+                        />
+                        <div className="flex-1">
+                          <span className="text-sm text-slate-200 font-medium">
+                            {folder.name}
+                          </span>
+                          <span className="text-xs text-slate-400 ml-1">
+                            ({folder.folder_type === 'PC_party' ? 'PC' : 'NPC'}) - {folderChars.length} characters
+                          </span>
+                          {folderChars.length > 0 && (
+                            <div className="text-xs text-slate-500 mt-1">
+                              {folderChars.slice(0, 3).map(char => char.name).join(', ')}
+                              {folderChars.length > 3 && ` +${folderChars.length - 3} more`}
+                            </div>
+                          )}
+                        </div>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Individual Character Selection */}
               <div>
-                <label className="block text-sm font-medium text-emerald-300 mb-2">
-                  Additional Individual Characters
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-emerald-300">
+                    Additional Individual Characters
+                  </label>
+                  <div className="flex space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCharacterIds(availableCharacters.map(c => c.id))}
+                      className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded"
+                    >
+                      Select All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCharacterIds([])}
+                      className="text-xs bg-slate-600 hover:bg-slate-700 text-white px-2 py-1 rounded"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                   {availableCharacters.map(character => (
                     <label key={character.id} className="flex items-center space-x-2 p-2 bg-slate-800 rounded">
@@ -469,9 +541,17 @@ export default function EncounterGeneratorPage() {
                         }}
                         className="rounded border-gray-300 text-emerald-600"
                       />
-                      <span className="text-xs text-slate-200">
-                        {character.name} ({character.type})
-                      </span>
+                      <div className="flex-1">
+                        <span className="text-xs text-slate-200 font-medium">
+                          {character.name}
+                        </span>
+                        <span className="text-xs text-slate-400 ml-1">
+                          ({character.type})
+                        </span>
+                        <div className="text-xs text-slate-500">
+                          Level {character.level} • {character.race} {character.class}
+                        </div>
+                      </div>
                     </label>
                   ))}
                 </div>
