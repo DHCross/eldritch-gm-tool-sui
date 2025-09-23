@@ -194,7 +194,6 @@ export default function EncounterGeneratorPage() {
     Legendary: false,
   });
   const [encounterOutput, setEncounterOutput] = useState<string>('');
-  const [importSummary, setImportSummary] = useState<string>('');
 
   // Party management state
   const [partyFolders, setPartyFolders] = useState<PartyFolder[]>([]);
@@ -265,26 +264,33 @@ export default function EncounterGeneratorPage() {
       return;
     }
 
-    const difficultyBand = encounterDifficultyTable[partySize];
-    const targetThreat = difficultyBand[activeDefenseLevel][difficultyIndex];
+    // Always use calculated defense tier if party stats are enabled
+    let defenseTier = activeDefenseLevel;
+    let partySz = partySize;
+    if (usePartyStats && partyDefenseProfile) {
+      defenseTier = partyDefenseProfile.defense_tier;
+      partySz = partyDefenseProfile.character_count;
+    }
+    const difficultyBand = encounterDifficultyTable[partySz];
+    const targetThreat = difficultyBand[defenseTier][difficultyIndex];
 
-    let remainingThreat = targetThreat;
+    // Generate monsters so that their total threatMV matches or is just under the targetThreat
+    let totalThreatMV = 0;
     const monsters: MonsterResult[] = [];
-
-    while (remainingThreat > 0) {
+    let safety = 0;
+    while (totalThreatMV < targetThreat) {
       const monster = generateMonster(
         enabledTypes,
         nonMediumPercentage,
         nonMundanePercentage,
         specialTypePercentage,
       );
-      monsters.push(monster);
-      remainingThreat -= monster.threatMV;
       if (monster.threatMV === 0) break;
-      if (monsters.length > 100) {
-        // avoid edge case infinite loops if data changes unexpectedly
-        break;
-      }
+      if (totalThreatMV + monster.threatMV > targetThreat) break;
+      monsters.push(monster);
+      totalThreatMV += monster.threatMV;
+      safety++;
+      if (safety > 100) break;
     }
 
     const lines: string[] = [];
@@ -380,47 +386,19 @@ export default function EncounterGeneratorPage() {
     [selectedTypes],
   );
 
-  const handleImportPartyDefense = useCallback(() => {
-    const partyDefense = readLocalPartyDefense();
-    if (!partyDefense) {
-      setImportSummary('No party defense found. Select PCs in the roster first and try again.');
-      return;
-    }
-
-    setImportSummary(
-      `Imported: Active Defense ${partyDefense.totalAD}, Passive Defense ${partyDefense.totalPD}, Total ${partyDefense.total} → Tier: ${partyDefense.tier}${partyDefense.range ? ` (${partyDefense.range})` : ''}`,
-    );
-
-    const tierIndex = defenseLevels.indexOf(partyDefense.tier);
-    if (tierIndex !== -1) {
-      setDefenseLevelIndex(tierIndex);
-    }
-  }, []);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-10 sm:px-6 lg:px-8">
-        <header className="flex items-center justify-between gap-4">
+        <header className="flex items-center gap-4">
           <Link
             href="/"
             className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
           >
             ← Back to Home
           </Link>
-          <button
-            type="button"
-            onClick={handleImportPartyDefense}
-            className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400"
-          >
-            Import Party Defense
-          </button>
         </header>
 
-        {importSummary && (
-          <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-4 text-sm text-slate-200 shadow-inner">
-            {importSummary}
-          </div>
-        )}
 
         <h1 className="text-center text-3xl font-bold tracking-tight text-emerald-400 sm:text-4xl">
           Eldritch RPG Encounter Generator
