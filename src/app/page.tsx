@@ -96,6 +96,19 @@ export default function Home() {
           </div>
 
           <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <h2 className="text-2xl font-bold mb-3">📖 Beings Diverse and Malign</h2>
+            <p className="text-gray-600 mb-4">
+              The complete bestiary of creatures, monsters, and adversaries from the Eldritch archives.
+            </p>
+            <Link
+              href="/bestiary"
+              className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-block transition-colors"
+            >
+              ⚠️ Access Bestiary
+            </Link>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
             <h2 className="text-2xl font-bold mb-3">⚡ Battle Phase Calculator</h2>
             <p className="text-gray-600 mb-4">
               Track initiative, manage combat rounds, and calculate battle phases.
