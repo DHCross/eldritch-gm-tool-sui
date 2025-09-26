@@ -62,24 +62,51 @@ const CONSTITUTION_TYPES = [
   { name: 'Fast', description: '75/25 HP split' }
 ];
 
-// Creature tropes by nature
+// Meterea Conceptual Manifestations
+const METEREA_MANIFESTATIONS = {
+  'Reifiants': 'Legend-forged archetypes crystallized from collective belief',
+  'Inklings': 'Raw dream-spirits, unstable flickers of subconscious intent',
+  'Extantars': 'Perception-reactive entities that morph based on observer expectations',
+  'Aethelborn': 'Stabilized forms fixed by focused external will'
+};
+
+// Racial Archetypal Tropes
+const RACIAL_ARCHETYPES = {
+  'Goblinoids': 'Cunning and covetous kin, blending bestial ferocity with reptilian traits',
+  'Alfar': 'Magical humanoids sharing a spark of Meterea\'s dream-stuff',
+  'Dwarves': 'Resilient mountain-dwellers, renowned miners and smiths',
+  'Elves': 'Forest-bound, long-lived beings where nature\'s magic is strongest',
+  'Halflings': 'Diminutive beings with nimble grace and adventurous spirits',
+  'Gnomes': 'Intricate workshop masters favoring arcane experiments',
+  'Drakkin': 'Dragon-descended humanoids blending ambition with draconic power'
+};
+
+// Expanded creature tropes by nature and tier (Quick Stat Block Tool)
 const CREATURE_TROPES = {
-  'Mundane': [
-    'Human Soldier', 'Human Bandit', 'Human Guard', 'Human Cultist',
-    'Wolf Pack', 'Bear', 'Boar', 'Hawk', 'Snake', 'Veteran Warrior'
-  ],
-  'Magical': [
-    'Fey Sprite', 'Fey Dryad', 'Elemental Fire', 'Elemental Water',
-    'Elemental Earth', 'Elemental Air', 'Wizard', 'Sorcerer', 'Druid', 'Archmage'
-  ],
-  'Preternatural': [
-    'Undead Skeleton', 'Undead Zombie', 'Undead Ghost', 'Undead Wight',
-    'Werewolf', 'Vampire', 'Shapeshifter', 'Nightmare', 'Shadow', 'Vampire Lord'
-  ],
-  'Supernatural': [
-    'Angel', 'Demon', 'Devil', 'Titan', 'Elder Dragon',
-    'God Avatar', 'Primordial', 'Archfey', 'Lich Lord', 'Demon Lord'
-  ]
+  'Mundane': {
+    'Minor': ['Villager (1d4)', 'Inexperienced Bandit (1d6)', 'Small Animal (1d3)', 'Farmer (1d4)', 'Street Thief (1d6)'],
+    'Standard': ['Trained Guard (2d6)', 'Seasoned Brigand (2d8)', 'Wolf Pack (2d6)', 'Soldier (2d8)', 'Mercenary (2d6)'],
+    'Exceptional': ['Veteran Warrior (3d8)', 'Cunning Assassin (3d10)', 'Tiger (3d10)', 'Elite Guard (3d8)', 'Master Archer (3d10)'],
+    'Legendary': ['Renowned Champion (3d12+)', 'Warlord (3d12+)', 'Elephant (3d12+)', 'Legendary Beast (3d12+)', 'Master Tactician (3d12+)']
+  },
+  'Magical': {
+    'Minor': ['Pixie (1d4)', 'Sprite (1d6)', 'Novice Druid (1d6)', 'Hedge Wizard (1d8)', 'Minor Familiar (1d4)'],
+    'Standard': ['Elven Mage (2d8)', 'Druidic Circle (2d8)', 'Unicorn (2d10)', 'Fey Noble (2d8)', 'Elemental (2d10)'],
+    'Exceptional': ['Powerful Sorcerer (3d10)', 'Archdruid (3d10)', 'Griffin (3d8)', 'Manticore (3d10)', 'Fey Lord (3d12)'],
+    'Legendary': ['Archmage (3d12+)', 'Fey Nobility (3d12+)', 'True Dragon (3d12+)', 'Elemental Lord (3d12+)', 'Celestial (3d12+)']
+  },
+  'Preternatural': {
+    'Minor': ['Skeleton (1d4)', 'Zombie (1d6)', 'Doppelganger (1d8)', 'Mimic (1d8)', 'Shadow (1d6)'],
+    'Standard': ['Vampire (2d8)', 'Werewolf (2d10)', 'Potent Specter (2d10)', 'Wraith (2d8)', 'Ghoul Pack (2d6)'],
+    'Exceptional': ['Lich (3d10)', 'Vampire Lord (3d12)', 'Ancient Shapeshifter (3d10)', 'Death Knight (3d12)', 'Nightmare (3d10)'],
+    'Legendary': ['Undead Dragon (3d12+)', 'Bound Demon (3d12+)', 'Legendary Shapeshifter (3d12+)', 'Lich King (3d12+)', 'Avatar of Death (3d12+)']
+  },
+  'Supernatural': {
+    'Minor': ['Lesser Angel (1d8)', 'Minor Fiend (1d8)', 'Dryad (1d6)', 'Nymph (1d6)', 'Guardian Spirit (1d8)'],
+    'Standard': ['True Angel (2d10)', 'Powerful Demon (2d12)', 'Elder Nature Spirit (2d10)', 'Celestial Guardian (2d10)', 'Infernal Warrior (2d12)'],
+    'Exceptional': ['Archangel (3d10)', 'Demon Lord (3d12)', 'Avatar of Minor Deity (3d12)', 'Seraph (3d12)', 'Balor (3d12)'],
+    'Legendary': ['God/Goddess (3d12+)', 'Primordial Titan (3d12+)', 'Cosmic Force (3d12+)', 'Divine Avatar (3d12+)', 'World Spirit (3d12+)']
+  }
 };
 
 // Speed focus bonuses
@@ -219,7 +246,10 @@ export default function MonsterGenerator() {
   const baseMovement = calculateMovement();
 
   // Get suggested tropes
-  const suggestedTropes = CREATURE_TROPES[monsterForm.nature] || [];
+  // Get suggested tropes based on nature and category
+  const suggestedTropes = CREATURE_TROPES[monsterForm.nature]?.[monsterForm.category] || [];
+  const allRacialArchetypes = Object.keys(RACIAL_ARCHETYPES);
+  const allManifestations = Object.keys(METEREA_MANIFESTATIONS);
 
   // Generate formatted QSB string
   const generateQSBString = () => {
@@ -412,7 +442,7 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Suggested Tropes:</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Suggested Tropes ({monsterForm.nature} {monsterForm.category}):</label>
               <select
                 value={monsterForm.trope}
                 onChange={(e) => updateForm('trope', e.target.value)}
@@ -423,6 +453,33 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
                   <option key={trope} value={trope}>{trope}</option>
                 ))}
               </select>
+            </div>
+          </div>
+
+          {/* Ainerêve Classifications */}
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h4 className="text-sm font-semibold text-purple-700 mb-2">Meterea Manifestations</h4>
+              <div className="space-y-1 text-xs">
+                {Object.entries(METEREA_MANIFESTATIONS).map(([type, desc]) => (
+                  <div key={type} className="bg-purple-50 p-2 rounded border border-purple-200">
+                    <span className="font-medium text-purple-800">{type}:</span>
+                    <p className="text-purple-600">{desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-semibold text-blue-700 mb-2">Racial Archetypes</h4>
+              <div className="space-y-1 text-xs">
+                {Object.entries(RACIAL_ARCHETYPES).slice(0, 4).map(([race, desc]) => (
+                  <div key={race} className="bg-blue-50 p-2 rounded border border-blue-200">
+                    <span className="font-medium text-blue-800">{race}:</span>
+                    <p className="text-blue-600">{desc}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
