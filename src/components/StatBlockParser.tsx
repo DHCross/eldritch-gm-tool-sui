@@ -123,10 +123,10 @@ export default function StatBlockParser() {
       {/* Header */}
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Stat Block Parser & Analyzer
+          Game Content Parser & Analyzer
         </h1>
         <p className="text-gray-600 mb-4">
-          Analyze and validate Eldritch RPG stat blocks for compliance and formatting
+          Analyze and validate Eldritch RPG stat blocks, spells, and magic items for compliance and formatting
         </p>
       </div>
 
@@ -161,15 +161,15 @@ export default function StatBlockParser() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {mode === 'single' ? 'Enter stat block text:' : 'Enter document text (multiple stat blocks):'}
+              {mode === 'single' ? 'Enter game content:' : 'Enter document text (multiple entries):'}
             </label>
             <textarea
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder={
                 mode === 'single'
-                  ? 'Paste a single stat block here...\n\nExample:\n**Goblin Warrior** AC 15, HP 12 (6/6), disposition neutral, 2nd level goblin fighter...'
-                  : 'Paste document text with multiple stat blocks here...\n\nThe parser will automatically identify and analyze each stat block while filtering out headers, narrative text, and equipment lists.'
+                  ? 'Paste game content here...\n\nExamples:\n• **Goblin Warrior** AC 15, HP 12, disposition neutral...\n• *Fireball* Path: Elementalism, Rank: d6, Tier: Common...\n• **Sword +1** A magical blade with enhanced sharpness...'
+                  : 'Paste document text with multiple entries here...\n\nThe parser will automatically identify and analyze:\n• Stat blocks (NPCs & monsters)\n• Spells with paths and effects\n• Magic items with properties\n\nWhile filtering out headers, narrative text, and equipment lists.'
               }
               className="w-full h-64 border border-gray-300 rounded-md px-3 py-2 font-mono text-sm"
             />
@@ -245,7 +245,7 @@ export default function StatBlockParser() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">{analysis.totalEntries}</div>
-                <div className="text-sm text-gray-600">Stat Blocks Found</div>
+                <div className="text-sm text-gray-600">Game Entries Found</div>
               </div>
               <div className="text-center">
                 <div className={`text-2xl font-bold ${getComplianceColor(analysis.averageCompliance)}`}>
@@ -302,14 +302,16 @@ export default function StatBlockParser() {
                       <span className="font-bold">Lines {entry.lineStart}-{entry.lineEnd}</span>
                       <span className={`px-2 py-1 rounded text-xs font-medium ${
                         entry.type === 'stat_block' ? 'bg-blue-100 text-blue-800' :
-                        entry.type === 'header' ? 'bg-purple-100 text-purple-800' :
+                        entry.type === 'spell' ? 'bg-purple-100 text-purple-800' :
+                        entry.type === 'magic_item' ? 'bg-orange-100 text-orange-800' :
+                        entry.type === 'header' ? 'bg-gray-100 text-gray-800' :
                         entry.type === 'narrative' ? 'bg-green-100 text-green-800' :
                         entry.type === 'equipment' ? 'bg-yellow-100 text-yellow-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
                         {entry.type.replace('_', ' ')}
                       </span>
-                      {entry.type === 'stat_block' && (
+                      {(entry.type === 'stat_block' || entry.type === 'spell' || entry.type === 'magic_item') && (
                         <span className={`px-2 py-1 rounded text-xs font-medium ${
                           entry.compliance >= 90 ? 'bg-green-100 text-green-800' :
                           entry.compliance >= 70 ? 'bg-yellow-100 text-yellow-800' :
@@ -355,11 +357,17 @@ export default function StatBlockParser() {
                         </div>
                       )}
 
-                      {entry.type === 'stat_block' && (
+                      {(entry.type === 'stat_block' || entry.type === 'spell' || entry.type === 'magic_item') && (
                         <div className="text-sm text-gray-600">
                           <strong>Confidence:</strong> {Math.round(entry.confidence * 100)}% |{' '}
-                          <strong>Type:</strong> {entry.type} |{' '}
+                          <strong>Type:</strong> {entry.type.replace('_', ' ')} |{' '}
                           <strong>Compliance:</strong> {entry.compliance}%
+                          {entry.contentCategory && (
+                            <>
+                              {' | '}
+                              <strong>Category:</strong> {entry.contentCategory}
+                            </>
+                          )}
                         </div>
                       )}
                     </div>
@@ -375,9 +383,10 @@ export default function StatBlockParser() {
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
         <h3 className="text-lg font-bold text-blue-800 mb-3">How to Use</h3>
         <div className="text-sm text-blue-700 space-y-2">
-          <p><strong>Single Entry Mode:</strong> Paste a single stat block to analyze its compliance and get specific suggestions.</p>
-          <p><strong>Batch Processing Mode:</strong> Paste an entire document. The analyzer will automatically identify stat blocks while filtering out headers, narrative text, and equipment lists.</p>
-          <p><strong>Auto-Corrections:</strong> The tool can automatically fix capitalization issues and common formatting problems.</p>
+          <p><strong>Single Entry Mode:</strong> Paste a single game entry (stat block, spell, or magic item) to analyze its compliance and get specific suggestions.</p>
+          <p><strong>Batch Processing Mode:</strong> Paste an entire document. The analyzer will automatically identify game content while filtering out headers, narrative text, and equipment lists.</p>
+          <p><strong>Content Types:</strong> Supports stat blocks (NPCs & monsters), spells (with paths and effects), and magic items (with properties and bonuses).</p>
+          <p><strong>Auto-Corrections:</strong> The tool can automatically fix capitalization issues, formatting problems, and standardize field names.</p>
           <p><strong>Export:</strong> Save detailed analysis results as JSON for further processing or record keeping.</p>
         </div>
       </div>
