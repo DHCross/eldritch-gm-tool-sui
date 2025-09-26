@@ -84,6 +84,40 @@ const RACIAL_ARCHETYPES = {
   'Drakkin': 'Dragon-descended humanoids blending ambition with draconic power'
 };
 
+// Human Regional Backgrounds (Eldritch Realms)
+const HUMAN_REGIONS = {
+  'Dalmavand': {
+    description: 'Norse and later medieval society, shaped by Nordic myth',
+    characteristics: 'Hardiest heroes are descendants of the Varangian Guard. Sturdy, high-hearted, produce many adventurers.',
+    encounters: 'Elves (border skirmishes in Echoes Forest), Eborian Ape-Men (Losels)'
+  },
+  'Psarmorum': {
+    description: 'Racial and religious purists descended from Templar Knights and pilgrims',
+    characteristics: 'Worship Sol Invictus (Baphomet). Evangelistic, conformist, derive magical strength from demon blood.',
+    encounters: 'Gethra (demonic goat-humanoids), Devil Worshipers (human cultists), wandering demons'
+  },
+  'Maedoen': {
+    description: 'Founded on pre-Roman Celtic/Welsh culture',
+    characteristics: 'Influenced by native shee (faerie folk). Spiritual life guided by Gan Creadigaeth (druids).',
+    encounters: 'Troublesome shee (faerie folk), forces from Psarmorum, cythraul (terrible fiends from the sea)'
+  },
+  'Crossroads': {
+    description: 'Neutral city-state and active trading center',
+    characteristics: 'Meeting place for travelers from across Realms. Notable: Duchess Sibyl, Virgil (Guardian\'s Guild), Bertran Forthwind.',
+    encounters: 'Diverse travelers, Alfar, interdimensional visitors via Equinox Portals'
+  },
+  'Northern Reaches': {
+    description: 'Rugged human clans (Wolf, Bear, Boar) north of Dalmavand',
+    characteristics: 'Resilient due to severe winters. Wolf Clan (amicable), Bear Clan (hired soldiers), Boar Clan (pirates).',
+    encounters: 'Clan conflicts, winter predators, raiders from the sea'
+  },
+  'Outlander': {
+    description: 'Souls plucked from Earth by Revorage Rifts (dream storms)',
+    characteristics: 'Real by definition, obey rigid terrestrial physics, Earth-shaped mindset can warp local reality.',
+    encounters: 'Reality distortions, conflicts with local customs, adaptation challenges'
+  }
+};
+
 // Story Lineage Tropes - Cross-cutting narrative categories spanning all power tiers and natures
 const STORY_TROPES = {
   'Goblinoids': {
@@ -156,6 +190,15 @@ const STORY_TROPES = {
       'Standard': 'Demon (2d10 Preternatural) • Devil (2d12 Supernatural)',
       'Exceptional': 'Greater Demon (3d10 Preternatural) • Pit Fiend (3d12 Supernatural)',
       'Legendary': 'Demon Prince (3d12+ Supernatural) • Archdevil (3d12+ Supernatural)'
+    }
+  },
+  'Humans': {
+    description: 'Most adaptable race in Ainerêve, Mortal Kin lacking innate arcane spark',
+    examples: {
+      'Minor': 'Villager (1d4 Mundane) • Inexperienced Bandit (1d6 Mundane)',
+      'Standard': 'Trained Guard (2d6 Mundane) • Seasoned Brigand (2d8 Mundane)',
+      'Exceptional': 'Veteran Warrior (3d8 Mundane) • Cunning Assassin (3d10 Mundane)',
+      'Legendary': 'Renowned Champion (3d12+ Mundane) • Warlord (3d12+ Mundane)'
     }
   }
 };
@@ -265,6 +308,8 @@ interface MonsterForm {
   concept: string;
   trope: string;
   storyTrope: string;
+  humanRegion: string;
+  useEldritchRealms: boolean;
   speedFocus: string;
   especiallySpeedy: boolean;
 }
@@ -292,6 +337,8 @@ export default function MonsterGenerator() {
     concept: '',
     trope: '',
     storyTrope: '',
+    humanRegion: '',
+    useEldritchRealms: false,
     speedFocus: 'None',
     especiallySpeedy: false
   });
@@ -643,6 +690,24 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
           </div>
         </div>
 
+        {/* Eldritch Realms Toggle */}
+        <div className="mt-6 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={monsterForm.useEldritchRealms}
+              onChange={(e) => updateForm('useEldritchRealms', e.target.checked)}
+              className="mr-3"
+            />
+            <span className="text-sm font-medium text-gray-700">
+              Use Eldritch Realms Setting Details
+            </span>
+          </label>
+          <p className="text-xs text-gray-600 mt-1">
+            Enable for specific regional backgrounds and encounter tables from Ainerêve
+          </p>
+        </div>
+
         {/* Three-Axis Design Section */}
         <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <h3 className="text-lg font-semibold text-blue-900 mb-3">Three-Axis Monster Design</h3>
@@ -677,6 +742,25 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
                   <option key={trope} value={trope}>{trope}</option>
                 ))}
               </select>
+
+              {/* Human Regional Background */}
+              {(monsterForm.storyTrope === 'Humans' && monsterForm.useEldritchRealms) && (
+                <div className="mb-3">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Human Regional Background:
+                  </label>
+                  <select
+                    value={monsterForm.humanRegion}
+                    onChange={(e) => updateForm('humanRegion', e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  >
+                    <option value="">Select regional background...</option>
+                    {Object.keys(HUMAN_REGIONS).map(region => (
+                      <option key={region} value={region}>{region}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Nature Examples ({NATURE_CATEGORIES.find(n => n.name === monsterForm.nature)?.title} - {monsterForm.category}):
@@ -731,6 +815,37 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Human Regional Background Details */}
+          {(monsterForm.storyTrope === 'Humans' && monsterForm.humanRegion && monsterForm.useEldritchRealms && HUMAN_REGIONS[monsterForm.humanRegion as keyof typeof HUMAN_REGIONS]) && (
+            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <h4 className="text-sm font-semibold text-green-800 mb-2">
+                {monsterForm.humanRegion} Regional Background
+              </h4>
+              <div className="space-y-2 text-xs">
+                <div className="bg-white p-2 rounded border border-green-200">
+                  <span className="font-medium text-green-800">Culture:</span>
+                  <p className="text-green-700">{HUMAN_REGIONS[monsterForm.humanRegion as keyof typeof HUMAN_REGIONS].description}</p>
+                </div>
+                <div className="bg-white p-2 rounded border border-green-200">
+                  <span className="font-medium text-green-800">Characteristics:</span>
+                  <p className="text-green-700">{HUMAN_REGIONS[monsterForm.humanRegion as keyof typeof HUMAN_REGIONS].characteristics}</p>
+                </div>
+                <div className="bg-white p-2 rounded border border-green-200">
+                  <span className="font-medium text-green-800">Common Encounters:</span>
+                  <p className="text-green-700">{HUMAN_REGIONS[monsterForm.humanRegion as keyof typeof HUMAN_REGIONS].encounters}</p>
+                </div>
+              </div>
+
+              {monsterForm.humanRegion === 'Outlander' && (
+                <div className="mt-3 p-2 bg-yellow-100 border border-yellow-300 rounded">
+                  <p className="text-xs text-yellow-800">
+                    <strong>Special:</strong> Outlanders have Base Die Ranks: Competence d6; Prowess d6 (Melee d4, Threat +1); Fortitude d4 (Willpower d6). Advantages: Fortunate, Survival.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -943,7 +1058,7 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
               <div className="space-y-2">
                 <div className="bg-white p-2 rounded border border-red-200">
                   <span className="font-medium text-green-800">Mortal Kin (Mundane):</span>
-                  <p className="text-green-700">1d3-3d12+ range, terrestrial physics</p>
+                  <p className="text-green-700">1d3-3d12+ range, terrestrial physics. Includes humans, most adaptable race in Ainerêve.</p>
                 </div>
                 <div className="bg-white p-2 rounded border border-red-200">
                   <span className="font-medium text-blue-800">Enchanted Kin (Magical):</span>
@@ -963,12 +1078,16 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
               <h4 className="font-semibold text-red-800 mb-2">Threat Progression Examples</h4>
               <div className="space-y-2 text-xs">
                 <div className="bg-white p-2 rounded border border-red-200">
-                  <span className="font-medium">Mundane progression:</span>
+                  <span className="font-medium">Human (Mundane) progression:</span>
                   <p>Villager (1d4) → Guard (2d6) → Veteran (3d8) → Champion (3d12+)</p>
                 </div>
                 <div className="bg-white p-2 rounded border border-red-200">
                   <span className="font-medium">Magical progression:</span>
                   <p>Pixie (1d4) → Mage (2d8) → Griffin (3d8) → Dragon (3d12+)</p>
+                </div>
+                <div className="bg-white p-2 rounded border border-red-200">
+                  <span className="font-medium">Regional Human examples:</span>
+                  <p>Dalmavand Warrior (2d6) → Psarmorum Templar (2d8) → Maedoen Druid (3d8)</p>
                 </div>
                 <div className="bg-white p-2 rounded border border-red-200">
                   <span className="font-medium">Supernatural progression:</span>
