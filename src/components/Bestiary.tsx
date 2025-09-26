@@ -382,9 +382,23 @@ export default function Bestiary() {
     return encounterCreatures.reduce((total, creature) => total + creature.threatMV, 0);
   }, [encounterCreatures]);
 
+  const resetFilters = () => {
+    setSearchTerm('');
+    setSelectedCategory('All');
+    setSelectedNature('All');
+    setSelectedSource('All');
+  };
+
   const addToEncounter = (creature: BestiaryCreature) => {
-    if (currentThreat + creature.threatMV <= threatBudget * 1.2) { // Allow 20% overage
-      setEncounterCreatures(prev => [...prev, creature]);
+    const projectedThreat = currentThreat + creature.threatMV;
+    if (threatBudget > 0 && projectedThreat > threatBudget * 1.2) {
+      return;
+    }
+
+    setEncounterCreatures(prev => [...prev, creature]);
+
+    if (!showEncounterBuilder) {
+      setShowEncounterBuilder(true);
     }
   };
 
@@ -464,7 +478,23 @@ export default function Bestiary() {
             className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
           >
             {showEncounterBuilder ? 'Hide' : 'Show'} Encounter Builder
+            {encounterCreatures.length > 0 && ` (${encounterCreatures.length})`}
           </button>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600 mt-4">
+          <span>
+            Showing {filteredCreatures.length} of {BESTIARY_CREATURES.length} creatures
+            {searchTerm || selectedCategory !== 'All' || selectedNature !== 'All' || selectedSource !== 'All' ? ' (filtered)' : ''}
+          </span>
+          {filteredCreatures.length === 0 && (
+            <button
+              onClick={resetFilters}
+              className="text-purple-600 hover:text-purple-800 font-medium"
+            >
+              Clear filters
+            </button>
+          )}
         </div>
 
         {/* Encounter Builder */}
@@ -524,7 +554,7 @@ export default function Bestiary() {
                 <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                   <div
                     className="bg-purple-600 h-2 rounded-full"
-                    style={{ width: `${Math.min(100, (currentThreat / threatBudget) * 100)}%` }}
+                    style={{ width: `${threatBudget ? Math.min(100, (currentThreat / threatBudget) * 100) : 0}%` }}
                   ></div>
                 </div>
               </div>
@@ -555,8 +585,37 @@ export default function Bestiary() {
         )}
       </div>
 
+      {!showEncounterBuilder && encounterCreatures.length > 0 && (
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-sm text-purple-800">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span>
+              Encounter contains {encounterCreatures.length} creature{encounterCreatures.length === 1 ? '' : 's'}
+              {threatBudget > 0 ? ` (Threat ${currentThreat}/${threatBudget})` : ` (Threat ${currentThreat})`}
+            </span>
+            <button
+              onClick={() => setShowEncounterBuilder(true)}
+              className="text-purple-700 hover:text-purple-900 font-semibold"
+            >
+              Open Encounter Builder
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Creature Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredCreatures.length === 0 && (
+          <div className="col-span-full bg-white rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-600">
+            <p className="font-semibold text-gray-700 mb-2">No creatures match your filters.</p>
+            <p className="text-sm">Try adjusting your search or clearing all filters to see the full bestiary.</p>
+            <button
+              onClick={resetFilters}
+              className="mt-4 inline-flex items-center justify-center rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700"
+            >
+              Reset filters
+            </button>
+          </div>
+        )}
         {filteredCreatures.map((creature) => (
           <div key={creature.id} className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
             <div className="flex items-center justify-between mb-3">
@@ -596,15 +655,13 @@ export default function Bestiary() {
               >
                 View Details
               </button>
-              {showEncounterBuilder && (
-                <button
-                  onClick={() => addToEncounter(creature)}
-                  disabled={currentThreat + creature.threatMV > threatBudget * 1.2}
-                  className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-bold py-2 px-3 rounded text-sm"
-                >
-                  Add
-                </button>
-              )}
+              <button
+                onClick={() => addToEncounter(creature)}
+                disabled={threatBudget > 0 && currentThreat + creature.threatMV > threatBudget * 1.2}
+                className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-bold py-2 px-3 rounded text-sm"
+              >
+                {showEncounterBuilder ? 'Add' : 'Add to Encounter'}
+              </button>
             </div>
           </div>
         ))}
