@@ -3,15 +3,10 @@ import {
   DieRank,
   dieRanks,
   abilities,
-  specialties,
-  focuses,
   races,
   classes,
-  levelProgression,
   costToRankUpDie,
-  costToRankUpFocus,
-  buildPhilosophies,
-  rookieProfiles
+  buildPhilosophies
 } from '../data/gameData';
 
 export function rollDie(sides: number): number {
@@ -143,8 +138,6 @@ export function validateCharacterBuild(character: Character): string[] {
   // Check build philosophy soft caps
   const philosophy = buildPhilosophies[character.buildPhilosophy];
   const softCapAbility = philosophy.softCaps.abilities;
-  const softCapSpecialty = philosophy.softCaps.specialties;
-  const softCapFocus = philosophy.softCaps.focuses;
 
   abilities.forEach(ability => {
     const current = character.abilities[ability] as DieRank;

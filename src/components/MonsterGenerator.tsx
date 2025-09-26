@@ -73,9 +73,9 @@ const METEREA_MANIFESTATIONS = {
 // Racial Archetypal Tropes
 const RACIAL_ARCHETYPES = {
   'Goblinoids': 'Cunning and covetous kin, blending bestial ferocity with reptilian traits',
-  'Alfar': 'Magical humanoids sharing a spark of Meterea\'s dream-stuff',
+  'Alfar': 'Magical humanoids sharing a spark of Meterea&apos;s dream-stuff',
   'Dwarves': 'Resilient mountain-dwellers, renowned miners and smiths',
-  'Elves': 'Forest-bound, long-lived beings where nature\'s magic is strongest',
+  'Elves': 'Forest-bound, long-lived beings where nature&apos;s magic is strongest',
   'Halflings': 'Diminutive beings with nimble grace and adventurous spirits',
   'Gnomes': 'Intricate workshop masters favoring arcane experiments',
   'Drakkin': 'Dragon-descended humanoids blending ambition with draconic power'
@@ -259,11 +259,8 @@ export default function MonsterGenerator() {
 
   const baseMovement = calculateMovement();
 
-  // Get suggested tropes
   // Get suggested tropes based on nature and category
   const suggestedTropes = CREATURE_TROPES[monsterForm.nature]?.[monsterForm.category] || [];
-  const allRacialArchetypes = Object.keys(RACIAL_ARCHETYPES);
-  const allManifestations = Object.keys(METEREA_MANIFESTATIONS);
 
   // Generate formatted QSB string
   const generateQSBString = () => {
@@ -663,7 +660,7 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
         <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
           <h3 className="text-lg font-semibold text-green-900 mb-3">Tactical Movement (5-foot squares)</h3>
           <p className="text-sm text-green-800 mb-4">
-            Movement bonuses are derived from Battle Phase die rank, representing the creature's inherent celerity tier.
+            Movement bonuses are derived from Battle Phase die rank, representing the creature&apos;s inherent celerity tier.
             This is distinct from purchasable Focus abilities (+1 to +5 static bonuses).
           </p>
 

@@ -11,7 +11,6 @@ export interface Spell {
 
 export function parseCSV(csvText: string): Spell[] {
   const lines = csvText.split('\n').filter(line => line.trim());
-  const header = lines[0];
   const dataLines = lines.slice(1);
 
   return dataLines.map(line => {
