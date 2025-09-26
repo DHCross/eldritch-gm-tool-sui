@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   CreatureCategory,
   CreatureNature,
@@ -170,9 +170,23 @@ export default function MonsterGenerator() {
   const [selectedParty, setSelectedParty] = useState('');
   const [showSaveDialog, setShowSaveDialog] = useState(false);
 
+  // Refs for smooth scrolling navigation
+  const basicInfoRef = useRef<HTMLDivElement>(null);
+  const combatStatsRef = useRef<HTMLDivElement>(null);
+  const notesRef = useRef<HTMLDivElement>(null);
+  const qsbRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     setPartyFolders(getAllPartyFolders());
   }, []);
+
+  // Smooth scroll to section function
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
+    ref.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+  };
 
   // Calculate stats based on current form
   const highestThreatMV = Math.max(
@@ -339,19 +353,55 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Eldritch RPG Monster Builder
-        </h1>
-        <p className="text-gray-600">
-          Create complete Quick Stat Block (QSB) monsters based on Eldritch Rules 8.17.2025
-        </p>
+    <div className="relative">
+      {/* Sticky Navigation Sidebar */}
+      <div className="fixed left-4 top-1/2 transform -translate-y-1/2 z-10 hidden lg:block">
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-3 space-y-2">
+          <h3 className="text-sm font-bold text-gray-800 mb-3 text-center">Quick Nav</h3>
+          <button
+            onClick={() => scrollToSection(basicInfoRef)}
+            className="w-full text-left text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded transition-colors"
+            title="Basic Information"
+          >
+            Basic Info
+          </button>
+          <button
+            onClick={() => scrollToSection(combatStatsRef)}
+            className="w-full text-left text-xs bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 rounded transition-colors"
+            title="Combat Statistics"
+          >
+            Combat Stats
+          </button>
+          <button
+            onClick={() => scrollToSection(notesRef)}
+            className="w-full text-left text-xs bg-green-50 hover:bg-green-100 text-green-700 px-3 py-2 rounded transition-colors"
+            title="Notes"
+          >
+            Notes
+          </button>
+          <button
+            onClick={() => scrollToSection(qsbRef)}
+            className="w-full text-left text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 px-3 py-2 rounded transition-colors"
+            title="Generated Quick Stat Block"
+          >
+            QSB Result
+          </button>
+        </div>
       </div>
 
-      {/* Basic Information */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-bold mb-4">I. Basic Information</h2>
+      <div className="max-w-6xl mx-auto p-6 space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Eldritch RPG Monster Builder
+          </h1>
+          <p className="text-gray-600">
+            Create complete Quick Stat Block (QSB) monsters based on Eldritch Rules 8.17.2025
+          </p>
+        </div>
+
+        {/* Basic Information */}
+        <div ref={basicInfoRef} className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold mb-4">I. Basic Information</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -485,9 +535,9 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
         </div>
       </div>
 
-      {/* Combat Statistics */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-bold mb-4">II. Combat Statistics</h2>
+        {/* Combat Statistics */}
+        <div ref={combatStatsRef} className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold mb-4">II. Combat Statistics</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -612,20 +662,29 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
         {/* Tactical Movement Section */}
         <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
           <h3 className="text-lg font-semibold text-green-900 mb-3">Tactical Movement (5-foot squares)</h3>
+          <p className="text-sm text-green-800 mb-4">
+            Movement bonuses are derived from Battle Phase die rank, representing the creature's inherent celerity tier.
+            This is distinct from purchasable Focus abilities (+1 to +5 static bonuses).
+          </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Speed Focus:</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Movement Bonus (Derived from BP Die Rank):
+              </label>
               <select
                 value={monsterForm.speedFocus}
                 onChange={(e) => updateForm('speedFocus', e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2"
               >
-                <option value="None">None</option>
-                <option value="d4">d4-d6 (+1 sq/phase)</option>
-                <option value="d8">d8-d10 (+2 sq/phase)</option>
-                <option value="d12">d12+ (+3 sq/phase)</option>
+                <option value="None">None (No additional movement bonus)</option>
+                <option value="d4">d4-d6 Tier (+1 sq/phase)</option>
+                <option value="d8">d8-d10 Tier (+2 sq/phase)</option>
+                <option value="d12">d12+ Tier (+3 sq/phase)</option>
               </select>
+              <p className="text-xs text-gray-500 mt-1">
+                This is an automatic derivation based on Battle Phase die size, not a purchasable Focus ability.
+              </p>
             </div>
 
             <div className="flex items-center">
@@ -690,9 +749,9 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
         </div>
       </div>
 
-      {/* Notes */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-bold mb-4">III. Notes</h2>
+        {/* Notes */}
+        <div ref={notesRef} className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold mb-4">III. Notes</h2>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Special Abilities, Treasure, etc.:</label>
           <textarea
@@ -705,9 +764,9 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
         </div>
       </div>
 
-      {/* Generated QSB */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-bold mb-4">Generated Quick Stat Block (QSB)</h2>
+        {/* Generated QSB */}
+        <div ref={qsbRef} className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold mb-4">Generated Quick Stat Block (QSB)</h2>
 
         {/* HP Calculation Display */}
         <div className="mb-4 p-4 bg-gray-50 rounded">
@@ -760,14 +819,46 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
         </div>
       </div>
 
-      {/* Save Button */}
-      <div className="text-center">
-        <button
-          onClick={() => setShowSaveDialog(true)}
-          className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg"
-        >
-          Save to Monster Roster
-        </button>
+        {/* Mobile Navigation */}
+        <div className="lg:hidden bg-white rounded-lg shadow-lg p-4 mb-6">
+          <h3 className="text-sm font-bold text-gray-800 mb-3">Quick Navigation</h3>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => scrollToSection(basicInfoRef)}
+              className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded transition-colors"
+            >
+              Basic Info
+            </button>
+            <button
+              onClick={() => scrollToSection(combatStatsRef)}
+              className="text-xs bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 rounded transition-colors"
+            >
+              Combat Stats
+            </button>
+            <button
+              onClick={() => scrollToSection(notesRef)}
+              className="text-xs bg-green-50 hover:bg-green-100 text-green-700 px-3 py-2 rounded transition-colors"
+            >
+              Notes
+            </button>
+            <button
+              onClick={() => scrollToSection(qsbRef)}
+              className="text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 px-3 py-2 rounded transition-colors"
+            >
+              QSB Result
+            </button>
+          </div>
+        </div>
+
+        {/* Save Button */}
+        <div className="text-center">
+          <button
+            onClick={() => setShowSaveDialog(true)}
+            className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg"
+          >
+            Save to Monster Roster
+          </button>
+        </div>
       </div>
 
       {/* Save Dialog */}
