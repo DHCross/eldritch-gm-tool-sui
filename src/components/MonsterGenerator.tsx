@@ -436,6 +436,8 @@ export default function MonsterGenerator() {
       break;
   }
 
+  const hpString = `${finalHP} (${finalActiveHP}/${finalPassiveHP})`;
+
   // Calculate DR display
   const drDisplay = selectedArmor.dr_die === 'None' && selectedShield.threat_reduction === 0
     ? 'None'
@@ -478,7 +480,6 @@ export default function MonsterGenerator() {
   const generateQSBString = () => {
     const tdString = `Melee ${monsterForm.threatDice.melee}, Natural ${monsterForm.threatDice.natural}, Ranged ${monsterForm.threatDice.ranged}, Arcane ${monsterForm.threatDice.arcane}`;
     const eaString = monsterForm.extraAttacks ? monsterForm.extraAttacks : 'None';
-    const hpString = `${finalHP} (${finalActiveHP}/${finalPassiveHP})`;
     const hpMultiplier = hpCalc.hp_multiplier.toFixed(1);
     const hpModifiers = `[${monsterForm.defenseSplit}, ${monsterForm.size}, ${monsterForm.nature}; x${hpMultiplier}]`;
 
@@ -521,6 +522,18 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
       return;
     }
 
+    const extraAttacksList = monsterForm.extraAttacks
+      .split(',')
+      .map(attack => attack.trim())
+      .filter(Boolean);
+
+    const combinedTags = Array.from(new Set([
+      monsterForm.category.toLowerCase(),
+      monsterForm.nature.toLowerCase(),
+      monsterForm.size.toLowerCase(),
+      'custom'
+    ]));
+
     const character: SavedCharacter = {
       id: Date.now().toString(),
       user_id: 'default_user',
@@ -555,9 +568,40 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
         gear: [],
         notes: monsterForm.notes
       },
-      tags: [monsterForm.category.toLowerCase(), monsterForm.nature.toLowerCase(), monsterForm.size.toLowerCase()],
+      tags: combinedTags,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      full_data: {
+        category: monsterForm.category,
+        nature: monsterForm.nature,
+        size: monsterForm.size,
+        defenseSplit: monsterForm.defenseSplit,
+        threatDice: {
+          melee: monsterForm.threatDice.melee,
+          natural: monsterForm.threatDice.natural,
+          ranged: monsterForm.threatDice.ranged,
+          arcane: monsterForm.threatDice.arcane
+        },
+        threatMvRange: monsterForm.threatMvRange,
+        extraAttacks: monsterForm.extraAttacks,
+        extraAttacksList,
+        armor: monsterForm.armor,
+        shield: monsterForm.shield,
+        savingThrow: monsterForm.savingThrow,
+        battlePhase: monsterForm.battlePhase,
+        notes: monsterForm.notes,
+        description: monsterForm.notes,
+        dr: drDisplay,
+        hp: hpString,
+        threatMV: highestThreatMV,
+        finalHP,
+        finalActiveHP,
+        finalPassiveHP,
+        baseMovement,
+        speedFocus: monsterForm.speedFocus,
+        especiallySpeedy: monsterForm.especiallySpeedy,
+        qsbString: generateQSBString()
+      }
     };
 
     saveCharacter(character);
