@@ -889,7 +889,7 @@ export default function Bestiary() {
   const [customCreatures, setCustomCreatures] = useState<BestiaryCreature[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CreatureCategory | 'All'>('All');
-  const [selectedNature, setSelectedNature] = useState<CreatureNature | 'All'>('All');
+  const [selectedNature, setSelectedNature] = useState<CreatureNature | undefined>();
   const [selectedSource, setSelectedSource] = useState<string>('All');
   const [selectedCreature, setSelectedCreature] = useState<BestiaryCreature | null>(null);
   const [showEncounterBuilder, setShowEncounterBuilder] = useState(false);
@@ -942,7 +942,7 @@ export default function Bestiary() {
                            creature.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
 
       const matchesCategory = selectedCategory === 'All' || creature.category === selectedCategory;
-      const matchesNature = selectedNature === 'All' || creature.nature === selectedNature;
+      const matchesNature = !selectedNature || creature.nature === selectedNature;
       const matchesSource = selectedSource === 'All' || creature.source === selectedSource;
 
       return matchesSearch && matchesCategory && matchesNature && matchesSource;
@@ -965,7 +965,7 @@ export default function Bestiary() {
   const resetFilters = () => {
     setSearchTerm('');
     setSelectedCategory('All');
-    setSelectedNature('All');
+    setSelectedNature(undefined);
     setSelectedSource('All');
   };
 
@@ -1037,17 +1037,36 @@ export default function Bestiary() {
               <option value="Legendary">Legendary</option>
             </select>
 
-            <select
-              value={selectedNature}
-              onChange={(e) => setSelectedNature(e.target.value as CreatureNature | 'All')}
-              className="border border-gray-300 rounded-md px-3 py-2"
-            >
-              <option value="All">All Natures</option>
-              <option value="Mundane">Mundane</option>
-              <option value="Magical">Magical</option>
-              <option value="Preternatural">Preternatural</option>
-              <option value="Supernatural">Supernatural</option>
-            </select>
+            <div className="relative">
+              <select
+                value={selectedNature ?? ''}
+                onChange={(e) => {
+                  const value = e.target.value as CreatureNature | '';
+                  setSelectedNature(value === '' ? undefined : value);
+                }}
+                className="border border-gray-300 rounded-md px-3 py-2 pr-8"
+                aria-label="Nature filter"
+              >
+                <option value="" disabled hidden>
+                  Select nature…
+                </option>
+                {NATURE_VALUES.map(nature => (
+                  <option key={nature} value={nature}>
+                    {nature}
+                  </option>
+                ))}
+              </select>
+              {selectedNature && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedNature(undefined)}
+                  className="absolute inset-y-0 right-1 flex items-center px-1 text-gray-500 hover:text-gray-700"
+                  aria-label="Clear nature filter"
+                >
+                  ×
+                </button>
+              )}
+            </div>
 
             <select
               value={selectedSource}
@@ -1075,7 +1094,7 @@ export default function Bestiary() {
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600 mt-4">
           <span>
             Showing {filteredCreatures.length} of {allCreatures.length} creatures
-            {searchTerm || selectedCategory !== 'All' || selectedNature !== 'All' || selectedSource !== 'All' ? ' (filtered)' : ''}
+            {searchTerm || selectedCategory !== 'All' || Boolean(selectedNature) || selectedSource !== 'All' ? ' (filtered)' : ''}
           </span>
           {filteredCreatures.length === 0 && (
             <button
