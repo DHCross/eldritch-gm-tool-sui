@@ -69,6 +69,14 @@ export default function GMTools() {
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-6">
+          <h3 className="text-xl font-bold mb-3">📝 Stat Block Parser</h3>
+          <p className="text-gray-600 mb-4">Analyze and validate stat blocks for compliance.</p>
+          <Link href="/stat-block-parser" className="text-blue-600 hover:text-blue-800 font-medium">
+            Parse Stat Blocks →
+          </Link>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-lg p-6">
           <h3 className="text-xl font-bold mb-3">📚 References</h3>
           <p className="text-gray-600 mb-4">Quick access to rules and spell references.</p>
           <div className="space-y-2">
