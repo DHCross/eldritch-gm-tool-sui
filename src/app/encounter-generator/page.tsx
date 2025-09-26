@@ -82,24 +82,6 @@ interface MonsterResult {
   battlePhase: number;
 }
 
-const readLocalPartyDefense = () => {
-  if (typeof window === 'undefined') return null;
-  try {
-    const value = window.localStorage.getItem('eldritch_party_defense');
-    if (!value) return null;
-    return JSON.parse(value) as {
-      totalAD: number;
-      totalPD: number;
-      total: number;
-      tier: (typeof defenseLevels)[number];
-      range?: string;
-      count?: number;
-    };
-  } catch (error) {
-    console.error('Unable to read stored party defense', error);
-    return null;
-  }
-};
 
 function calculateHitPoints(threatMV: number, size: keyof typeof hpMultipliers, nature: (typeof natureOrder)[number]) {
   const multiplier = hpMultipliers[size][nature];

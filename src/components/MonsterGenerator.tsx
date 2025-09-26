@@ -7,7 +7,8 @@ import {
   CreatureSize,
   DefenseSplit,
   ThreatDice,
-  SavedCharacter
+  SavedCharacter,
+  PartyFolder
 } from '../types/party';
 import {
   calculateMonsterHP,
@@ -138,7 +139,7 @@ export default function MonsterGenerator() {
     especiallySpeedy: false
   });
 
-  const [partyFolders, setPartyFolders] = useState<any[]>([]);
+  const [partyFolders, setPartyFolders] = useState<PartyFolder[]>([]);
   const [selectedParty, setSelectedParty] = useState('');
   const [showSaveDialog, setShowSaveDialog] = useState(false);
 
@@ -234,7 +235,7 @@ export default function MonsterGenerator() {
 TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString} ${hpModifiers} | DR: ${drDisplay} | ST: ${monsterForm.savingThrow} | BP: ${monsterForm.battlePhase} | Movement: ${movementString} | Notes: ${monsterForm.notes || 'None'}`;
   };
 
-  const updateForm = (field: keyof MonsterForm, value: any) => {
+  const updateForm = (field: keyof MonsterForm, value: string | boolean) => {
     setMonsterForm(prev => ({ ...prev, [field]: value }));
   };
 
@@ -265,6 +266,7 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
 
     const character: SavedCharacter = {
       id: Date.now().toString(),
+      user_id: 'default_user',
       name: monsterForm.name,
       type: 'Monster',
       level: Math.max(1, Math.floor(highestThreatMV / 6)),
@@ -677,7 +679,7 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
             )}
             <p className="text-xs text-yellow-600 mt-2">
               Remember: Narrative concept should guide classification and abilities.
-              GM may override mechanical calculations if they don't fit the creature's essential nature.
+              GM may override mechanical calculations if they don&apos;t fit the creature&apos;s essential nature.
             </p>
           </div>
         )}
