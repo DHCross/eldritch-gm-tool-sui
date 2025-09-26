@@ -123,10 +123,10 @@ const STORY_TROPES = {
   'Goblinoids': {
     description: 'Cunning and covetous kin, blending bestial ferocity with reptilian traits',
     examples: {
-      'Minor': 'Goblin Scout (1d6 Mundane) • Kobold Trickster (1d4 Magical)',
+      'Minor': 'Goblin Scout (1d6 Mundane) • Goblin Trapper (1d4 Mundane)',
       'Standard': 'Orc Warrior (2d6 Mundane) • Hobgoblin Captain (2d8 Mundane)',
-      'Exceptional': 'Hobgoblin Warlord (3d10 Mundane) • Bugbear Chieftain (3d8 Preternatural)',
-      'Legendary': 'Goblin King (3d12+ Magical) • Ancient Orc Warlord (3d12+ Mundane)'
+      'Exceptional': 'Bugbear Enforcer (3d8 Mundane) • Hobgoblin Warlord (3d10 Mundane)',
+      'Legendary': 'Goblin King (3d12+ Mundane) • Ancient Orc Warlord (3d12+ Mundane)'
     }
   },
   'Alfar': {
@@ -206,10 +206,34 @@ const STORY_TROPES = {
 // Legacy creature examples organized by nature and category for backward compatibility
 const CREATURE_TROPES = {
   'Mundane': {
-    'Minor': ['Villager (1d4)', 'Inexperienced Bandit (1d6)', 'Small Animal - Rats (1d3)', 'Farmer (1d4)', 'Street Thief (1d6)'],
-    'Standard': ['Trained Guard (2d6)', 'Seasoned Brigand (2d8)', 'Mid-sized Predator - Bears (2d8)', 'Soldier (2d8)', 'Mercenary (2d6)'],
-    'Exceptional': ['Veteran Warrior (3d8)', 'Cunning Assassin (3d10)', 'Apex Predator - Tigers (3d10)', 'Elite Guard (3d8)', 'Master Archer (3d10)'],
-    'Legendary': ['Renowned Champion (3d12+)', 'Warlord (3d12+)', 'Colossal Beast - Whales (3d12+)', 'Legendary Beast (3d12+)', 'Master Tactician (3d12+)']
+    'Minor': [
+      'Goblin Sneak (1d6)',
+      'Goblin Trapper (1d4)',
+      'Bandit Lookout (1d6)',
+      'Peasant Militia (1d4)',
+      'Wolf Pack (1d6)'
+    ],
+    'Standard': [
+      'Orc Raider (2d6)',
+      'Hobgoblin Captain (2d8)',
+      'Seasoned Brigand (2d8)',
+      'Soldier Patrol (2d6)',
+      'Dire Wolf (2d8)'
+    ],
+    'Exceptional': [
+      'Bugbear Enforcer (3d8)',
+      'Hobgoblin Warlord (3d10)',
+      'Veteran Champion (3d10)',
+      'Elite Mercenary (3d8)',
+      'War Mammoth (3d10)'
+    ],
+    'Legendary': [
+      'Goblin King (3d12+)',
+      'Ancient Orc Warlord (3d12+)',
+      'Renowned Champion (3d12+)',
+      'Colossal War Beast (3d12+)',
+      'Warlord of the Red Banner (3d12+)'
+    ]
   },
   'Magical': {
     'Minor': ['Pixie (1d4)', 'Sprite (1d6)', 'Novice Druid (1d6)', 'Hedge Wizard (1d8)', 'Minor Familiar (1d4)'],
