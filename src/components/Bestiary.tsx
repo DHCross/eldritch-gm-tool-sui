@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { CreatureCategory, CreatureNature, CreatureSize } from '../types/party';
+import Link from 'next/link';
+import { useState, useMemo, useEffect } from 'react';
+import { SavedCharacter, CreatureCategory, CreatureNature, CreatureSize } from '../types/party';
+import { getCharactersByType } from '../utils/partyStorage';
 
 interface BestiaryCreature {
   id: string;
@@ -23,9 +25,137 @@ interface BestiaryCreature {
   extraAttacks?: string;
   specialAbilities?: string[];
   description: string;
-  source: 'QSB' | 'Bestiary' | 'Trope' | 'Summoned';
+  source: 'QSB' | 'Bestiary' | 'Trope' | 'Summoned' | 'Custom';
   tags: string[];
 }
+
+interface StoredMonsterDetails {
+  category?: CreatureCategory;
+  nature?: CreatureNature;
+  size?: CreatureSize;
+  defenseSplit?: string;
+  threatDice?: {
+    melee?: string;
+    natural?: string;
+    ranged?: string;
+    arcane?: string;
+  };
+  threatMV?: number;
+  threatMvRange?: string;
+  extraAttacks?: string;
+  extraAttacksList?: string[];
+  armor?: string;
+  shield?: string;
+  savingThrow?: string;
+  battlePhase?: string;
+  notes?: string;
+  description?: string;
+  dr?: string;
+  hp?: string;
+  finalHP?: number;
+  finalActiveHP?: number;
+  finalPassiveHP?: number;
+  baseMovement?: number;
+  speedFocus?: string;
+  especiallySpeedy?: boolean;
+  qsbString?: string;
+}
+
+const CATEGORY_VALUES: CreatureCategory[] = ['Minor', 'Standard', 'Exceptional', 'Legendary'];
+const NATURE_VALUES: CreatureNature[] = ['Mundane', 'Magical', 'Preternatural', 'Supernatural'];
+const SIZE_VALUES: CreatureSize[] = ['Minuscule', 'Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan'];
+
+const ensureCategory = (value?: unknown): CreatureCategory | undefined => {
+  if (typeof value === 'string') {
+    return CATEGORY_VALUES.find(option => option.toLowerCase() === value.toLowerCase());
+  }
+  return undefined;
+};
+
+const ensureNature = (value?: unknown): CreatureNature | undefined => {
+  if (typeof value === 'string') {
+    return NATURE_VALUES.find(option => option.toLowerCase() === value.toLowerCase());
+  }
+  return undefined;
+};
+
+const ensureSize = (value?: unknown): CreatureSize | undefined => {
+  if (typeof value === 'string') {
+    return SIZE_VALUES.find(option => option.toLowerCase() === value.toLowerCase());
+  }
+  return undefined;
+};
+
+const findMatchingTag = <T extends string>(tags: string[], options: readonly T[]): T | undefined => {
+  for (const option of options) {
+    if (tags.includes(option.toLowerCase())) {
+      return option;
+    }
+  }
+  return undefined;
+};
+
+const mapSavedMonsterToBestiaryCreature = (monster: SavedCharacter): BestiaryCreature => {
+  const details = (monster.full_data || {}) as StoredMonsterDetails;
+  const tags = Array.isArray(monster.tags) ? monster.tags.map(tag => tag.toLowerCase()) : [];
+
+  const category = ensureCategory(details.category)
+    ?? findMatchingTag(tags, CATEGORY_VALUES)
+    ?? 'Standard';
+
+  const nature = ensureNature(details.nature)
+    ?? findMatchingTag(tags, NATURE_VALUES)
+    ?? 'Mundane';
+
+  const size = ensureSize(details.size)
+    ?? findMatchingTag(tags, SIZE_VALUES)
+    ?? 'Medium';
+
+  const threatDice = {
+    melee: details.threatDice?.melee,
+    natural: details.threatDice?.natural,
+    ranged: details.threatDice?.ranged,
+    arcane: details.threatDice?.arcane
+  };
+
+  const threatMV = typeof details.threatMV === 'number'
+    ? details.threatMV
+    : monster.computed?.active_dp ?? 0;
+
+  const customDescription = typeof details.description === 'string' && details.description.trim().length > 0
+    ? details.description.trim()
+    : typeof monster.status?.notes === 'string' && monster.status.notes.trim().length > 0
+      ? monster.status.notes.trim()
+      : 'Custom creature crafted in the Monster Generator.';
+
+  const combinedTags = Array.from(new Set([...tags, 'custom']));
+
+  const extraAbilities = Array.isArray(details.extraAttacksList)
+    ? details.extraAttacksList
+    : undefined;
+
+  const hp = details.hp
+    ?? `${(monster.computed?.active_dp ?? 0) + (monster.computed?.passive_dp ?? 0)} (${monster.computed?.active_dp ?? 0}/${monster.computed?.passive_dp ?? 0})`;
+
+  return {
+    id: `custom-${monster.id}`,
+    name: monster.name,
+    category,
+    nature,
+    size,
+    threatDice,
+    threatMV,
+    hp,
+    dr: details.dr ?? 'None',
+    savingThrow: details.savingThrow ?? 'Unknown',
+    battlePhase: details.battlePhase ?? 'Unknown',
+    extraAttacks: details.extraAttacks && details.extraAttacks.trim().length > 0 ? details.extraAttacks : undefined,
+    specialAbilities: extraAbilities,
+    description: customDescription,
+    source: 'Custom',
+    tags: combinedTags
+  };
+};
 
 // Comprehensive creature database from "Beings Diverse and Malign"
 const BESTIARY_CREATURES: BestiaryCreature[] = [
@@ -341,6 +471,7 @@ type DefenseLevel = 'Practitioner' | 'Competent' | 'Proficient' | 'Advanced' | '
 type Difficulty = 'easy' | 'moderate' | 'difficult' | 'demanding' | 'formidable' | 'deadly';
 
 export default function Bestiary() {
+  const [customCreatures, setCustomCreatures] = useState<BestiaryCreature[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CreatureCategory | 'All'>('All');
   const [selectedNature, setSelectedNature] = useState<CreatureNature | 'All'>('All');
@@ -354,9 +485,43 @@ export default function Bestiary() {
   const [difficulty, setDifficulty] = useState<Difficulty>('moderate');
   const [encounterCreatures, setEncounterCreatures] = useState<BestiaryCreature[]>([]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const loadCustomCreatures = () => {
+      try {
+        const storedMonsters = getCharactersByType('Monster');
+        const mapped = storedMonsters.map(mapSavedMonsterToBestiaryCreature)
+          .sort((a, b) => a.name.localeCompare(b.name));
+        setCustomCreatures(mapped);
+      } catch (error) {
+        console.error('Failed to load custom monsters for bestiary:', error);
+      }
+    };
+
+    loadCustomCreatures();
+
+    const handleStorage = (event: StorageEvent) => {
+      if (!event.key || event.key === 'eldritch_characters') {
+        loadCustomCreatures();
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
+
+  const allCreatures = useMemo(
+    () => [...customCreatures, ...BESTIARY_CREATURES],
+    [customCreatures]
+  );
+
   // Filtered creatures
   const filteredCreatures = useMemo(() => {
-    return BESTIARY_CREATURES.filter(creature => {
+    return allCreatures.filter(creature => {
       const matchesSearch = creature.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            creature.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            creature.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -367,7 +532,7 @@ export default function Bestiary() {
 
       return matchesSearch && matchesCategory && matchesNature && matchesSource;
     });
-  }, [searchTerm, selectedCategory, selectedNature, selectedSource]);
+  }, [allCreatures, searchTerm, selectedCategory, selectedNature, selectedSource]);
 
   // Calculate threat budget
   const threatBudget = useMemo(() => {
@@ -408,6 +573,15 @@ export default function Bestiary() {
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="flex justify-start">
+        <Link
+          href="/"
+          className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
+        >
+          ← Back to Home
+        </Link>
+      </div>
+
       {/* Header */}
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -470,6 +644,7 @@ export default function Bestiary() {
               <option value="Bestiary">Bestiary Entries</option>
               <option value="Trope">Creature Tropes</option>
               <option value="Summoned">Summoned</option>
+              <option value="Custom">Custom Creations</option>
             </select>
           </div>
 
@@ -484,7 +659,7 @@ export default function Bestiary() {
 
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600 mt-4">
           <span>
-            Showing {filteredCreatures.length} of {BESTIARY_CREATURES.length} creatures
+            Showing {filteredCreatures.length} of {allCreatures.length} creatures
             {searchTerm || selectedCategory !== 'All' || selectedNature !== 'All' || selectedSource !== 'All' ? ' (filtered)' : ''}
           </span>
           {filteredCreatures.length === 0 && (
@@ -745,28 +920,32 @@ export default function Bestiary() {
       {/* Statistics */}
       <div className="bg-white rounded-lg shadow-lg p-6">
         <h3 className="text-lg font-bold mb-4">Bestiary Statistics</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 text-center">
           <div>
-            <p className="text-2xl font-bold text-blue-600">{BESTIARY_CREATURES.length}</p>
+            <p className="text-2xl font-bold text-blue-600">{allCreatures.length}</p>
             <p className="text-sm text-gray-600">Total Creatures</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-green-600">
-              {BESTIARY_CREATURES.filter(c => c.source === 'Bestiary').length}
+              {allCreatures.filter(c => c.source === 'Bestiary').length}
             </p>
             <p className="text-sm text-gray-600">Bestiary Entries</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-yellow-600">
-              {BESTIARY_CREATURES.filter(c => c.category === 'Legendary').length}
+              {allCreatures.filter(c => c.category === 'Legendary').length}
             </p>
             <p className="text-sm text-gray-600">Legendary Beings</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-red-600">
-              {BESTIARY_CREATURES.filter(c => c.nature === 'Supernatural').length}
+              {allCreatures.filter(c => c.nature === 'Supernatural').length}
             </p>
             <p className="text-sm text-gray-600">Supernatural Entities</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-purple-600">{customCreatures.length}</p>
+            <p className="text-sm text-gray-600">Custom Creations</p>
           </div>
         </div>
       </div>
