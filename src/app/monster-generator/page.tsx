@@ -1,4 +1,4 @@
-import MonsterGenerator from '../../components/MonsterGenerator';
+import EnhancedMonsterGenerator from '../../components/EnhancedMonsterGenerator';
 import Link from 'next/link';
 
 export default function MonsterGeneratorPage() {
@@ -14,7 +14,7 @@ export default function MonsterGeneratorPage() {
           </Link>
         </div>
 
-        <MonsterGenerator />
+        <EnhancedMonsterGenerator />
       </div>
     </div>
   );

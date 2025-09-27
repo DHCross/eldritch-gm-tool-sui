@@ -1,4 +1,4 @@
-import NPCGenerator from '../../components/NPCGenerator';
+import AdvancedNPCGenerator from '../../components/AdvancedNPCGenerator';
 import Link from 'next/link';
 
 export default function NPCGeneratorPage() {
@@ -14,7 +14,7 @@ export default function NPCGeneratorPage() {
           </Link>
         </div>
 
-        <NPCGenerator />
+        <AdvancedNPCGenerator />
       </div>
     </div>
   );

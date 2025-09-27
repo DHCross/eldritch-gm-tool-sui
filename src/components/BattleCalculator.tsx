@@ -251,6 +251,41 @@ export default function BattleCalculator() {
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
+      {/* Import Options UI */}
+      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h3 className="text-lg font-bold mb-4">Import Combatants</h3>
+        <div className="flex flex-wrap gap-4">
+          <button
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+            // TODO: Implement importMainParty logic
+            disabled
+          >
+            Import Main Party
+          </button>
+          <button
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+            // TODO: Implement importSelectedPartyMembers logic
+            disabled
+          >
+            Import Selected Party Members
+          </button>
+          <button
+            className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+            // TODO: Implement importNPCs logic
+            disabled
+          >
+            Import NPCs
+          </button>
+          <button
+            className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded"
+            // TODO: Implement importMonsters logic
+            disabled
+          >
+            Import Monsters
+          </button>
+        </div>
+        <p className="text-sm text-gray-500 mt-2">Select a group to import into the battle. (Feature coming soon)</p>
+      </div>
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           Battle Phase Calculator

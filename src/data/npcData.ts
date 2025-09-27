@@ -70,21 +70,29 @@ export interface DetailedNPC {
   masteryDie: string;
   armor: string;
 
+  // Actions (calculated from abilities)
+  actions: {
+    meleeAttack: string;
+    rangedAttack: string;
+    magicAttack: string;
+    perceptionCheck: string;
+  };
+
   // Personality & Background
-  personality: string[];
-  motivation: string;
-  appearance: string;
-  quirks: string[];
-  secrets: string[];
-  relationships: string[];
-  background: string;
+  personality?: string[];
+  motivation?: string;
+  appearance?: string;
+  quirks?: string[];
+  secrets?: string[];
+  relationships?: string[];
+  background?: string;
 
   // Iconic Item System
   iconicItem?: IconicItem;
 
   // Story Elements
-  rumors: string[];
-  plotHooks: string[];
+  rumors?: string[];
+  plotHooks?: string[];
 
   // Notes
   notes?: string;
@@ -92,8 +100,10 @@ export interface DetailedNPC {
 
 export interface IconicItem {
   type: 'Iconic Weapon' | 'Iconic Magic Focus' | 'Iconic Inspirational Item';
-  name: string;
-  description: string;
+  name?: string;
+  description?: string;
+  details?: string;
+  properties: string;
   rarity?: 'Common' | 'Uncommon' | 'Esoteric' | 'Occult' | 'Legendary';
   potency?: string;
   energyPoints?: number;
@@ -316,7 +326,7 @@ export const npcPlotHooks = [
 ];
 
 // Race ability minimums (from legacy generator)
-export const raceMinimums = {
+export const raceMinimums: Record<string, Record<string, string>> = {
   Human: { competence: 'd6', prowess: 'd6', fortitude: 'd4', willpower: 'd6' },
   Elf: { competence: 'd6', prowess: 'd8', fortitude: 'd4', willpower: 'd6' },
   Dwarf: { competence: 'd6', prowess: 'd6', fortitude: 'd8', willpower: 'd4' },
@@ -327,8 +337,12 @@ export const raceMinimums = {
   Tiefling: { competence: 'd8', prowess: 'd6', fortitude: 'd4', willpower: 'd8' }
 };
 
+export const dieValues: Record<string, number> = {
+  'd4': 4, 'd6': 6, 'd8': 8, 'd10': 10, 'd12': 12
+};
+
 // Role ability minimums (from legacy generator)
-export const roleMinimums = {
+export const roleMinimums: Record<string, Record<string, string>> = {
   Warrior: { prowess: 'd8', melee: 'd6', fortitude: 'd6' },
   Rogue: { prowess: 'd6', agility: 'd6', fortitude: 'd4' },
   Adept: { competence: 'd6', expertise: 'd6', willpower: 'd6' },
@@ -337,6 +351,28 @@ export const roleMinimums = {
   Theurgist: { competence: 'd8', expertise: 'd6', willpower: 'd8' },
   Barbarian: { prowess: 'd8', melee: 'd6', fortitude: 'd6' },
   Guard: { prowess: 'd6', melee: 'd6', fortitude: 'd6' }
+};
+
+// Abilities and their specialties
+export const abilities = ['competence', 'prowess', 'fortitude'];
+export const dieRanks = ['d4', 'd6', 'd8', 'd10', 'd12'];
+
+export const specialties: Record<string, string[]> = {
+  competence: ['adroitness', 'expertise', 'perception'],
+  prowess: ['agility', 'melee', 'precision'],
+  fortitude: ['endurance', 'strength', 'willpower']
+};
+
+export const focuses: Record<string, string[]> = {
+  adroitness: ['skulduggery', 'cleverness'],
+  expertise: ['wizardry', 'theurgy'],
+  perception: ['alertness', 'perspicacity'],
+  agility: ['speed', 'reaction'],
+  melee: ['threat', 'finesse'],
+  precision: ['ranged threat', 'ranged finesse'],
+  endurance: ['vitality', 'resilience'],
+  strength: ['ferocity', 'might'],
+  willpower: ['courage', 'resistance']
 };
 
 export const magicalEffects = {
@@ -367,6 +403,3 @@ export const energyPointsByRarity = {
   Legendary: 30
 };
 
-export const dieValues = {
-  'd4': 4, 'd6': 6, 'd8': 8, 'd10': 10, 'd12': 12
-};
