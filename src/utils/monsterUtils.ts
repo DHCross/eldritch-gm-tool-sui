@@ -63,6 +63,54 @@ export function parseThreatDice(diceString: string): number {
   return parseThreatDiceValue(diceString);
 }
 
+export interface ThreatDiceSummary {
+  primary: ThreatType | 'None';
+  secondary: ThreatType[];
+  totalMaxDamage: number;
+  focusBonuses: string[];
+}
+
+export function getThreatDiceSummary(threatDice: EnhancedThreatDice): ThreatDiceSummary {
+  const threatEntries = (
+    [
+      { key: 'melee', label: 'Melee' as ThreatType },
+      { key: 'natural', label: 'Natural' as ThreatType },
+      { key: 'ranged', label: 'Ranged' as ThreatType },
+      { key: 'arcane', label: 'Arcane' as ThreatType }
+    ] as const
+  ).map(entry => ({
+    ...entry,
+    value: parseThreatDice(threatDice[entry.key])
+  }));
+
+  const sortedByValue = threatEntries
+    .filter(entry => entry.value > 0)
+    .sort((a, b) => b.value - a.value);
+
+  const primary = sortedByValue[0]?.label ?? 'None';
+  const secondary = sortedByValue.slice(1).map(entry => entry.label);
+  const totalMaxDamage = sortedByValue.reduce((sum, entry) => sum + entry.value, 0);
+
+  const focusMap: Array<{ label: string; value?: number }> = [
+    { label: 'Threat', value: threatDice.threatFocus },
+    { label: 'Ranged', value: threatDice.rangedThreatFocus },
+    { label: 'Might', value: threatDice.mightFocus },
+    { label: 'Ferocity', value: threatDice.ferocityFocus },
+    { label: 'Speed', value: threatDice.speedFocus }
+  ];
+
+  const focusBonuses = focusMap
+    .filter(item => typeof item.value === 'number' && item.value !== undefined && item.value > 0)
+    .map(item => `${item.label} +${item.value}`);
+
+  return {
+    primary,
+    secondary,
+    totalMaxDamage,
+    focusBonuses
+  };
+}
+
 // Get available threat dice options (not restricted by category)
 export function getAvailableThreatDiceOptions(): string[] {
   return ALL_THREAT_DICE_OPTIONS;
@@ -469,7 +517,18 @@ export function calculateFocusBonus(
   }
 
   const range = FOCUS_BONUS_RANGES[tier];
-  return Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+  const baseValue = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+
+  const focusAdjustments: Record<typeof focusType, number> = {
+    threat: 0,
+    'ranged-threat': 0,
+    might: 1,
+    ferocity: 1,
+    speed: -1
+  };
+
+  const adjustedValue = baseValue + focusAdjustments[focusType];
+  return Math.max(range.min, Math.min(range.max, adjustedValue));
 }
 
 // Enhanced Threat Dice with Focus Bonuses
@@ -670,6 +729,86 @@ export function calculateEnhancedMovement(
     finalMovement,
     movementActions
   };
+}
+
+export function generateEnhancedQSBString(
+  name: string,
+  category: CreatureCategory,
+  threatDice: EnhancedThreatDice,
+  hpCalc: ReturnType<typeof calculateEnhancedMonsterHP>,
+  armorDefense: ArmorDefenseSystem,
+  battlePhase: string,
+  savingThrow: string,
+  movement: ReturnType<typeof calculateEnhancedMovement>,
+  specialAbilities: SpecialAbilities,
+  treasureCache?: TreasureCache,
+  notes?: string
+): string {
+  const threatDiceString = `Melee ${threatDice.melee} | Natural ${threatDice.natural} | Ranged ${threatDice.ranged} | Arcane ${threatDice.arcane}`;
+
+  const focusParts = [
+    threatDice.threatFocus ? `Threat +${threatDice.threatFocus}` : undefined,
+    threatDice.rangedThreatFocus ? `Ranged +${threatDice.rangedThreatFocus}` : undefined,
+    threatDice.mightFocus ? `Might +${threatDice.mightFocus}` : undefined,
+    threatDice.ferocityFocus ? `Ferocity +${threatDice.ferocityFocus}` : undefined,
+    threatDice.speedFocus ? `Speed +${threatDice.speedFocus}` : undefined
+  ].filter(Boolean);
+
+  const armorPieces = [
+    armorDefense.armorDieRank !== 'None' ? `${armorDefense.armorDieRank}` : 'No Armor Die',
+    armorDefense.armorDRBonus ? `DR Bonus +${armorDefense.armorDRBonus}` : undefined,
+    armorDefense.naturalDR ? `Natural DR +${armorDefense.naturalDR}` : undefined,
+    armorDefense.shieldType !== 'None'
+      ? `${armorDefense.shieldType} Shield${armorDefense.shieldDRReduction ? ` (-${armorDefense.shieldDRReduction})` : ''}`
+      : undefined
+  ].filter(Boolean);
+
+  const movementOrder: Array<keyof typeof movement.movementActions> = ['Walk', 'Run', 'Sprint', 'Burst'];
+  const movementDetails = movementOrder
+    .filter(action => movement.movementActions[action])
+    .map(action => {
+      const detail = movement.movementActions[action];
+      return `${action}: ${detail.squares} sq (${detail.penalty})`;
+    })
+    .join(' | ');
+
+  const specialDefenseString = specialAbilities.specialDefenses.length > 0
+    ? specialAbilities.specialDefenses.join(', ')
+    : 'None';
+  const extraAttacksString = specialAbilities.extraAttacks.length > 0
+    ? specialAbilities.extraAttacks.map(attack => `${attack.type}${attack.description ? ` (${attack.description})` : ''}`).join('; ')
+    : 'None';
+  const immunitiesString = specialAbilities.immunities.length > 0 ? specialAbilities.immunities.join(', ') : 'None';
+  const resistancesString = specialAbilities.resistances.length > 0 ? specialAbilities.resistances.join(', ') : 'None';
+  const vulnerabilitiesString = specialAbilities.vulnerabilities.length > 0 ? specialAbilities.vulnerabilities.join(', ') : 'None';
+  const specialMovementString = specialAbilities.specialMovement.length > 0 ? specialAbilities.specialMovement.join(', ') : 'None';
+
+  const treasureString = treasureCache
+    ? `${treasureCache.cacheType} ($${treasureCache.baseValue.min}-${treasureCache.baseValue.max}, ${treasureCache.magicItemChance}% chance, ${treasureCache.magicItemCount} magic items${treasureCache.description ? `; ${treasureCache.description}` : ''})`
+    : 'None';
+
+  const sanitizedNotes = notes && notes.trim().length > 0 ? notes : 'None';
+
+  const focusLine = focusParts.length > 0 ? focusParts.join(', ') : 'None';
+  const armorLine = armorPieces.length > 0 ? armorPieces.join(', ') : 'None';
+
+  return [
+    `${name || '[Monster Name]'}`,
+    `CAT: ${category} | ST: ${savingThrow} | BP: ${battlePhase}`,
+    `THREAT: ${threatDiceString}`,
+    `FOCUS: ${focusLine}`,
+    `HP: ${hpCalc.final_hp} (${hpCalc.active_hp}/${hpCalc.passive_hp}) | ${hpCalc.breakdown}`,
+    `ARMOR: ${armorLine}`,
+    `MOVE: ${movement.finalMovement} sq/phase | ${movementDetails}`,
+    `SPECIAL DEFENSES: ${specialDefenseString}`,
+    `EXTRA ATTACKS: ${extraAttacksString}`,
+    `IMMUNITIES: ${immunitiesString}`,
+    `RESISTANCES: ${resistancesString}`,
+    `VULNERABILITIES: ${vulnerabilitiesString}`,
+    `SPECIAL MOVEMENT: ${specialMovementString}`,
+    `TREASURE: ${treasureString}`,
+    `NOTES: ${sanitizedNotes}`
+  ].join('\n');
 }
 
 // Generate Treasure Cache
