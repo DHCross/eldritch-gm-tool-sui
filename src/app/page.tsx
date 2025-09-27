@@ -1,5 +1,9 @@
 import Link from 'next/link';
 
+import { getBuildInfo } from '@/utils/buildInfo';
+
+const buildInfo = getBuildInfo();
+
 export default function Home() {
   return (
     <div className="container mx-auto px-4 py-8">
@@ -168,6 +172,18 @@ export default function Home() {
             <Link href="/documentation" className="text-blue-600 hover:text-blue-800">
               Documentation
             </Link>
+          </div>
+          <div className="mt-6 text-sm text-gray-500 space-y-1">
+            <p>
+              <span className="font-semibold">Build:</span>{' '}
+              <span title={`Full version: ${buildInfo.version}`}>
+                {buildInfo.displayVersion}
+              </span>
+            </p>
+            <p>
+              <span className="font-semibold">Updated:</span>{' '}
+              {buildInfo.formattedTimestamp ?? buildInfo.rawTimestamp ?? 'Unknown'}
+            </p>
           </div>
         </div>
       </footer>
