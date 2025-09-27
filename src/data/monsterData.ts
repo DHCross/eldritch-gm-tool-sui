@@ -215,7 +215,8 @@ export function validateThreatDiceForCategory(
   };
 
   const maxThreat = Math.max(...Object.values(threats));
-  const primaryThreatType = Object.entries(threats).find(([_, value]) => value === maxThreat)?.[0];
+  const primaryThreatEntry = Object.entries(threats).find(([, value]) => value === maxThreat);
+  const primaryThreatType = primaryThreatEntry?.[0];
 
   if (maxThreat === 0) {
     errors.push('At least one threat type must be specified');

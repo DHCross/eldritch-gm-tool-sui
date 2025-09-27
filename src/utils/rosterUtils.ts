@@ -11,13 +11,31 @@ export interface RosterEntry {
   details: {
     source: string;
     summary?: string;
-    fullData?: any;
+    fullData?: unknown;
   };
 }
 
 export interface RosterFolder {
   name: string;
   pcs: string[];
+}
+
+interface GeneratorDetails {
+  summary?: string;
+}
+
+export interface NPCLike {
+  name?: string;
+  gender?: string;
+  summary?: string;
+  AD?: number | string;
+  PD?: number | string;
+  details?: GeneratorDetails;
+}
+
+export interface MonsterLike extends NPCLike {
+  category?: string;
+  nature?: string;
 }
 
 const FOLDERS_KEY = 'eldritch_roster_folders';
@@ -43,7 +61,7 @@ function findFolderIndexByName(folders: RosterFolder[], name: string): number {
   return folders.findIndex(folder => folder.name.toLowerCase() === name.toLowerCase());
 }
 
-export function saveNPCToRoster(npc: any, folderName: string = 'NPCs'): boolean {
+export function saveNPCToRoster<T extends NPCLike>(npc: T, folderName: string = 'NPCs'): boolean {
   try {
     const pcs = loadPCs();
     const folders = loadFolders();
@@ -90,7 +108,7 @@ export function saveNPCToRoster(npc: any, folderName: string = 'NPCs'): boolean 
   }
 }
 
-export function saveMonsterToRoster(monster: any, folderName: string = 'Monsters'): boolean {
+export function saveMonsterToRoster<T extends MonsterLike>(monster: T, folderName: string = 'Monsters'): boolean {
   try {
     const pcs = loadPCs();
     const folders = loadFolders();

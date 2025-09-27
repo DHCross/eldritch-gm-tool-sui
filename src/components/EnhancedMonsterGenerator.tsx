@@ -15,14 +15,12 @@ import {
   ArmorDefenseSystem,
   SpecialAbilities,
   TreasureCache,
-  ALL_THREAT_DICE_OPTIONS,
   TREASURE_CACHE_TYPES,
   ARMOR_DIE_RANKS,
   SHIELD_TYPES,
   ARMOR_DESCRIPTIONS,
   SPECIAL_DEFENSES_BY_NATURE,
-  EXTRA_ATTACKS_BY_CATEGORY,
-  generateTreasureForCreature
+  EXTRA_ATTACKS_BY_CATEGORY
 } from '../data/monsterData';
 import {
   calculateEnhancedMonsterHP,
@@ -39,6 +37,7 @@ import {
   isValidThreatDiceForCategory,
   getThreatDiceSummary,
   generateEnhancedQSBString,
+  ThreatDiceSummary,
   parseThreatDice
 } from '../utils/monsterUtils';
 import { getAllPartyFolders, saveCharacter } from '../utils/partyStorage';
@@ -149,7 +148,7 @@ export default function EnhancedMonsterGenerator() {
   }, [monsterForm.threatDice, monsterForm.category]);
 
   // Smooth scroll function
-  const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
+  const scrollToSection = (ref: { current: HTMLDivElement | null }) => {
     ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
@@ -178,10 +177,31 @@ export default function EnhancedMonsterGenerator() {
     monsterForm.especiallySpeedy
   );
 
-  const threatSummary = getThreatDiceSummary(monsterForm.threatDice);
+  const sizeModifierForMovement =
+    movement.finalMovement -
+    movement.baseMovement -
+    monsterForm.speedFocusBonus -
+    (monsterForm.especiallySpeedy ? 2 : 0);
+
+  const formatModifier = (value: number) => (value >= 0 ? `+${value}` : `${value}`);
+
+  const movementBreakdown = [
+    `Base ${movement.baseMovement}`,
+    `Size ${formatModifier(sizeModifierForMovement)}`,
+    `Focus ${formatModifier(monsterForm.speedFocusBonus)}`,
+    monsterForm.especiallySpeedy ? '+2 Especially Speedy' : undefined
+  ]
+    .filter(Boolean)
+    .join(' + ')
+    .concat(` = ${movement.finalMovement}`);
+
+  const threatSummary: ThreatDiceSummary = getThreatDiceSummary(monsterForm.threatDice);
 
   // Update form functions
-  const updateForm = (field: keyof EnhancedMonsterForm, value: any) => {
+  const updateForm = <K extends keyof EnhancedMonsterForm>(
+    field: K,
+    value: EnhancedMonsterForm[K]
+  ) => {
     setMonsterForm(prev => ({ ...prev, [field]: value }));
   };
 
@@ -192,7 +212,10 @@ export default function EnhancedMonsterGenerator() {
     }));
   };
 
-  const updateArmorDefense = (field: keyof ArmorDefenseSystem, value: any) => {
+  const updateArmorDefense = <K extends keyof ArmorDefenseSystem>(
+    field: K,
+    value: ArmorDefenseSystem[K]
+  ) => {
     setMonsterForm(prev => ({
       ...prev,
       armorDefense: { ...prev.armorDefense, [field]: value }
@@ -207,7 +230,7 @@ export default function EnhancedMonsterGenerator() {
     const newBattlePhase = generateBattlePhase(calculatedCategory, monsterForm.nature);
     const newSavingThrow = generateSavingThrow(calculatedCategory, monsterForm.nature);
 
-    let treasureCache;
+    let treasureCache: TreasureCache | undefined;
     if (monsterForm.includeTreasure) {
       treasureCache = generateTreasureCache(monsterForm.category, monsterForm.nature, monsterForm.size);
     }
@@ -913,7 +936,7 @@ export default function EnhancedMonsterGenerator() {
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="text-sm space-y-2">
                   <div className="font-medium">Movement Formula Breakdown:</div>
-                  <div>{movement.breakdown}</div>
+                  <div>{movementBreakdown}</div>
                   <hr className="my-2" />
                   <div className="font-semibold">Final Movement: {movement.finalMovement} squares/phase</div>
                 </div>
@@ -1018,10 +1041,10 @@ export default function EnhancedMonsterGenerator() {
                   <div>• Trinkets: $1-5, 1% magic (personal effects)</div>
                   <div>• Small cache: $2-20, 5% magic (hidden stash)</div>
                   <div>• Cache: $20-200, 10% magic (buried treasure)</div>
-                  <div>• Small trove: $100-500, 20% magic (noble's vault)</div>
+                  <div>• Small trove: $100-500, 20% magic (noble&apos;s vault)</div>
                   <div>• Trove: $200-2000, 30% magic (bandit treasury)</div>
                   <div>• Hoard: $1000-10000, 40% magic (royal treasury)</div>
-                  <div>• Dragon's hoard: $10000-50000+, 50% magic (legendary)</div>
+                  <div>• Dragon&apos;s hoard: $10000-50000+, 50% magic (legendary)</div>
                 </div>
               </div>
             </div>
