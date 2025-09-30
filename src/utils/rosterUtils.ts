@@ -41,6 +41,11 @@ export interface MonsterLike extends NPCLike {
 const FOLDERS_KEY = 'eldritch_roster_folders';
 const PCS_KEY = 'eldritch_roster_pcs';
 
+export const ROSTER_STORAGE_KEYS = {
+  FOLDERS: FOLDERS_KEY,
+  PCS: PCS_KEY
+} as const;
+
 function loadFolders(): RosterFolder[] {
   return JSON.parse(localStorage.getItem(FOLDERS_KEY) || '[]');
 }
@@ -55,6 +60,24 @@ function loadPCs(): Record<string, RosterEntry> {
 
 function savePCs(pcs: Record<string, RosterEntry>): void {
   localStorage.setItem(PCS_KEY, JSON.stringify(pcs));
+}
+
+export function getAllRosterFolders(): RosterFolder[] {
+  try {
+    return loadFolders();
+  } catch (error) {
+    console.error('Error loading roster folders:', error);
+    return [];
+  }
+}
+
+export function getAllRosterEntries(): Record<string, RosterEntry> {
+  try {
+    return loadPCs();
+  } catch (error) {
+    console.error('Error loading roster entries:', error);
+    return {};
+  }
 }
 
 function findFolderIndexByName(folders: RosterFolder[], name: string): number {
