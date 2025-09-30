@@ -12,7 +12,7 @@ import {
 } from '../types/party';
 
 // Storage keys
-const STORAGE_KEYS = {
+export const STORAGE_KEYS = {
   CHARACTERS: 'eldritch_characters',
   PARTY_FOLDERS: 'eldritch_party_folders',
   PARTY_MEMBERSHIPS: 'eldritch_party_memberships',
