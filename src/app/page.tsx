@@ -96,6 +96,37 @@ export default function Home() {
     reader.readAsText(file);
   }, [clearFileInput]);
 
+  const heroCards = [
+    {
+      title: 'Player Tools',
+      description:
+        'Jump straight into character creation, spell references, and tools to keep your hero ready for every eldritch encounter.',
+      bullets: [
+        'Quick-start character, party, and NPC builders tailored for players.',
+        'Spellbooks, equipment references, and lore summaries at the table.',
+        'Track progress, quests, and campaign history with shared resources.'
+      ],
+      cta: {
+        href: '/player-tools',
+        label: 'Explore Player Tools'
+      }
+    },
+    {
+      title: 'GM Tools',
+      description:
+        'Orchestrate unforgettable sessions with encounter planning, monster management, and campaign organization at your fingertips.',
+      bullets: [
+        'Comprehensive encounter and monster generators.',
+        'Battle calculators, rosters, and party management dashboards.',
+        'Direct links to rules, documentation, and the full bestiary.'
+      ],
+      cta: {
+        href: '/gm-tools',
+        label: 'Explore GM Tools'
+      }
+    }
+  ];
+
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="mb-12">
@@ -160,41 +191,26 @@ export default function Home() {
         </section>
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          <div className="flex flex-col bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow">
-            <h2 className="text-3xl font-extrabold text-gray-900 mb-4">For Players</h2>
-            <p className="text-lg text-gray-600 mb-6">
-              Jump straight into character creation, spell references, and tools to keep your hero ready for every eldritch encounter.
-            </p>
-            <ul className="space-y-3 text-gray-600">
-              <li>• Quick character and NPC builders tailored for player use.</li>
-              <li>• Access to spellbooks, equipment, and lore summaries.</li>
-              <li>• Resources to track progress, parties, and campaign history.</li>
-            </ul>
-            <Link
-              href="/player-tools"
-              className="mt-8 inline-block self-start bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded transition-colors"
+          {heroCards.map(card => (
+            <div
+              key={card.title}
+              className="flex flex-col bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow"
             >
-              Explore Player Tools
-            </Link>
-          </div>
-
-          <div className="flex flex-col bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow">
-            <h2 className="text-3xl font-extrabold text-gray-900 mb-4">For Game Masters</h2>
-            <p className="text-lg text-gray-600 mb-6">
-              Orchestrate unforgettable sessions with encounter planning, monster management, and campaign organization at your fingertips.
-            </p>
-            <ul className="space-y-3 text-gray-600">
-              <li>• Comprehensive encounter and monster generators.</li>
-              <li>• Battle calculators, rosters, and party management dashboards.</li>
-              <li>• Direct links to rules, documentation, and the full bestiary.</li>
-            </ul>
-            <Link
-              href="/gm-tools"
-              className="mt-8 inline-block self-start bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded transition-colors"
-            >
-              Explore GM Tools
-            </Link>
-          </div>
+              <h2 className="text-3xl font-extrabold text-gray-900 mb-4">{card.title}</h2>
+              <p className="text-lg text-gray-600 mb-6">{card.description}</p>
+              <ul className="space-y-3 text-gray-600">
+                {card.bullets.map(bullet => (
+                  <li key={bullet}>• {bullet}</li>
+                ))}
+              </ul>
+              <Link
+                href={card.cta.href}
+                className="mt-8 inline-block self-start bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded transition-colors"
+              >
+                {card.cta.label}
+              </Link>
+            </div>
+          ))}
         </div>
       </main>
 
