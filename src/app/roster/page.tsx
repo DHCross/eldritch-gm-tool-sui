@@ -13,7 +13,9 @@ import {
   calculatePartyDefenseProfile,
   savePartyMembership,
   getPartyMemberships,
-  removePartyMembership
+  removePartyMembership,
+  saveSelectedPartyMembers,
+  getSelectedPartyMembers
 } from '../../utils/partyStorage';
 import { SavedCharacter, PartyFolder, PartyMembership } from '../../types/party';
 
@@ -35,6 +37,16 @@ export default function Roster() {
     const pcFolders = getPartyFoldersByType('PC_party');
     setCharacters(pcs);
     setPartyFolders(pcFolders);
+
+    const storedSelection = getSelectedPartyMembers();
+    if (storedSelection.length > 0) {
+      const validSelection = storedSelection.filter(id => pcs.some(pc => pc.id === id));
+      setSelectedCharacters(new Set(validSelection));
+      saveSelectedPartyMembers(validSelection);
+    } else {
+      setSelectedCharacters(new Set());
+      saveSelectedPartyMembers([]);
+    }
   };
 
   const createNewParty = () => {
@@ -65,6 +77,7 @@ export default function Roster() {
       newSelection.add(characterId);
     }
     setSelectedCharacters(newSelection);
+    saveSelectedPartyMembers(Array.from(newSelection));
   };
 
   const addSelectedToParty = (partyId: string) => {

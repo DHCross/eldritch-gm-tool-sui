@@ -17,6 +17,7 @@ export const STORAGE_KEYS = {
   PARTY_FOLDERS: 'eldritch_party_folders',
   PARTY_MEMBERSHIPS: 'eldritch_party_memberships',
   ENCOUNTER_TEMPLATES: 'eldritch_encounter_templates',
+  SELECTED_PARTY_MEMBERS: 'eldritch_selected_party_members'
 } as const;
 
 // Utility functions
@@ -226,6 +227,41 @@ export function getPartyCharacters(partyId: string): SavedCharacter[] {
     .filter(m => m.active)
     .map(m => getCharacterById(m.character_id))
     .filter(Boolean) as SavedCharacter[];
+}
+
+// Selected party member helpers
+export function saveSelectedPartyMembers(characterIds: string[]): void {
+  try {
+    const uniqueIds = Array.from(new Set(characterIds.filter(Boolean)));
+    localStorage.setItem(
+      STORAGE_KEYS.SELECTED_PARTY_MEMBERS,
+      JSON.stringify(uniqueIds)
+    );
+  } catch (error) {
+    console.error('Error saving selected party members:', error);
+  }
+}
+
+export function getSelectedPartyMembers(): string[] {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.SELECTED_PARTY_MEMBERS);
+    if (!stored) {
+      return [];
+    }
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed.filter(id => typeof id === 'string') : [];
+  } catch (error) {
+    console.error('Error loading selected party members:', error);
+    return [];
+  }
+}
+
+export function clearSelectedPartyMembers(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.SELECTED_PARTY_MEMBERS);
+  } catch (error) {
+    console.error('Error clearing selected party members:', error);
+  }
 }
 
 // Encounter template functions
