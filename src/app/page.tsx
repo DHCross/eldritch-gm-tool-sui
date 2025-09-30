@@ -1,15 +1,29 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 export default function Home() {
   return (
     <div className="container mx-auto px-4 py-8">
-      <header className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Eldritch RPG GM Tools Suite
-        </h1>
-        <p className="text-xl text-gray-600">
-          Essential tools for Game Masters running Eldritch RPG campaigns
-        </p>
+      <header className="mb-12">
+        <div className="flex flex-col items-center gap-4 text-center md:flex-row md:justify-center md:gap-6 md:text-left">
+          <Image
+            src="/hoskbrew-logo.png"
+            alt="HoskBrew star logo for the Eldritch RPG GM Tools Suite"
+            width={220}
+            height={109}
+            sizes="(min-width: 768px) 220px, 160px"
+            priority
+            className="h-auto w-32 max-w-[220px] md:w-[220px]"
+          />
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2 md:mb-4">
+              Eldritch RPG GM Tools Suite
+            </h1>
+            <p className="text-xl text-gray-600">
+              Essential tools for Game Masters running Eldritch RPG campaigns
+            </p>
+          </div>
+        </div>
       </header>
 
       <main>
