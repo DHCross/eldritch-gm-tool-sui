@@ -90,12 +90,18 @@ export default function GMTools() {
         </div>
       </div>
 
-      <div className="text-center">
+      <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
         <Link
           href="/"
           className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors"
         >
           Back to Home
+        </Link>
+        <Link
+          href="/player-tools"
+          className="bg-white border border-blue-200 text-blue-700 hover:text-blue-900 hover:border-blue-300 font-bold py-2 px-4 rounded transition-colors shadow-sm"
+        >
+          Explore Player Tools
         </Link>
       </div>
     </div>
