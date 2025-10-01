@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -19,7 +19,7 @@ import {
 import { SavedCharacter, PartyFolder, PartyMembership } from '../../types/party';
 import { resolveBackTargetFromParam } from '../../utils/backNavigation';
 
-export default function Roster() {
+function RosterContent() {
   const searchParams = useSearchParams();
   const backTarget = resolveBackTargetFromParam(searchParams.get('from'), 'player-tools');
 
@@ -358,5 +358,13 @@ export default function Roster() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function Roster() {
+  return (
+    <Suspense fallback={<div className="p-4 text-center">Loading roster...</div>}>
+      <RosterContent />
+    </Suspense>
   );
 }
