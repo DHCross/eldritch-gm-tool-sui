@@ -3,11 +3,12 @@ import Link from 'next/link';
 import { resolveBackTargetFromSearchParams } from '../../utils/backNavigation';
 
 type PageProps = {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default function BattleCalculatorPage({ searchParams }: PageProps) {
-  const backTarget = resolveBackTargetFromSearchParams(searchParams, 'gm-tools');
+export default async function BattleCalculatorPage({ searchParams }: PageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const backTarget = resolveBackTargetFromSearchParams(resolvedSearchParams, 'gm-tools');
 
   return (
     <div className="min-h-screen bg-gray-50">
