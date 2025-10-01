@@ -134,8 +134,8 @@ export default function Home() {
           <Image
             src="/eldritch-logo.png"
             alt="Eldritch RPG logo"
-            width={600}
-            height={600}
+            width={1200}
+            height={225}
             sizes="(min-width: 768px) 220px, 160px"
             priority
             className="h-auto w-32 max-w-[220px] md:w-[220px]"
