@@ -96,7 +96,15 @@ export default function Home() {
     reader.readAsText(file);
   }, [clearFileInput]);
 
-  const heroCards = [
+  interface HeroCard {
+    title: string;
+    description: string;
+    bullets: string[];
+    cta: { href: string; label: string };
+    secondaryCtas?: { href: string; label: string }[];
+  }
+
+  const heroCards: HeroCard[] = [
     {
       title: 'Player Tools',
       description:
@@ -123,7 +131,13 @@ export default function Home() {
       cta: {
         href: '/gm-tools',
         label: 'Explore GM Tools'
-      }
+      },
+      secondaryCtas: [
+        {
+          href: '/bestiary?from=home',
+          label: 'Browse Bestiary Catalog'
+        }
+      ]
     }
   ];
 
@@ -203,12 +217,23 @@ export default function Home() {
                   <li key={bullet}>• {bullet}</li>
                 ))}
               </ul>
-              <Link
-                href={card.cta.href}
-                className="mt-8 inline-block self-start bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded transition-colors"
-              >
-                {card.cta.label}
-              </Link>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Link
+                  href={card.cta.href}
+                  className="inline-flex items-center justify-center rounded-md bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow hover:bg-blue-700 transition-colors"
+                >
+                  {card.cta.label}
+                </Link>
+                {card.secondaryCtas?.map(secondary => (
+                  <Link
+                    key={secondary.href}
+                    href={secondary.href}
+                    className="inline-flex items-center justify-center rounded-md border border-blue-200 bg-white px-5 py-3 text-sm font-semibold text-blue-700 shadow-sm transition-colors hover:border-blue-300 hover:text-blue-900"
+                  >
+                    {secondary.label}
+                  </Link>
+                ))}
+              </div>
             </div>
           ))}
         </div>
