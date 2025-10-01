@@ -2,8 +2,10 @@
 
 import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { SavedCharacter, CreatureCategory, CreatureNature, CreatureSize } from '../types/party';
 import { getCharactersByType } from '../utils/partyStorage';
+import { resolveBackTargetFromParam } from '../utils/backNavigation';
 
 interface BestiaryCreature {
   id: string;
@@ -886,6 +888,9 @@ type DefenseLevel = 'Practitioner' | 'Competent' | 'Proficient' | 'Advanced' | '
 type Difficulty = 'easy' | 'moderate' | 'difficult' | 'demanding' | 'formidable' | 'deadly';
 
 export default function Bestiary() {
+  const searchParams = useSearchParams();
+  const backTarget = resolveBackTargetFromParam(searchParams.get('from'), 'gm-tools');
+
   const [customCreatures, setCustomCreatures] = useState<BestiaryCreature[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CreatureCategory | 'All'>('All');
@@ -990,10 +995,10 @@ export default function Bestiary() {
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       <div className="flex justify-start">
         <Link
-          href="/"
+          href={backTarget.href}
           className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
         >
-          ← Back to Home
+          {backTarget.label}
         </Link>
       </div>
 

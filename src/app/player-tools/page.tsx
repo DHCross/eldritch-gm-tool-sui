@@ -6,8 +6,8 @@ const playerResources = [
     description:
       'Build and maintain your Eldritch heroes with streamlined creation tools and shared rosters for your party.',
     links: [
-      { href: '/character-generator', label: 'Character Generator →' },
-      { href: '/roster', label: 'Character Roster →' }
+      { href: '/character-generator?from=player-tools', label: 'Character Generator →' },
+      { href: '/roster?from=player-tools', label: 'Character Roster →' }
     ]
   },
   {
@@ -15,8 +15,8 @@ const playerResources = [
     description:
       'Keep your spellbooks, equipment options, and rules clarifications close at hand during every session.',
     links: [
-      { href: '/grimoire', label: 'Grimoire →' },
-      { href: '/rules', label: 'Rules Reference →' }
+      { href: '/grimoire?from=player-tools', label: 'Grimoire →' },
+      { href: '/rules?from=player-tools', label: 'Rules Reference →' }
     ]
   },
   {
@@ -24,8 +24,8 @@ const playerResources = [
     description:
       'Coordinate with your group through shared documentation and manage party folders as your story unfolds.',
     links: [
-      { href: '/party-management', label: 'Party Management →' },
-      { href: '/documentation', label: 'Documentation →' }
+      { href: '/party-management?from=player-tools', label: 'Party Management →' },
+      { href: '/documentation?from=player-tools', label: 'Documentation →' }
     ]
   }
 ];

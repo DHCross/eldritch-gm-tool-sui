@@ -1,6 +1,13 @@
 import Link from 'next/link';
+import { resolveBackTargetFromSearchParams } from '../../utils/backNavigation';
 
-export default function MonsterRoster() {
+type PageProps = {
+  searchParams?: Record<string, string | string[] | undefined>;
+};
+
+export default function MonsterRoster({ searchParams }: PageProps) {
+  const backTarget = resolveBackTargetFromSearchParams(searchParams, 'gm-tools');
+
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="text-center mb-8">
@@ -39,10 +46,10 @@ export default function MonsterRoster() {
           Create First Monster
         </Link>
         <Link
-          href="/"
+          href={backTarget.href}
           className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors"
         >
-          Back to Home
+          {backTarget.label}
         </Link>
       </div>
     </div>

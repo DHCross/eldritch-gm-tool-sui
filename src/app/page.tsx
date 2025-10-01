@@ -132,10 +132,10 @@ export default function Home() {
       <header className="mb-12">
         <div className="flex flex-col items-center gap-4 text-center md:flex-row md:justify-center md:gap-6 md:text-left">
           <Image
-            src="/hoskbrew-logo.png"
-            alt="HoskBrew star logo for the Eldritch RPG GM Tools Suite"
-            width={220}
-            height={109}
+            src="/eldritch-logo.png"
+            alt="Eldritch RPG logo"
+            width={600}
+            height={600}
             sizes="(min-width: 768px) 220px, 160px"
             priority
             className="h-auto w-32 max-w-[220px] md:w-[220px]"

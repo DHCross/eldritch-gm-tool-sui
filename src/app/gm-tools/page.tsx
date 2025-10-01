@@ -16,7 +16,7 @@ export default function GMTools() {
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h3 className="text-xl font-bold mb-3">⚔️ Encounter Generator</h3>
           <p className="text-gray-600 mb-4">Create balanced encounters with detailed statistics.</p>
-          <Link href="/encounter-generator" className="text-blue-600 hover:text-blue-800 font-medium">
+          <Link href="/encounter-generator?from=gm-tools" className="text-blue-600 hover:text-blue-800 font-medium">
             Generate Encounters →
           </Link>
         </div>
@@ -25,10 +25,10 @@ export default function GMTools() {
           <h3 className="text-xl font-bold mb-3">👤 Character Tools</h3>
           <p className="text-gray-600 mb-4">Generate and manage player characters.</p>
           <div className="space-y-2">
-            <Link href="/character-generator" className="block text-blue-600 hover:text-blue-800 font-medium">
+            <Link href="/character-generator?from=gm-tools" className="block text-blue-600 hover:text-blue-800 font-medium">
               Character Generator →
             </Link>
-            <Link href="/roster" className="block text-blue-600 hover:text-blue-800 font-medium">
+            <Link href="/roster?from=gm-tools" className="block text-blue-600 hover:text-blue-800 font-medium">
               Character Roster →
             </Link>
           </div>
@@ -38,10 +38,10 @@ export default function GMTools() {
           <h3 className="text-xl font-bold mb-3">🧙 NPC Tools</h3>
           <p className="text-gray-600 mb-4">Create and organize non-player characters.</p>
           <div className="space-y-2">
-            <Link href="/npc-generator" className="block text-blue-600 hover:text-blue-800 font-medium">
+            <Link href="/npc-generator?from=gm-tools" className="block text-blue-600 hover:text-blue-800 font-medium">
               NPC Generator →
             </Link>
-            <Link href="/npc-roster" className="block text-blue-600 hover:text-blue-800 font-medium">
+            <Link href="/npc-roster?from=gm-tools" className="block text-blue-600 hover:text-blue-800 font-medium">
               NPC Roster →
             </Link>
           </div>
@@ -51,11 +51,14 @@ export default function GMTools() {
           <h3 className="text-xl font-bold mb-3">👹 Monster Tools</h3>
           <p className="text-gray-600 mb-4">Generate creatures and manage bestiary.</p>
           <div className="space-y-2">
-            <Link href="/monster-generator" className="block text-blue-600 hover:text-blue-800 font-medium">
+            <Link href="/monster-generator?from=gm-tools" className="block text-blue-600 hover:text-blue-800 font-medium">
               Monster Generator →
             </Link>
-            <Link href="/monster-roster" className="block text-blue-600 hover:text-blue-800 font-medium">
+            <Link href="/monster-roster?from=gm-tools" className="block text-blue-600 hover:text-blue-800 font-medium">
               Monster Roster →
+            </Link>
+            <Link href="/bestiary?from=gm-tools" className="block text-blue-600 hover:text-blue-800 font-medium">
+              Bestiary Catalog →
             </Link>
           </div>
         </div>
@@ -63,7 +66,7 @@ export default function GMTools() {
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h3 className="text-xl font-bold mb-3">⚡ Battle Calculator</h3>
           <p className="text-gray-600 mb-4">Track combat and manage battle phases.</p>
-          <Link href="/battle-calculator" className="text-blue-600 hover:text-blue-800 font-medium">
+          <Link href="/battle-calculator?from=gm-tools" className="text-blue-600 hover:text-blue-800 font-medium">
             Battle Calculator →
           </Link>
         </div>
@@ -71,7 +74,7 @@ export default function GMTools() {
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h3 className="text-xl font-bold mb-3">📝 Game Content Parser</h3>
           <p className="text-gray-600 mb-4">Analyze and validate stat blocks, spells, and magic items for compliance.</p>
-          <Link href="/stat-block-parser" className="text-blue-600 hover:text-blue-800 font-medium">
+          <Link href="/stat-block-parser?from=gm-tools" className="text-blue-600 hover:text-blue-800 font-medium">
             Parse Game Content →
           </Link>
         </div>
@@ -80,10 +83,10 @@ export default function GMTools() {
           <h3 className="text-xl font-bold mb-3">📚 References</h3>
           <p className="text-gray-600 mb-4">Quick access to rules and spell references.</p>
           <div className="space-y-2">
-            <Link href="/grimoire" className="block text-blue-600 hover:text-blue-800 font-medium">
+            <Link href="/grimoire?from=gm-tools" className="block text-blue-600 hover:text-blue-800 font-medium">
               Grimoire →
             </Link>
-            <Link href="/rules" className="block text-blue-600 hover:text-blue-800 font-medium">
+            <Link href="/rules?from=gm-tools" className="block text-blue-600 hover:text-blue-800 font-medium">
               Rules Reference →
             </Link>
           </div>

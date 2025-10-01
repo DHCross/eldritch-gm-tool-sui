@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   getAllPartyFolders,
   getPartyCharacters,
@@ -10,6 +11,7 @@ import {
   initializeDefaultFolders
 } from '../../utils/partyStorage';
 import { PartyFolder, SavedCharacter, MonsterData, PartyDefenseProfile } from '../../types/party';
+import { resolveBackTargetFromParam } from '../../utils/backNavigation';
 
 const difficultyLevels = ['Easy', 'Moderate', 'Difficult', 'Demanding', 'Formidable', 'Deadly'] as const;
 const defenseLevels = ['Practitioner', 'Competent', 'Proficient', 'Advanced', 'Elite'] as const;
@@ -163,6 +165,9 @@ function generateMonster(
 }
 
 export default function EncounterGeneratorPage() {
+  const searchParams = useSearchParams();
+  const backTarget = resolveBackTargetFromParam(searchParams.get('from'), 'gm-tools');
+
   const [partySize, setPartySize] = useState<number>(4);
   const [defenseLevelIndex, setDefenseLevelIndex] = useState<number>(0);
   const [difficultyIndex, setDifficultyIndex] = useState<number>(1);
@@ -396,10 +401,10 @@ export default function EncounterGeneratorPage() {
       <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-10 sm:px-6 lg:px-8">
         <header className="flex items-center gap-4">
           <Link
-            href="/"
+            href={backTarget.href}
             className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
           >
-            ← Back to Home
+            {backTarget.label}
           </Link>
         </header>
 

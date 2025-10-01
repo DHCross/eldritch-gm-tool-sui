@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   getCharactersByType,
@@ -16,8 +17,12 @@ import {
   removePartyMembership
 } from '../../utils/partyStorage';
 import { SavedCharacter, PartyFolder, PartyMembership } from '../../types/party';
+import { resolveBackTargetFromParam } from '../../utils/backNavigation';
 
 export default function Roster() {
+  const searchParams = useSearchParams();
+  const backTarget = resolveBackTargetFromParam(searchParams.get('from'), 'player-tools');
+
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
   const [partyFolders, setPartyFolders] = useState<PartyFolder[]>([]);
   const [selectedCharacters, setSelectedCharacters] = useState<Set<string>>(new Set());
@@ -346,10 +351,10 @@ export default function Roster() {
 
       <div className="text-center mt-8">
         <Link
-          href="/"
+          href={backTarget.href}
           className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors"
         >
-          Back to Home
+          {backTarget.label}
         </Link>
       </div>
     </div>
