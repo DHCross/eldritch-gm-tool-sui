@@ -1,13 +1,13 @@
 import CharacterGenerator from '../../components/CharacterGenerator';
 import Link from 'next/link';
 import { resolveBackTargetFromSearchParams } from '../../utils/backNavigation';
+import { PagePropsWithSearchParams, resolvePageSearchParams } from '../../types/page';
 
-type PageProps = {
-  searchParams?: Record<string, string | string[] | undefined>;
-};
+type PageProps = PagePropsWithSearchParams;
 
-export default function CharacterGeneratorPage({ searchParams }: PageProps) {
-  const backTarget = resolveBackTargetFromSearchParams(searchParams, 'player-tools');
+export default async function CharacterGeneratorPage({ searchParams }: PageProps) {
+  const resolvedSearchParams = await resolvePageSearchParams(searchParams);
+  const backTarget = resolveBackTargetFromSearchParams(resolvedSearchParams, 'player-tools');
 
   return (
     <div className="min-h-screen bg-gray-50">
