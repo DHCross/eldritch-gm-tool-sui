@@ -20,7 +20,7 @@ export default function PartyManagementPage({ searchParams }: PageProps) {
             {backTarget.label}
           </Link>
           <Link
-            href="/roster"
+            href="/roster?from=player-tools"
             className="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors"
           >
             View PC Roster →

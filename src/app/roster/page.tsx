@@ -153,7 +153,7 @@ export default function Roster() {
               <h2 className="text-xl font-bold">Available Characters ({characters.length})</h2>
               <div className="space-x-2">
                 <Link
-                  href="/character-generator"
+                  href="/character-generator?from=player-tools"
                   className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors"
                 >
                   Create New PC
