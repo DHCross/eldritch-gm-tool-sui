@@ -6,6 +6,51 @@ import Link from 'next/link';
 
 import { exportCampaign, importCampaign } from '@/utils/campaignBackup';
 
+type HeroCard = {
+  title: string;
+  description: string;
+  bullets: string[];
+  cta: { href: string; label: string };
+  secondaryCtas?: { href: string; label: string }[];
+};
+
+const HERO_CARDS: HeroCard[] = [
+  {
+    title: 'Player Tools',
+    description:
+      'Jump straight into character creation, spell references, and tools to keep your hero ready for every eldritch encounter.',
+    bullets: [
+      'Quick-start character, party, and NPC builders tailored for players.',
+      'Spellbooks, equipment references, and lore summaries at the table.',
+      'Track progress, quests, and campaign history with shared resources.'
+    ],
+    cta: {
+      href: '/player-tools',
+      label: 'Explore Player Tools'
+    }
+  },
+  {
+    title: 'GM Tools',
+    description:
+      'Orchestrate unforgettable sessions with encounter planning, monster management, and campaign organization at your fingertips.',
+    bullets: [
+      'Comprehensive encounter and monster generators.',
+      'Battle calculators, rosters, and party management dashboards.',
+      'Direct links to rules, documentation, and the full bestiary.'
+    ],
+    cta: {
+      href: '/gm-tools',
+      label: 'Explore GM Tools'
+    },
+    secondaryCtas: [
+      {
+        href: '/bestiary?from=home',
+        label: 'Browse Bestiary Catalog'
+      }
+    ]
+  }
+];
+
 export default function Home() {
   const [, setRefreshCounter] = useState(0);
   const [feedback, setFeedback] = useState<{
@@ -96,6 +141,8 @@ export default function Home() {
     reader.readAsText(file);
   }, [clearFileInput]);
 
+
+
   interface HeroCard {
     title: string;
     description: string;
@@ -140,6 +187,7 @@ export default function Home() {
       ]
     }
   ];
+
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -205,7 +253,7 @@ export default function Home() {
         </section>
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          {heroCards.map(card => (
+          {HERO_CARDS.map(card => (
             <div
               key={card.title}
               className="flex flex-col bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow"
