@@ -5,7 +5,6 @@ import {
   calculateCPSpent,
   createCharacterShell,
   fnum,
-  races,
   spendCP,
   updateDerivedCharacterData,
   weaknessReport,
