@@ -17,141 +17,57 @@ import {
   RACE_CULTURE_MAP
 } from '../utils/nameGenerator';
 import { SavedCharacter, PartyFolder, PartyMembership } from '../types/party';
+import {
+  Ability,
+  ClassKey,
+  DieRank,
+  FocusBonus,
+  MagicPathKey,
+  RaceKey,
+  abilities,
+  classes as classData,
+  classKeys,
+  costToRankUpDie,
+  dieRanks,
+  focusStepCost,
+  focusToAbility,
+  focusesBySpecialty,
+  levelProgression,
+  magicPathsByClass,
+  raceKeys,
+  races as raceData,
+  specialtiesByAbility,
+  specialtyToAbility,
+  startingEquipment,
+  levels as levelOptions
+} from '../data/gameData';
+import { applyMinima, isCasterClass } from '../utils/characterUtils';
 
 // ======= DATA =======
-const dieRanks = ['d4', 'd6', 'd8', 'd10', 'd12'];
-const abilities = ['Competence', 'Prowess', 'Fortitude'];
-const specs = {
-  Competence: ['Adroitness', 'Expertise', 'Perception'],
-  Prowess: ['Agility', 'Melee', 'Precision'],
-  Fortitude: ['Endurance', 'Strength', 'Willpower']
-};
-const foci = {
-  Adroitness: ['Skulduggery', 'Cleverness'],
-  Expertise: ['Wizardry', 'Theurgy'],
-  Perception: ['Alertness', 'Perspicacity'],
-  Agility: ['Speed', 'Reaction'],
-  Melee: ['Threat', 'Finesse'],
-  Precision: ['Ranged Threat', 'Ranged Finesse'],
-  Endurance: ['Vitality', 'Resilience'],
-  Strength: ['Ferocity', 'Might'],
-  Willpower: ['Courage', 'Resistance']
-};
-const races = ['Human', 'Elf', 'Dwarf', 'Gnome', 'Half-Elf', 'Half-Orc', 'Halfling', 'Drakkin'];
-const classes = ['Adept', 'Assassin', 'Barbarian', 'Mage', 'Mystic', 'Rogue', 'Theurgist', 'Warrior'];
-const levels = [1, 2, 3, 4, 5];
-const casterClasses = ['Adept', 'Mage', 'Mystic', 'Theurgist'];
-const magicPathsByClass = {
-  Adept: ['Thaumaturgy', 'Elementalism', 'Sorcery'],
-  Mage: ['Thaumaturgy', 'Elementalism', 'Sorcery'],
-  Mystic: ['Mysticism'],
-  Theurgist: ['Druidry', 'Hieraticism']
-};
-const levelInfo = [
-  { level: 1, masteryDie: 'd4' },
-  { level: 2, masteryDie: 'd6' },
-  { level: 3, masteryDie: 'd8' },
-  { level: 4, masteryDie: 'd10' },
-  { level: 5, masteryDie: 'd12' }
-];
-
-const raceMinima = {
-  Drakkin: { Competence: 'd6', Prowess: 'd6', Fortitude: 'd6', Endurance: 'd6', Strength: 'd4' },
-  Dwarf: { Fortitude: 'd8', Endurance: 'd4', Prowess: 'd6', Melee: 'd6' },
-  Elf: { Competence: 'd6', Expertise: 'd6', Wizardry: '+1', Prowess: 'd4', Agility: 'd4', Reaction: '+1' },
-  Gnome: { Competence: 'd4', Adroitness: 'd6', Expertise: 'd6', Perception: 'd4', Perspicacity: '+1' },
-  'Half-Elf': { Competence: 'd6', Prowess: 'd6', Agility: 'd4', Fortitude: 'd4', Endurance: 'd4', Willpower: 'd4' },
-  'Half-Orc': { Fortitude: 'd6', Strength: 'd8', Ferocity: '+1', Endurance: 'd6' },
-  Halfling: { Competence: 'd6', Adroitness: 'd6', Cleverness: '+1', Fortitude: 'd6', Willpower: 'd4', Courage: '+1' },
-  Human: { Competence: 'd6', Prowess: 'd6', Melee: 'd4', Threat: '+1', Fortitude: 'd4', Willpower: 'd6' }
-};
-
-const classMinima = {
-  Adept: { Competence: 'd6', Adroitness: 'd4', Cleverness: '+1', Expertise: 'd6', Wizardry: '+1', Perception: 'd4', Perspicacity: '+1' },
-  Assassin: { Competence: 'd4', Adroitness: 'd6', Perception: 'd4', Prowess: 'd4', Agility: 'd4', Endurance: 'd6', Melee: 'd4', Finesse: '+1' },
-  Barbarian: { Prowess: 'd6', Melee: 'd8', Fortitude: 'd4', Strength: 'd4', Ferocity: '+1' },
-  Mage: { Competence: 'd6', Expertise: 'd8', Wizardry: '+1', Fortitude: 'd4', Willpower: 'd6', Resistance: '+1' },
-  Mystic: { Competence: 'd6', Expertise: 'd6', Wizardry: '+1', Prowess: 'd4', Melee: 'd4', Fortitude: 'd4', Endurance: 'd6', Resilience: '+1', Vitality: '+2' },
-  Rogue: { Competence: 'd4', Adroitness: 'd4', Skulduggery: '+1', Perception: 'd4', Prowess: 'd6', Agility: 'd8' },
-  Theurgist: { Competence: 'd8', Expertise: 'd4', Theurgy: '+1', Fortitude: 'd6', Willpower: 'd4' },
-  Warrior: { Prowess: 'd8', Melee: 'd6', Threat: '+1', Fortitude: 'd6' }
-};
-
-const allAdvantages = {
-  Human: ['Fortunate', 'Survival'],
-  Elf: ['Night Vision', 'Gift of Magic', 'Magic Resistance (+1)'],
-  Dwarf: ['Night Vision', 'Strong-willed', 'Sense of Direction'],
-  Gnome: ['Eidetic Memory', 'Low-Light Vision', 'Observant'],
-  'Half-Elf': ['Heightened Senses', 'Low-Light Vision', 'Magic Resistance (+1)'],
-  'Half-Orc': ['Low-light Vision', 'Intimidation', 'Menacing'],
-  Halfling: ['Low Light Vision', 'Read Emotions', 'Resilient'],
-  Drakkin: ['Natural Armor', 'Breath Weapon', 'Night Vision'],
-  Adept: ['Arcanum', 'Gift of Magic', 'Literacy', 'Scholar'],
-  Assassin: ['Expeditious', 'Heightened Senses (hearing)', 'Observant', 'Read Emotions'],
-  Barbarian: ['Animal Affinity', 'Brutishness', 'Menacing', 'Resilient'],
-  Mage: ['Arcanum', 'Gift of Magic', 'Magic Defense', 'Scholar'],
-  Mystic: ['Empathic', 'Gift of Magic', 'Intuitive', 'Magic Resistance (Lesser)', 'Strong-Willed'],
-  Rogue: ['Expeditious', 'Fortunate', 'Streetwise', 'Underworld Contacts'],
-  Theurgist: ['Gift of Magic', 'Magic Defense', 'Religion', 'Strong-Willed'],
-  Warrior: ['Commanding', 'Intimidation', 'Magic Resistance (+1)', 'Tactician']
-};
-
-const classFeats = {
-  Adept: ['Guile', 'Lore', 'Ritual Magic', 'Quick-witted'],
-  Assassin: ['Death Strike', 'Lethal Exploit', 'Ranged Ambush', 'Shadow Walk'],
-  Barbarian: ['Berserk', 'Brawl', 'Feat of Strength', 'Grapple'],
-  Mage: ['Arcane Finesse', 'Dweomers', 'Intangible Threat', 'Path Mastery'],
-  Mystic: ['Iron Mind', 'Path Mastery', 'Premonition', 'Psychic Powers'],
-  Rogue: ['Backstab', 'Evasion', 'Roguish Charm', 'Stealth'],
-  Theurgist: ['Divine Healing', 'Path Mastery', 'Spiritual Smite', 'Supernatural Intervention'],
-  Warrior: ['Battle Savvy', 'Maneuvers', 'Stunning Reversal', 'Sunder Foe']
-};
-
-const raceFlaws = {
-  Gnome: ['Restriction: small weapons only'],
-  Halfling: ['Restriction: small weapons only'],
-  'Half-Orc': ['Ugliness']
-};
-
-const startingEquipment = {
-  common: ['Set of ordinary clothes', 'Purse of 5 gold coins', 'Backpack', 'Small dagger', 'Week\'s rations', 'Waterskin', 'Tinderbox', '50\' rope', 'Iron spikes', 'Small hammer', '6\' traveling staff or 10\' pole', 'Hooded lantern and 2 oil flasks or d4+1 torches'],
-  Adept: ['Book of knowledge (area of expertise)'],
-  Assassin: ['Assassin hood, jacket, cape, robe, or tunic'],
-  Barbarian: ['Garments of woven wool or linen', 'Tunic', 'Overcoat or cloak'],
-  Mage: ['Spellbook', 'Staff or focus item'],
-  Mystic: ['Robes or shawl', 'Cloak', 'Armor up to leather'],
-  Rogue: ['Set of thieves\' tools', 'Light armor (up to leather)', 'One weapon'],
-  Theurgist: ['Prayer book', 'Holy relic or symbol', 'Focus item', 'Armor up to chain'],
-  Warrior: ['One weapon of choice', 'Armor up to chain', 'Small to large shield', 'Steed']
-};
-
-const stepCost = { 'd4': 6, 'd6': 8, 'd8': 10, 'd10': 12, 'd12': Infinity };
-const focusStepCost = 4;
-
-const classAxes = {
-  Warrior: ['Prowess', 'Melee', 'Strength', 'Fortitude', 'Endurance', 'Threat', 'Agility', 'Might'],
-  Barbarian: ['Prowess', 'Melee', 'Strength', 'Fortitude', 'Endurance', 'Ferocity', 'Might', 'Vitality'],
-  Rogue: ['Prowess', 'Agility', 'Competence', 'Adroitness', 'Perception', 'Skulduggery', 'Cleverness', 'Speed'],
-  Assassin: ['Prowess', 'Agility', 'Melee', 'Competence', 'Adroitness', 'Finesse', 'Speed', 'Perception'],
-  Mage: ['Competence', 'Expertise', 'Wizardry', 'Fortitude', 'Willpower', 'Resistance', 'Perception'],
-  Mystic: ['Fortitude', 'Willpower', 'Competence', 'Expertise', 'Endurance', 'Prowess', 'Melee', 'Resilience', 'Vitality'],
-  Adept: ['Competence', 'Expertise', 'Adroitness', 'Perception', 'Cleverness', 'Wizardry', 'Perspicacity'],
-  Theurgist: ['Competence', 'Expertise', 'Theurgy', 'Fortitude', 'Willpower', 'Endurance', 'Courage']
-};
+const specs = specialtiesByAbility;
+const foci = focusesBySpecialty;
+const races = raceKeys;
+const classOptions = classKeys;
+const levels = levelOptions;
+const levelInfo = levels.map(level => ({ level, masteryDie: levelProgression[level].masteryDie }));
+const specialtyNames = Object.values(specs).flat();
+const focusNames = Object.values(foci).flat();
 
 // ======= HELPERS =======
 const idx = (r: string) => dieRanks.indexOf(r);
 const mv = (r: string) => r && r.startsWith('d') ? parseInt(r.slice(1), 10) : 0;
 const fnum = (v: string | number) => v ? parseInt(String(v).replace('+', ''), 10) : 0;
+const baseDie = dieRanks[0] as DieRank;
+const baseFocus: FocusBonus = '+0';
 
 interface Character {
-  race: string;
-  class: string;
+  race: RaceKey;
+  class: ClassKey;
   level: number;
-  abilities: Record<string, string>;
-  specialties: Record<string, Record<string, string>>;
-  focuses: Record<string, Record<string, string>>;
-  masteryDie: string;
+  abilities: Record<Ability, DieRank>;
+  specialties: Record<Ability, Record<string, DieRank>>;
+  focuses: Record<Ability, Record<string, FocusBonus>>;
+  masteryDie: DieRank;
   advantages: string[];
   flaws: string[];
   classFeats: string[];
@@ -162,38 +78,21 @@ interface Character {
     passive: number;
     spirit: number;
   };
+  magicPath?: MagicPathKey;
 }
 
 function showAlert(message: string) {
   alert(message);
 }
 
-function getAdvantages(race: string, klass: string) {
-  const raceAdv = allAdvantages[race as keyof typeof allAdvantages] || [];
-  const classAdv = allAdvantages[klass as keyof typeof allAdvantages] || [];
-  const combined = [...new Set([...raceAdv, ...classAdv])];
-  return combined;
+function getAdvantages(race: RaceKey, klass: ClassKey) {
+  const raceAdv = raceData[race]?.advantages ?? [];
+  const classAdv = classData[klass]?.advantages ?? [];
+  return [...new Set([...raceAdv, ...classAdv])];
 }
 
-function getEquipment(klass: string) {
-  return [...startingEquipment.common, ...(startingEquipment[klass as keyof typeof startingEquipment] || [])];
-}
-
-function applyMinima(ch: Character, minima: Record<string, string>) {
-  for (const [k, v] of Object.entries(minima || {})) {
-    if (abilities.includes(k)) {
-      if (idx(v) > idx(ch.abilities[k])) ch.abilities[k] = v;
-    } else {
-      const parentA = Object.keys(specs).find(a => specs[a as keyof typeof specs].includes(k));
-      const parentS = Object.keys(foci).find(s => foci[s as keyof typeof foci].includes(k));
-      if (parentA) {
-        if (idx(v) > idx(ch.specialties[parentA][k])) ch.specialties[parentA][k] = v;
-      } else if (parentS) {
-        const pa = Object.keys(specs).find(a => specs[a as keyof typeof specs].includes(parentS));
-        if (pa && fnum(v) > fnum(ch.focuses[pa][k])) ch.focuses[pa][k] = `+${fnum(v)}`;
-      }
-    }
-  }
+function getEquipment(klass: ClassKey) {
+  return [...startingEquipment.common, ...(startingEquipment.byClass[klass] ?? [])];
 }
 
 // function rookieCaps(profile: string) {
@@ -219,8 +118,8 @@ function applyMinima(ch: Character, minima: Record<string, string>) {
 //   return sc;
 // }
 
-function buildWeights(klass: string, style: string) {
-  const axis = classAxes[klass as keyof typeof classAxes] || [];
+function buildWeights(klass: ClassKey, style: string) {
+  const axis = classData[klass]?.axes ?? [];
   const w: Record<string, number> = {};
   axis.forEach((k, i) => w[k] = (style === 'specialist' ? 100 - i * 4 : style === 'balanced' ? 60 - i * 3 : 80 - i * 3));
   if (style === 'balanced') {
@@ -240,42 +139,41 @@ function canUpgrade(ch: Character, key: string, kind: string, level: number, sty
 function spendCP(ch: Character, cpBudget: { value: number }, style: string, level: number, npcMode: boolean, enforceSoftcaps: boolean) {
   const weights = buildWeights(ch.class, style);
   const tryUpgrade = (key: string) => {
-    if (abilities.includes(key)) {
-      const cur = ch.abilities[key];
+    if (abilities.includes(key as Ability)) {
+      const abilityKey = key as Ability;
+      const cur = ch.abilities[abilityKey];
       if (cur === 'd12') return false;
       if (!canUpgrade(ch, key, 'ability', level, style, enforceSoftcaps)) return false;
-      const cost = stepCost[cur as keyof typeof stepCost];
+      const cost = costToRankUpDie[cur];
       if (cpBudget.value < cost) return false;
-      ch.abilities[key] = dieRanks[idx(cur) + 1];
+      ch.abilities[abilityKey] = dieRanks[idx(cur) + 1] as DieRank;
       cpBudget.value -= cost;
       return true;
     }
-    const pa = Object.keys(specs).find(a => specs[a as keyof typeof specs].includes(key));
-    if (pa) {
-      const cur = ch.specialties[pa][key];
+    if ((key as keyof typeof specialtyToAbility) in specialtyToAbility) {
+      const abilityKey = specialtyToAbility[key as keyof typeof specialtyToAbility];
+      const cur = ch.specialties[abilityKey][key];
       if (cur === 'd12') return false;
       if (!canUpgrade(ch, key, 'spec', level, style, enforceSoftcaps)) return false;
-      const cost = stepCost[cur as keyof typeof stepCost];
+      const cost = costToRankUpDie[cur];
       if (cpBudget.value < cost) return false;
-      ch.specialties[pa][key] = dieRanks[idx(cur) + 1];
+      ch.specialties[abilityKey][key] = dieRanks[idx(cur) + 1] as DieRank;
       cpBudget.value -= cost;
       return true;
     }
-    const ps = Object.keys(foci).find(s => foci[s as keyof typeof foci].includes(key));
-    if (ps) {
-      const pa2 = Object.keys(specs).find(a => specs[a as keyof typeof specs].includes(ps));
-      if (pa2) {
-        const val = fnum(ch.focuses[pa2][key]);
-        if (val >= 5) return false; // max focus
-        if (cpBudget.value < focusStepCost) return false;
-        ch.focuses[pa2][key] = `+${val + 1}`;
-        cpBudget.value -= focusStepCost;
-        return true;
-      }
+    if ((key as keyof typeof focusToAbility) in focusToAbility) {
+      const abilityKey = focusToAbility[key as keyof typeof focusToAbility];
+      const focusBucket = ch.focuses[abilityKey];
+      const currentValue = fnum(focusBucket[key]);
+      if (currentValue >= 5) return false; // max focus
+      if (cpBudget.value < focusStepCost) return false;
+      focusBucket[key] = `+${currentValue + 1}` as FocusBonus;
+      cpBudget.value -= focusStepCost;
+      return true;
     }
     return false;
   };
-  const keys = [...new Set([...abilities, ...Object.values(specs).flat(), ...Object.values(foci).flat()])];
+  const keys = [...new Set<string>([...abilities, ...specialtyNames, ...focusNames])];
   let safety = 0;
   while (cpBudget.value > 0 && safety < 5000) {
     safety++;
@@ -319,14 +217,14 @@ function calculateCPSpent(finalChar: Character, baseChar: Character, iconic: boo
     const baseRankIndex = idx(baseChar.abilities[ab]);
     const finalRankIndex = idx(finalChar.abilities[ab]);
     for (let i = baseRankIndex; i < finalRankIndex; i++) {
-      spent.abilities += stepCost[dieRanks[i] as keyof typeof stepCost];
+      spent.abilities += costToRankUpDie[dieRanks[i] as DieRank];
     }
 
     for (const sp of specs[ab as keyof typeof specs]) {
       const baseSpecIndex = idx(baseChar.specialties[ab][sp]);
       const finalSpecIndex = idx(finalChar.specialties[ab][sp]);
       for (let i = baseSpecIndex; i < finalSpecIndex; i++) {
-        spent.specialties += stepCost[dieRanks[i] as keyof typeof stepCost];
+        spent.specialties += costToRankUpDie[dieRanks[i] as DieRank];
       }
     }
 
@@ -346,10 +244,10 @@ function calculateCPSpent(finalChar: Character, baseChar: Character, iconic: boo
 }
 
 export default function CharacterGenerator() {
-  const [race, setRace] = useState('');
-  const [characterClass, setCharacterClass] = useState('');
+  const [race, setRace] = useState<RaceKey | ''>('');
+  const [characterClass, setCharacterClass] = useState<ClassKey | ''>('');
   const [level, setLevel] = useState<number>(1);
-  const [magicPath, setMagicPath] = useState('');
+  const [magicPath, setMagicPath] = useState<MagicPathKey | ''>('');
   const [buildStyle, setBuildStyle] = useState('balanced');
   const [rookieProfile, setRookieProfile] = useState('off');
   const [enforceSoftcaps, setEnforceSoftcaps] = useState(true);
@@ -411,37 +309,42 @@ export default function CharacterGenerator() {
       return;
     }
 
+    const raceKey = race as RaceKey;
+    const classKey = characterClass as ClassKey;
+
     const ch: Character = {
-      race,
-      class: characterClass,
+      race: raceKey,
+      class: classKey,
       level,
-      abilities: {},
-      specialties: {},
-      focuses: {},
-      masteryDie: '',
+      abilities: {} as Record<Ability, DieRank>,
+      specialties: {} as Record<Ability, Record<string, DieRank>>,
+      focuses: {} as Record<Ability, Record<string, FocusBonus>>,
+      masteryDie: levelInfo[level - 1].masteryDie,
       advantages: [],
       flaws: [],
       classFeats: [],
       equipment: [],
       actions: {},
-      pools: { active: 0, passive: 0, spirit: 0 }
+      pools: { active: 0, passive: 0, spirit: 0 },
+      magicPath: magicPath ? magicPath : undefined
     };
 
-    for (const a of abilities) {
-      ch.abilities[a] = 'd4';
-      ch.specialties[a] = {};
-      ch.focuses[a] = {};
-      for (const s of specs[a as keyof typeof specs]) {
-        ch.specialties[a][s] = 'd4';
-        for (const fx of foci[s as keyof typeof foci]) {
-          ch.focuses[a][fx] = '+0';
-        }
-      }
+    for (const ability of abilities) {
+      ch.abilities[ability] = baseDie;
+      ch.specialties[ability] = {} as Record<string, DieRank>;
+      ch.focuses[ability] = {} as Record<string, FocusBonus>;
+      specs[ability].forEach(specialty => {
+        ch.specialties[ability][specialty] = baseDie;
+        const focusList = foci[specialty as keyof typeof foci];
+        focusList.forEach(focusName => {
+          ch.focuses[ability][focusName] = baseFocus;
+        });
+      });
     }
 
     const baseCharacter = JSON.parse(JSON.stringify(ch));
-    applyMinima(baseCharacter, raceMinima[race as keyof typeof raceMinima]);
-    applyMinima(baseCharacter, classMinima[characterClass as keyof typeof classMinima]);
+    applyMinima(baseCharacter, raceData[raceKey].minima);
+    applyMinima(baseCharacter, classData[classKey].minima);
 
     Object.assign(ch, JSON.parse(JSON.stringify(baseCharacter)));
 
@@ -463,10 +366,14 @@ export default function CharacterGenerator() {
     }
 
     ch.masteryDie = levelInfo[level - 1].masteryDie;
-    ch.advantages = getAdvantages(race, characterClass);
-    ch.flaws = raceFlaws[race as keyof typeof raceFlaws] || [];
-    ch.classFeats = classFeats[characterClass as keyof typeof classFeats] || [];
-    ch.equipment = getEquipment(characterClass);
+    ch.advantages = getAdvantages(raceKey, classKey);
+    ch.flaws = raceData[raceKey]?.flaws ? [...raceData[raceKey].flaws!] : [];
+    ch.classFeats = classData[classKey]?.feats ?? [];
+    ch.equipment = getEquipment(classKey);
+    const availablePaths = classData[classKey]?.magicPaths ?? [];
+    ch.magicPath = availablePaths.length > 0
+      ? (magicPath ? magicPath : availablePaths[0])
+      : undefined;
 
     const w = fnum(ch.focuses.Competence.Wizardry);
     const t = fnum(ch.focuses.Competence.Theurgy);
@@ -474,7 +381,7 @@ export default function CharacterGenerator() {
       meleeAttack: `${ch.abilities.Prowess} + ${ch.specialties.Prowess.Melee}` + (fnum(ch.focuses.Prowess.Threat) ? ` + Threat +${fnum(ch.focuses.Prowess.Threat)}` : ''),
       rangedAttack: `${ch.abilities.Prowess} + ${ch.specialties.Prowess.Precision}` + (fnum(ch.focuses.Prowess['Ranged Threat']) ? ` + Ranged Threat +${fnum(ch.focuses.Prowess['Ranged Threat'])}` : ''),
       perceptionCheck: `${ch.abilities.Competence} + ${ch.specialties.Competence.Perception}` + (fnum(ch.focuses.Competence.Perspicacity) ? ` + Perspicacity +${fnum(ch.focuses.Competence.Perspicacity)}` : ''),
-      magicAttack: casterClasses.includes(characterClass) ? `${ch.abilities.Competence} + ${ch.specialties.Competence.Expertise} + ${(w ? `Wizardry +${w}` : t ? `Theurgy +${t}` : '(path focus 0)')}` : '—'
+      magicAttack: isCasterClass(ch.class) ? `${ch.abilities.Competence} + ${ch.specialties.Competence.Expertise} + ${(w ? `Wizardry +${w}` : t ? `Theurgy +${t}` : '(path focus 0)')}` : '—'
     };
 
     ch.pools = computePools(ch);
@@ -502,7 +409,7 @@ export default function CharacterGenerator() {
       }).join(', ');
       md += `**${a} ${ch.abilities[a]}** → ${sp}.\n`;
     }
-    md += `\n### Actions\n- **Melee Attack:** ${ch.actions.meleeAttack}\n- **Ranged Attack:** ${ch.actions.rangedAttack}\n- **Perception Check:** ${ch.actions.perceptionCheck}\n` + (casterClasses.includes(ch.class) ? `- **Magic Attack:** ${ch.actions.magicAttack}\n\n` : '\n');
+    md += `\n### Actions\n- **Melee Attack:** ${ch.actions.meleeAttack}\n- **Ranged Attack:** ${ch.actions.rangedAttack}\n- **Perception Check:** ${ch.actions.perceptionCheck}\n` + (isCasterClass(ch.class) ? `- **Magic Attack:** ${ch.actions.magicAttack}\n\n` : '\n');
 
     md += `### Advantages & Flaws\n**Advantages:**\n${ch.advantages.map(a => `- ${a}`).join('\n')}\n\n**Flaws:**\n${ch.flaws.length ? ch.flaws.map(f => `- ${f}`).join('\n') : '- None'}\n\n`;
     md += `### Class Feats\n${ch.classFeats.map(f => `- ${f}`).join('\n')}\n\n`;
@@ -659,7 +566,7 @@ export default function CharacterGenerator() {
                 id="race"
                 className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5"
                 value={race}
-                onChange={(e) => setRace(e.target.value)}
+                onChange={(e) => setRace(e.target.value as RaceKey)}
               >
                 <option value="">Select Race</option>
                 {races.map(r => <option key={r} value={r}>{r}</option>)}
@@ -672,17 +579,19 @@ export default function CharacterGenerator() {
                 className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5"
                 value={characterClass}
                 onChange={(e) => {
-                  setCharacterClass(e.target.value);
-                  const paths = magicPathsByClass[e.target.value as keyof typeof magicPathsByClass];
-                  if (paths && e.target.value !== 'Adept' && e.target.value !== 'Mystic') {
-                    setMagicPath(paths[0]);
+                  const selectedClass = e.target.value as ClassKey;
+                  setCharacterClass(selectedClass);
+                  const paths = magicPathsByClass[selectedClass] ?? [];
+                  if (paths.length > 0 && selectedClass !== 'Adept' && selectedClass !== 'Mystic') {
+                    const nextPath = paths[0];
+                    setMagicPath(nextPath ? nextPath : '');
                   } else {
                     setMagicPath('');
                   }
                 }}
               >
                 <option value="">Select Class</option>
-                {classes.map(c => <option key={c} value={c}>{c}</option>)}
+                {classOptions.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
@@ -696,16 +605,16 @@ export default function CharacterGenerator() {
                 {levels.map(l => <option key={l} value={l}>{l}</option>)}
               </select>
             </div>
-            {magicPathsByClass[characterClass as keyof typeof magicPathsByClass] && characterClass !== 'Adept' && characterClass !== 'Mystic' && (
+            {magicPathsByClass[characterClass as ClassKey] && characterClass !== 'Adept' && characterClass !== 'Mystic' && (
               <div>
                 <label className="block text-sm font-medium mb-1" htmlFor="magic-path">Chosen Magic Path</label>
                 <select
                   id="magic-path"
                   className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5"
                   value={magicPath}
-                  onChange={(e) => setMagicPath(e.target.value)}
+                  onChange={(e) => setMagicPath(e.target.value as MagicPathKey)}
                 >
-                  {magicPathsByClass[characterClass as keyof typeof magicPathsByClass]?.map(p => <option key={p} value={p}>{p}</option>)}
+                  {magicPathsByClass[characterClass as ClassKey]?.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>
             )}
@@ -870,7 +779,7 @@ export default function CharacterGenerator() {
                   <li><strong>Melee Attack:</strong> {character.actions.meleeAttack}</li>
                   <li><strong>Ranged Attack:</strong> {character.actions.rangedAttack}</li>
                   <li><strong>Perception Check:</strong> {character.actions.perceptionCheck}</li>
-                  {casterClasses.includes(character.class) && (
+                  {isCasterClass(character.class) && (
                     <li><strong>Magic Attack:</strong> {character.actions.magicAttack}</li>
                   )}
                 </ul>
