@@ -252,7 +252,7 @@ export default function Home() {
 
       <footer className="text-center mt-12 pt-8 border-t border-gray-200">
         <div className="text-gray-600">
-          <p>&copy; 2025 Eldritch RPG GM Tools</p>
+          <p>&copy; 2025 Hoskbrew</p>
           <p>Tools for the Eldritch RPG system</p>
           <div className="mt-4 space-x-4">
             <Link href="/rules" className="text-blue-600 hover:text-blue-800">
