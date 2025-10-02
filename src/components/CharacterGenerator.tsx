@@ -2,23 +2,33 @@
 
 import { useState, useEffect } from 'react';
 import {
-  abilities,
   calculateCPSpent,
-  casterClasses,
-  classes,
   createCharacterShell,
   fnum,
+
   foci,
   levels,
   magicPathsByClass,
   races,
   specs,
+
+
   spendCP,
   updateDerivedCharacterData,
   weaknessReport,
   mv,
   type Character
 } from '../utils/characterBuild';
+import {
+  abilities,
+  casterClasses,
+  classNames,
+  foci,
+  magicPathsByClass,
+  raceNames,
+  specs,
+  levels
+} from '../data/gameData';
 import {
   saveCharacter,
   generateId,
@@ -316,7 +326,7 @@ export default function CharacterGenerator() {
                 onChange={(e) => setRace(e.target.value)}
               >
                 <option value="">Select Race</option>
-                {races.map(r => <option key={r} value={r}>{r}</option>)}
+                {raceNames.map(r => <option key={r} value={r}>{r}</option>)}
               </select>
             </div>
             <div>
@@ -336,7 +346,7 @@ export default function CharacterGenerator() {
                 }}
               >
                 <option value="">Select Class</option>
-                {classes.map(c => <option key={c} value={c}>{c}</option>)}
+                {classNames.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>

@@ -102,7 +102,8 @@ export function importCampaign(payload: unknown): CampaignImportResult {
       partyMemberships: JSON.stringify(campaign.partyMemberships),
       encounterTemplates: JSON.stringify(campaign.encounterTemplates),
       rosterFolders: JSON.stringify(campaign.rosterFolders),
-      rosterEntries: JSON.stringify(campaign.rosterEntries)
+      rosterEntries: JSON.stringify(campaign.rosterEntries),
+      selectedPartyMembers: JSON.stringify([])
     };
 
     const keys = [
@@ -110,6 +111,7 @@ export function importCampaign(payload: unknown): CampaignImportResult {
       STORAGE_KEYS.PARTY_FOLDERS,
       STORAGE_KEYS.PARTY_MEMBERSHIPS,
       STORAGE_KEYS.ENCOUNTER_TEMPLATES,
+      STORAGE_KEYS.SELECTED_PARTY_MEMBERS,
       ROSTER_STORAGE_KEYS.FOLDERS,
       ROSTER_STORAGE_KEYS.PCS
     ];
@@ -128,6 +130,7 @@ export function importCampaign(payload: unknown): CampaignImportResult {
       localStorage.setItem(STORAGE_KEYS.PARTY_FOLDERS, serialized.partyFolders);
       localStorage.setItem(STORAGE_KEYS.PARTY_MEMBERSHIPS, serialized.partyMemberships);
       localStorage.setItem(STORAGE_KEYS.ENCOUNTER_TEMPLATES, serialized.encounterTemplates);
+      localStorage.setItem(STORAGE_KEYS.SELECTED_PARTY_MEMBERS, serialized.selectedPartyMembers);
       localStorage.setItem(ROSTER_STORAGE_KEYS.FOLDERS, serialized.rosterFolders);
       localStorage.setItem(ROSTER_STORAGE_KEYS.PCS, serialized.rosterEntries);
     } catch (error) {

@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   BattleState,
+  Combatant,
   CombatantCategory,
+  CombatantRole,
   WeaponReach,
   NPCLevel,
   QSBClassification,
@@ -25,6 +27,15 @@ import {
   clearHostileCombatants,
   exportBattleToMarkdown
 } from '../utils/battleUtils';
+import { SavedCharacter } from '../types/party';
+import {
+  getPartyFoldersByType,
+  getPartyCharacters,
+  initializeDefaultFolders,
+  getSelectedPartyMembers,
+  getCharacterById,
+  getCharactersByType
+} from '../utils/partyStorage';
 
 export default function BattleCalculator() {
   const [battleState, setBattleState] = useState<BattleState>({
@@ -55,6 +66,308 @@ export default function BattleCalculator() {
   const [armorRolls, setArmorRolls] = useState<Record<number, string>>({});
   const [showRevitalize, setShowRevitalize] = useState<Record<number, boolean>>({});
   const [spInputs, setSPInputs] = useState<Record<number, string>>({});
+
+  useEffect(() => {
+    try {
+      initializeDefaultFolders();
+    } catch (error) {
+      console.error('Error initializing default party folders:', error);
+    }
+  }, []);
+
+  const mapValueToDie = (value?: number): number => {
+    if (!value || Number.isNaN(value)) return 4;
+    if (value >= 12) return 12;
+    if (value >= 10) return 10;
+    if (value >= 8) return 8;
+    if (value >= 6) return 6;
+    return 4;
+  };
+
+  const isWeaponReach = (value: string): value is WeaponReach => {
+    return ['short', 'medium', 'long'].includes(value as WeaponReach);
+  };
+
+  const inferWeaponReach = (character: SavedCharacter): WeaponReach => {
+    const fullData = character.full_data as Record<string, unknown> | undefined;
+    const rawReach = typeof fullData?.weaponReach === 'string'
+      ? fullData.weaponReach.toLowerCase()
+      : typeof fullData?.weapon_reach === 'string'
+        ? fullData.weapon_reach.toLowerCase()
+        : undefined;
+
+    if (rawReach && isWeaponReach(rawReach)) {
+      return rawReach;
+    }
+
+    const rawSize = (fullData?.size ?? fullData?.creature_size) as string | undefined;
+    if (rawSize) {
+      const size = rawSize.toLowerCase();
+      if (['large', 'huge', 'gargantuan'].includes(size)) {
+        return 'long';
+      }
+      if (['tiny', 'minuscule', 'small'].includes(size)) {
+        return 'short';
+      }
+    }
+
+    return 'medium';
+  };
+
+  const inferArmor = (character: SavedCharacter): string => {
+    const fullData = character.full_data as Record<string, unknown> | undefined;
+    if (typeof fullData?.armor === 'string' && fullData.armor.trim().length > 0) {
+      return fullData.armor;
+    }
+    if (typeof character.status?.gear?.[0] === 'string' && character.status.gear[0].toLowerCase().includes('armor')) {
+      return character.status.gear[0];
+    }
+    return '0';
+  };
+
+  const inferShield = (character: SavedCharacter): number => {
+    const fullData = character.full_data as Record<string, unknown> | undefined;
+    const shieldValue = fullData?.shield;
+    if (typeof shieldValue === 'number') {
+      return shieldValue;
+    }
+    if (typeof shieldValue === 'string') {
+      const parsed = parseInt(shieldValue, 10);
+      if (!Number.isNaN(parsed)) {
+        return parsed;
+      }
+    }
+    return 0;
+  };
+
+  const inferReactionFocus = (character: SavedCharacter): number => {
+    const fullData = character.full_data as Record<string, unknown> | undefined;
+    const reactionFocus = fullData?.reactionFocus ?? fullData?.reaction_focus;
+    if (typeof reactionFocus === 'number' && !Number.isNaN(reactionFocus)) {
+      return reactionFocus;
+    }
+    return 0;
+  };
+
+  const inferNpcDetail = (character: SavedCharacter): string | undefined => {
+    const notes = character.status?.notes?.trim();
+    if (notes) {
+      return notes;
+    }
+    const fullData = character.full_data as Record<string, unknown> | undefined;
+    const detailCandidates = [fullData?.role, fullData?.occupation, fullData?.summary];
+    const detail = detailCandidates.find(value => typeof value === 'string' && value.trim().length > 0);
+    return typeof detail === 'string' ? detail : undefined;
+  };
+
+  const inferMonsterClassification = (character: SavedCharacter): QSBClassification => {
+    const fullData = character.full_data as Record<string, unknown> | undefined;
+    const rawClassification = (fullData?.category || fullData?.creature_category || character.tags?.find(tag =>
+      ['Minor', 'Standard', 'Exceptional', 'Legendary'].includes(tag)
+    )) as string | undefined;
+
+    if (rawClassification === 'Minor' || rawClassification === 'Standard' || rawClassification === 'Exceptional' || rawClassification === 'Legendary') {
+      return rawClassification;
+    }
+
+    return 'Standard';
+  };
+
+  const clampNpcLevel = (level?: number): NPCLevel => {
+    const numeric = typeof level === 'number' && !Number.isNaN(level) ? level : 1;
+    const clamped = Math.max(1, Math.min(5, Math.round(numeric)));
+    return String(clamped) as NPCLevel;
+  };
+
+  const convertCharacterToCombatant = (
+    character: SavedCharacter,
+    defaultRole?: CombatantRole
+  ): Combatant => {
+    const category: CombatantCategory = character.type === 'NPC'
+      ? 'npc'
+      : character.type === 'Monster'
+        ? 'qsb'
+        : 'pa';
+
+    const role: CombatantRole = defaultRole
+      ? defaultRole
+      : category === 'qsb'
+        ? 'Hostile'
+        : 'Ally';
+
+    const prowessDie = mapValueToDie(character.abilities?.prowess_mv);
+    const weaponReach = inferWeaponReach(character);
+    const armor = inferArmor(character);
+    const shield = inferShield(character);
+    const reactionFocus = inferReactionFocus(character);
+    const spiritPoints = character.computed?.spirit_pts ?? 0;
+    const maxAdp = character.computed?.active_dp ?? 15;
+    const maxPdp = character.computed?.passive_dp ?? 10;
+    const npcDetail = category === 'npc' ? inferNpcDetail(character) : undefined;
+    const npcLevel = category === 'npc' ? clampNpcLevel(character.level) : undefined;
+    const qsbClassification = category === 'qsb' ? inferMonsterClassification(character) : undefined;
+
+    const combatant = createCombatant(
+      category,
+      character.name,
+      prowessDie,
+      weaponReach,
+      role,
+      npcLevel,
+      qsbClassification,
+      maxAdp,
+      maxPdp,
+      armor,
+      shield,
+      reactionFocus,
+      spiritPoints,
+      npcDetail
+    );
+
+    combatant.maxAdp = maxAdp;
+    if (typeof character.status?.current_hp_active === 'number') {
+      combatant.adp = character.status.current_hp_active;
+    }
+    if (typeof character.status?.current_hp_passive === 'number') {
+      combatant.pdp = character.status.current_hp_passive;
+    }
+
+    return combatant;
+  };
+
+  const importCharacters = (
+    characters: SavedCharacter[],
+    options?: { defaultRole?: CombatantRole }
+  ) => {
+    if (!characters.length) {
+      alert('No characters available to import.');
+      return;
+    }
+
+    const existingKeys = new Set(
+      battleState.combatants.map(c => `${c.name}-${c.role}`)
+    );
+
+    const combatantsToAdd: Combatant[] = [];
+
+    characters.forEach(character => {
+      const combatant = convertCharacterToCombatant(character, options?.defaultRole);
+      const key = `${combatant.name}-${combatant.role}`;
+      if (!existingKeys.has(key)) {
+        existingKeys.add(key);
+        combatantsToAdd.push(combatant);
+      }
+    });
+
+    if (combatantsToAdd.length === 0) {
+      alert('All selected characters are already part of the battle.');
+      return;
+    }
+
+    setBattleState(prev => ({
+      ...prev,
+      combatants: [...prev.combatants, ...combatantsToAdd]
+    }));
+
+    alert(`Imported ${combatantsToAdd.length} combatant${combatantsToAdd.length === 1 ? '' : 's'} into the battle.`);
+  };
+
+  const handleImportMainParty = () => {
+    try {
+      const pcParties = getPartyFoldersByType('PC_party');
+      if (pcParties.length === 0) {
+        alert('No player character parties are available. Create a party in the roster first.');
+        return;
+      }
+
+      const mainParty = pcParties.find(folder => folder.name === 'Main Party') || pcParties[0];
+      const characters = getPartyCharacters(mainParty.id);
+
+      if (characters.length === 0) {
+        alert(`The party "${mainParty.name}" has no active members to import.`);
+        return;
+      }
+
+      importCharacters(characters, { defaultRole: 'Ally' });
+    } catch (error) {
+      console.error('Error importing main party:', error);
+      alert('Unable to import the main party due to an unexpected error.');
+    }
+  };
+
+  const handleImportSelectedPartyMembers = () => {
+    try {
+      const selectedIds = getSelectedPartyMembers();
+      if (selectedIds.length === 0) {
+        alert('No selected party members were found. Use the roster to select characters first.');
+        return;
+      }
+
+      const characters = selectedIds
+        .map(id => getCharacterById(id))
+        .filter((char): char is SavedCharacter => Boolean(char));
+
+      if (characters.length === 0) {
+        alert('The saved party selections could not be matched to characters.');
+        return;
+      }
+
+      importCharacters(characters, { defaultRole: 'Ally' });
+    } catch (error) {
+      console.error('Error importing selected party members:', error);
+      alert('Unable to import the selected party members due to an unexpected error.');
+    }
+  };
+
+  const handleImportNPCs = () => {
+    try {
+      const npcFolders = getPartyFoldersByType('NPC_roster');
+      let characters: SavedCharacter[] = [];
+
+      if (npcFolders.length > 0) {
+        characters = npcFolders.flatMap(folder => getPartyCharacters(folder.id));
+      }
+
+      if (characters.length === 0) {
+        characters = getCharactersByType('NPC');
+      }
+
+      if (characters.length === 0) {
+        alert('No NPCs are available to import. Create NPCs or assign them to an NPC roster first.');
+        return;
+      }
+
+      importCharacters(characters, { defaultRole: 'Friendly' });
+    } catch (error) {
+      console.error('Error importing NPCs:', error);
+      alert('Unable to import NPCs due to an unexpected error.');
+    }
+  };
+
+  const handleImportMonsters = () => {
+    try {
+      const monsterFolders = getPartyFoldersByType('Monster_trope');
+      let characters: SavedCharacter[] = [];
+
+      if (monsterFolders.length > 0) {
+        characters = monsterFolders.flatMap(folder => getPartyCharacters(folder.id));
+      }
+
+      if (characters.length === 0) {
+        characters = getCharactersByType('Monster');
+      }
+
+      if (characters.length === 0) {
+        alert('No monsters are available to import. Save monsters to the roster first.');
+        return;
+      }
+
+      importCharacters(characters, { defaultRole: 'Hostile' });
+    } catch (error) {
+      console.error('Error importing monsters:', error);
+      alert('Unable to import monsters due to an unexpected error.');
+    }
+  };
 
   const addCombatant = () => {
     if (!newCombatant.name.trim()) {
@@ -256,35 +569,31 @@ export default function BattleCalculator() {
         <h3 className="text-lg font-bold mb-4">Import Combatants</h3>
         <div className="flex flex-wrap gap-4">
           <button
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-            // TODO: Implement importMainParty logic
-            disabled
+            onClick={handleImportMainParty}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors"
           >
             Import Main Party
           </button>
           <button
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-            // TODO: Implement importSelectedPartyMembers logic
-            disabled
+            onClick={handleImportSelectedPartyMembers}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors"
           >
             Import Selected Party Members
           </button>
           <button
-            className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
-            // TODO: Implement importNPCs logic
-            disabled
+            onClick={handleImportNPCs}
+            className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition-colors"
           >
             Import NPCs
           </button>
           <button
-            className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded"
-            // TODO: Implement importMonsters logic
-            disabled
+            onClick={handleImportMonsters}
+            className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded transition-colors"
           >
             Import Monsters
           </button>
         </div>
-        <p className="text-sm text-gray-500 mt-2">Select a group to import into the battle. (Feature coming soon)</p>
+        <p className="text-sm text-gray-500 mt-2">Select a group to import into the battle. (More group tools coming soon.)</p>
       </div>
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">

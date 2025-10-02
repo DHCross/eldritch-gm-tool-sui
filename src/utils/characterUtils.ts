@@ -1,12 +1,25 @@
+
 import {
-  Character,
-  DieRank,
-  dieRanks,
   abilities,
-  races,
+  buildPhilosophies,
+  casterClasses,
+  classNames,
   classes,
   costToRankUpDie,
-  buildPhilosophies
+  costToRankUpFocus,
+  dieRanks,
+  foci,
+  magicPathsByClass,
+  raceNames,
+  races,
+  specs,
+  type Ability,
+  type Character,
+  type ClassName,
+  type DieRank,
+  type Focus,
+  type RaceName,
+  type Specialty
 } from '../data/gameData';
 
 export function rollDie(sides: number): number {
@@ -19,7 +32,11 @@ export function getRandomElement<T>(array: readonly T[]): T {
 
 export function getDieValue(die: DieRank): number {
   const values: Record<DieRank, number> = {
-    'd4': 4, 'd6': 6, 'd8': 8, 'd10': 10, 'd12': 12
+    d4: 4,
+    d6: 6,
+    d8: 8,
+    d10: 10,
+    d12: 12
   };
   return values[die];
 }
@@ -49,7 +66,11 @@ export function calculateCPCost(fromDie: DieRank, toDie: DieRank): number {
 
 export function getDefensePool(die: DieRank): number {
   const values: Record<DieRank, number> = {
-    'd4': 2, 'd6': 3, 'd8': 4, 'd10': 5, 'd12': 6
+    d4: 2,
+    d6: 3,
+    d8: 4,
+    d10: 5,
+    d12: 6
   };
   return values[die];
 }
@@ -67,8 +88,75 @@ export function calculateSpellCount(level: number, magicPath?: string): number {
   return Math.max(1, baseSpells);
 }
 
-export function generateRandomName(race: keyof typeof races, gender: 'Male' | 'Female'): string {
-  const nameDatabase = {
+const abilitySet = new Set<Ability>(abilities as readonly Ability[]);
+const specialtyToAbility = new Map<Specialty, Ability>();
+(Object.entries(specs) as Array<[Ability, readonly Specialty[]]>).forEach(([ability, specialtyList]) => {
+  specialtyList.forEach(specialty => specialtyToAbility.set(specialty, ability));
+});
+
+interface FocusParent {
+  ability: Ability;
+  specialty: Specialty;
+}
+
+const focusToParents = new Map<Focus, FocusParent>();
+(Object.entries(foci) as Array<[Specialty, readonly Focus[]]>).forEach(([specialty, focusList]) => {
+  const ability = specialtyToAbility.get(specialty);
+  if (!ability) return;
+  focusList.forEach(focus => focusToParents.set(focus, { ability, specialty }));
+});
+
+function isDieRank(value: string): value is DieRank {
+  return (dieRanks as readonly string[]).includes(value);
+}
+
+function parseFocusBonus(value: string | number | undefined): number {
+  if (typeof value === 'number') return value;
+  if (!value) return 0;
+  const match = String(value).match(/-?\d+/);
+  return match ? parseInt(match[0], 10) : 0;
+}
+
+function formatFocusBonus(value: number): string {
+  return value >= 0 ? `+${value}` : `${value}`;
+}
+
+function applyMinimaToCharacter(character: Character, minima: Record<string, string>) {
+  Object.entries(minima || {}).forEach(([key, requirement]) => {
+    if (!requirement) return;
+
+    if (abilitySet.has(key as Ability) && isDieRank(requirement)) {
+      const ability = key as Ability;
+      if (dieRanks.indexOf(character.abilities[ability]) < dieRanks.indexOf(requirement)) {
+        character.abilities[ability] = requirement;
+      }
+      return;
+    }
+
+    const specialtyParent = specialtyToAbility.get(key as Specialty);
+    if (specialtyParent && isDieRank(requirement)) {
+      const specialty = key as Specialty;
+      const current = character.specialties[specialtyParent][specialty];
+      if (dieRanks.indexOf(current) < dieRanks.indexOf(requirement)) {
+        character.specialties[specialtyParent][specialty] = requirement;
+      }
+      return;
+    }
+
+    const focusParent = focusToParents.get(key as Focus);
+    if (focusParent) {
+      const focus = key as Focus;
+      const requiredValue = parseFocusBonus(requirement);
+      const currentValue = parseFocusBonus(character.focuses[focusParent.ability][focus]);
+      if (currentValue < requiredValue) {
+        character.focuses[focusParent.ability][focus] = formatFocusBonus(requiredValue);
+      }
+    }
+  });
+}
+
+export function generateRandomName(race: RaceName, gender: 'Male' | 'Female'): string {
+  const nameDatabase: Record<RaceName, { Male: string[]; Female: string[] }> = {
     Human: {
       Male: ['Aiden', 'Blake', 'Connor', 'Derek', 'Ethan', 'Felix', 'Gabriel', 'Henry'],
       Female: ['Alice', 'Bella', 'Claire', 'Diana', 'Emma', 'Fiona', 'Grace', 'Hannah']
@@ -97,9 +185,9 @@ export function generateRandomName(race: keyof typeof races, gender: 'Male' | 'F
       Male: ['Dench', 'Feng', 'Gell', 'Henk', 'Holg', 'Imsh', 'Keth', 'Krusk'],
       Female: ['Baggi', 'Emen', 'Engong', 'Kansif', 'Myev', 'Neega', 'Ovak', 'Ownka']
     },
-    Tiefling: {
-      Male: ['Akmenos', 'Amnon', 'Barakas', 'Damakos', 'Ekemon', 'Iados', 'Kairon', 'Leucis'],
-      Female: ['Akta', 'Anakir', 'Bryseis', 'Criella', 'Damaia', 'Ea', 'Kallista', 'Lerissa']
+    Drakkin: {
+      Male: ['Vaelor', 'Seryth', 'Kalyth', 'Drazor', 'Iveron', 'Zareth', 'Maelor', 'Kharos'],
+      Female: ['Vaela', 'Seris', 'Kalira', 'Drazia', 'Ivera', 'Zareen', 'Maela', 'Khari']
     }
   };
 
@@ -109,38 +197,55 @@ export function generateRandomName(race: keyof typeof races, gender: 'Male' | 'F
 
 export function validateCharacterBuild(character: Character): string[] {
   const warnings: string[] = [];
-  const raceData = races[character.race as keyof typeof races];
-  const classData = classes[character.class as keyof typeof classes];
+  const raceData = races[character.race];
+  const classData = classes[character.class as ClassName];
 
-  // Check racial minima
-  abilities.forEach(ability => {
-    const minimum = raceData.minima[ability] as DieRank;
-    const current = character.abilities[ability] as DieRank;
-    if (dieRanks.indexOf(current) < dieRanks.indexOf(minimum)) {
-      warnings.push(`${ability} is below racial minimum (${minimum})`);
-    }
-  });
+  const checkMinima = (label: 'racial' | 'class', minima?: Record<string, string>) => {
+    if (!minima) return;
+    Object.entries(minima).forEach(([key, requirement]) => {
+      if (!requirement) return;
 
-  // Check class minima
-  abilities.forEach(ability => {
-    const minimum = classData.minima[ability] as DieRank;
-    const current = character.abilities[ability] as DieRank;
-    if (dieRanks.indexOf(current) < dieRanks.indexOf(minimum)) {
-      warnings.push(`${ability} is below class minimum (${minimum})`);
-    }
-  });
+      if (abilitySet.has(key as Ability) && isDieRank(requirement)) {
+        const ability = key as Ability;
+        if (dieRanks.indexOf(character.abilities[ability]) < dieRanks.indexOf(requirement)) {
+          warnings.push(`${ability} is below ${label} minimum (${requirement})`);
+        }
+        return;
+      }
 
-  // Check CP budget
+      const specialtyParent = specialtyToAbility.get(key as Specialty);
+      if (specialtyParent && isDieRank(requirement)) {
+        const specialty = key as Specialty;
+        if (dieRanks.indexOf(character.specialties[specialtyParent][specialty]) < dieRanks.indexOf(requirement)) {
+          warnings.push(`${specialty} specialty is below ${label} minimum (${requirement})`);
+        }
+        return;
+      }
+
+      const focusParent = focusToParents.get(key as Focus);
+      if (focusParent) {
+        const focus = key as Focus;
+        const requiredValue = parseFocusBonus(requirement);
+        const currentValue = parseFocusBonus(character.focuses[focusParent.ability][focus]);
+        if (currentValue < requiredValue) {
+          warnings.push(`${focus} focus is below ${label} minimum (${formatFocusBonus(requiredValue)})`);
+        }
+      }
+    });
+  };
+
+  checkMinima('racial', raceData?.minima);
+  checkMinima('class', classData?.minima);
+
   if (character.cp.spent > character.cp.total) {
     warnings.push(`Over CP budget by ${character.cp.spent - character.cp.total} points`);
   }
 
-  // Check build philosophy soft caps
   const philosophy = buildPhilosophies[character.buildPhilosophy];
-  const softCapAbility = philosophy.softCaps.abilities;
+  const softCapAbility = philosophy.softCaps.abilities as DieRank;
 
-  abilities.forEach(ability => {
-    const current = character.abilities[ability] as DieRank;
+  (abilities as readonly Ability[]).forEach(ability => {
+    const current = character.abilities[ability];
     if (dieRanks.indexOf(current) > dieRanks.indexOf(softCapAbility)) {
       warnings.push(`${ability} exceeds ${character.buildPhilosophy} soft cap (${softCapAbility})`);
     }
@@ -150,30 +255,34 @@ export function validateCharacterBuild(character: Character): string[] {
 }
 
 export function createEmptyCharacter(): Character {
+  const abilityRanks = {} as Record<Ability, DieRank>;
+  const specialtyRanks = {} as Record<Ability, Record<Specialty, DieRank>>;
+  const focusRanks = {} as Record<Ability, Record<Focus, string>>;
+
+  (abilities as readonly Ability[]).forEach(ability => {
+    abilityRanks[ability] = 'd4';
+    specialtyRanks[ability] = {} as Record<Specialty, DieRank>;
+    focusRanks[ability] = {} as Record<Focus, string>;
+
+    specs[ability].forEach(specialty => {
+      specialtyRanks[ability][specialty] = 'd4';
+      foci[specialty].forEach(focus => {
+        focusRanks[ability][focus] = '+0';
+      });
+    });
+  });
+
   return {
     name: '',
-    race: 'Human',
-    class: 'Fighter',
+    race: raceNames[0],
+    class: classNames[classNames.length - 1],
     level: 1,
     gender: 'Male',
     buildPhilosophy: 'Balanced',
-    abilities: {
-      Competence: 'd4',
-      Prowess: 'd4',
-      Fortitude: 'd4'
-    },
-    specialties: {
-      Adroitness: 'd4',
-      Expertise: 'd4',
-      Perception: 'd4',
-      Agility: 'd4',
-      Melee: 'd4',
-      Precision: 'd4',
-      Endurance: 'd4',
-      Strength: 'd4',
-      Willpower: 'd4'
-    },
-    focuses: {},
+    abilities: abilityRanks,
+    specialties: specialtyRanks,
+    focuses: focusRanks,
+    magicPath: undefined,
     iconicInheritance: false,
     cp: {
       total: 30,
@@ -190,9 +299,44 @@ export function createEmptyCharacter(): Character {
   };
 }
 
+export function calculateCharacterCPSpent(character: Character): number {
+  let spent = 0;
+
+  (abilities as readonly Ability[]).forEach(ability => {
+    spent += calculateCPCost('d4', character.abilities[ability]);
+
+    Object.values(character.specialties[ability]).forEach(specRank => {
+      spent += calculateCPCost('d4', specRank);
+    });
+
+    Object.values(character.focuses[ability]).forEach(focusValue => {
+      spent += parseFocusBonus(focusValue) * costToRankUpFocus;
+    });
+  });
+
+  if (character.iconicInheritance) {
+    spent += 4;
+  }
+
+  return spent;
+}
+
+export function updateDerivedStats(character: Character): void {
+  character.derivedStats.adp = getDefensePool(character.abilities.Prowess);
+  character.derivedStats.pdp = getDefensePool(character.abilities.Fortitude);
+  character.derivedStats.sdp = getDefensePool(character.abilities.Competence);
+
+  character.derivedStats.battlePhase = calculateBattlePhase(
+    character.abilities.Prowess,
+    character.specialties.Prowess.Agility
+  );
+
+  character.derivedStats.spellCount = calculateSpellCount(character.level, character.magicPath);
+}
+
 export function generateRandomCharacter(): Character {
-  const race = getRandomElement(Object.keys(races) as Array<keyof typeof races>);
-  const characterClass = getRandomElement(Object.keys(classes) as Array<keyof typeof classes>);
+  const race = getRandomElement(raceNames);
+  const characterClass = getRandomElement(classNames);
   const gender = getRandomElement(['Male', 'Female'] as const);
   const name = generateRandomName(race, gender);
   const buildPhilosophy = getRandomElement(['Balanced', 'Hybrid', 'Specialist'] as const);
@@ -204,69 +348,17 @@ export function generateRandomCharacter(): Character {
   character.gender = gender;
   character.buildPhilosophy = buildPhilosophy;
 
-  // Apply racial and class minima
-  const raceData = races[race];
-  const classData = classes[characterClass];
+  applyMinimaToCharacter(character, races[race]?.minima || {});
+  applyMinimaToCharacter(character, classes[characterClass]?.minima || {});
 
-  abilities.forEach(ability => {
-    const raceMin = raceData.minima[ability] as DieRank;
-    const classMin = classData.minima[ability] as DieRank;
-    const minimum = dieRanks.indexOf(raceMin) > dieRanks.indexOf(classMin) ? raceMin : classMin;
-    character.abilities[ability] = minimum;
-  });
-
-  // Set magic path if applicable
-  if (classData.magicPaths.length > 0) {
-    character.magicPath = getRandomElement(classData.magicPaths);
+  const magicPaths = magicPathsByClass[characterClass] || [];
+  if (magicPaths.length > 0) {
+    character.magicPath = getRandomElement(magicPaths);
   }
 
-  // Calculate initial CP spent and derived stats
   character.cp.spent = calculateCharacterCPSpent(character);
   character.cp.available = character.cp.total - character.cp.spent;
   updateDerivedStats(character);
 
   return character;
-}
-
-export function calculateCharacterCPSpent(character: Character): number {
-  let spent = 0;
-
-  // Calculate ability costs
-  abilities.forEach(ability => {
-    const current = character.abilities[ability] as DieRank;
-    spent += calculateCPCost('d4', current);
-  });
-
-  // Calculate specialty costs
-  Object.values(character.specialties).forEach(specialty => {
-    spent += calculateCPCost('d4', specialty as DieRank);
-  });
-
-  // Calculate focus costs
-  Object.values(character.focuses).forEach(focus => {
-    spent += calculateCPCost('d4', focus as DieRank);
-  });
-
-  // Add iconic inheritance cost
-  if (character.iconicInheritance) {
-    spent += 4;
-  }
-
-  return spent;
-}
-
-export function updateDerivedStats(character: Character): void {
-  // Calculate defense pools
-  character.derivedStats.adp = getDefensePool(character.abilities.Prowess as DieRank);
-  character.derivedStats.pdp = getDefensePool(character.abilities.Fortitude as DieRank);
-  character.derivedStats.sdp = getDefensePool(character.abilities.Competence as DieRank);
-
-  // Calculate battle phase
-  character.derivedStats.battlePhase = calculateBattlePhase(
-    character.abilities.Prowess as DieRank,
-    character.specialties.Agility as DieRank
-  );
-
-  // Calculate spell count
-  character.derivedStats.spellCount = calculateSpellCount(character.level, character.magicPath);
 }

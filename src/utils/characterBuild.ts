@@ -1,137 +1,35 @@
-export const dieRanks = ['d4', 'd6', 'd8', 'd10', 'd12'] as const;
-export type DieRank = typeof dieRanks[number];
+import {
+  abilities,
+  casterClasses,
+  classNames,
+  classes as classDefinitions,
+  costToRankUpDie,
+  costToRankUpFocus,
+  dieRanks,
+  foci,
+  levelInfo,
+  magicPathsByClass,
+  raceNames,
+  races as raceDefinitions,
+  specs,
+  levels,
+  type Ability,
+  type ClassName,
+  type DieRank,
+  type Focus,
+  type RaceName,
+  type Specialty
+} from '../data/gameData';
 
-export const abilities = ['Competence', 'Prowess', 'Fortitude'] as const;
-export type Ability = typeof abilities[number];
+export { abilities, dieRanks, specs, foci, casterClasses, magicPathsByClass, levelInfo, levels };
+export type { Ability, DieRank, Specialty, Focus };
 
-export const specs = {
-  Competence: ['Adroitness', 'Expertise', 'Perception'],
-  Prowess: ['Agility', 'Melee', 'Precision'],
-  Fortitude: ['Endurance', 'Strength', 'Willpower']
-} as const;
-export type Specialty = (typeof specs)[keyof typeof specs][number];
-
-export const foci = {
-  Adroitness: ['Skulduggery', 'Cleverness'],
-  Expertise: ['Wizardry', 'Theurgy'],
-  Perception: ['Alertness', 'Perspicacity'],
-  Agility: ['Speed', 'Reaction'],
-  Melee: ['Threat', 'Finesse'],
-  Precision: ['Ranged Threat', 'Ranged Finesse'],
-  Endurance: ['Vitality', 'Resilience'],
-  Strength: ['Ferocity', 'Might'],
-  Willpower: ['Courage', 'Resistance']
-} as const;
-export type Focus = typeof foci[keyof typeof foci][number];
-
-export const races = ['Human', 'Elf', 'Dwarf', 'Gnome', 'Half-Elf', 'Half-Orc', 'Halfling', 'Drakkin'] as const;
-export const classes = ['Adept', 'Assassin', 'Barbarian', 'Mage', 'Mystic', 'Rogue', 'Theurgist', 'Warrior'] as const;
-export const levels = [1, 2, 3, 4, 5] as const;
-
-export const casterClasses = ['Adept', 'Mage', 'Mystic', 'Theurgist'] as const;
-
-export const magicPathsByClass: Record<string, string[]> = {
-  Adept: ['Thaumaturgy', 'Elementalism', 'Sorcery'],
-  Mage: ['Thaumaturgy', 'Elementalism', 'Sorcery'],
-  Mystic: ['Mysticism'],
-  Theurgist: ['Druidry', 'Hieraticism']
-};
-
-export const levelInfo = [
-  { level: 1, masteryDie: 'd4' },
-  { level: 2, masteryDie: 'd6' },
-  { level: 3, masteryDie: 'd8' },
-  { level: 4, masteryDie: 'd10' },
-  { level: 5, masteryDie: 'd12' }
-];
-
-export const raceMinima: Record<string, Record<string, string>> = {
-  Drakkin: { Competence: 'd6', Prowess: 'd6', Fortitude: 'd6', Endurance: 'd6', Strength: 'd4' },
-  Dwarf: { Fortitude: 'd8', Endurance: 'd4', Prowess: 'd6', Melee: 'd6' },
-  Elf: { Competence: 'd6', Expertise: 'd6', Wizardry: '+1', Prowess: 'd4', Agility: 'd4', Reaction: '+1' },
-  Gnome: { Competence: 'd4', Adroitness: 'd6', Expertise: 'd6', Perception: 'd4', Perspicacity: '+1' },
-  'Half-Elf': { Competence: 'd6', Prowess: 'd6', Agility: 'd4', Fortitude: 'd4', Endurance: 'd4', Willpower: 'd4' },
-  'Half-Orc': { Fortitude: 'd6', Strength: 'd8', Ferocity: '+1', Endurance: 'd6' },
-  Halfling: { Competence: 'd6', Adroitness: 'd6', Cleverness: '+1', Fortitude: 'd6', Willpower: 'd4', Courage: '+1' },
-  Human: { Competence: 'd6', Prowess: 'd6', Melee: 'd4', Threat: '+1', Fortitude: 'd4', Willpower: 'd6' }
-};
-
-export const classMinima: Record<string, Record<string, string>> = {
-  Adept: { Competence: 'd6', Adroitness: 'd4', Cleverness: '+1', Expertise: 'd6', Wizardry: '+1', Perception: 'd4', Perspicacity: '+1' },
-  Assassin: { Competence: 'd4', Adroitness: 'd6', Perception: 'd4', Prowess: 'd4', Agility: 'd4', Endurance: 'd6', Melee: 'd4', Finesse: '+1' },
-  Barbarian: { Prowess: 'd6', Melee: 'd8', Fortitude: 'd4', Strength: 'd4', Ferocity: '+1' },
-  Mage: { Competence: 'd6', Expertise: 'd8', Wizardry: '+1', Fortitude: 'd4', Willpower: 'd6', Resistance: '+1' },
-  Mystic: { Competence: 'd6', Expertise: 'd6', Wizardry: '+1', Prowess: 'd4', Melee: 'd4', Fortitude: 'd4', Endurance: 'd6', Resilience: '+1', Vitality: '+2' },
-  Rogue: { Competence: 'd4', Adroitness: 'd4', Skulduggery: '+1', Perception: 'd4', Prowess: 'd6', Agility: 'd8' },
-  Theurgist: { Competence: 'd8', Expertise: 'd4', Theurgy: '+1', Fortitude: 'd6', Willpower: 'd4' },
-  Warrior: { Prowess: 'd8', Melee: 'd6', Threat: '+1', Fortitude: 'd6' }
-};
-
-export const allAdvantages: Record<string, string[]> = {
-  Human: ['Fortunate', 'Survival'],
-  Elf: ['Night Vision', 'Gift of Magic', 'Magic Resistance (+1)'],
-  Dwarf: ['Night Vision', 'Strong-willed', 'Sense of Direction'],
-  Gnome: ['Eidetic Memory', 'Low-Light Vision', 'Observant'],
-  'Half-Elf': ['Heightened Senses', 'Low-Light Vision', 'Magic Resistance (+1)'],
-  'Half-Orc': ['Low-light Vision', 'Intimidation', 'Menacing'],
-  Halfling: ['Low Light Vision', 'Read Emotions', 'Resilient'],
-  Drakkin: ['Natural Armor', 'Breath Weapon', 'Night Vision'],
-  Adept: ['Arcanum', 'Gift of Magic', 'Literacy', 'Scholar'],
-  Assassin: ['Expeditious', 'Heightened Senses (hearing)', 'Observant', 'Read Emotions'],
-  Barbarian: ['Animal Affinity', 'Brutishness', 'Menacing', 'Resilient'],
-  Mage: ['Arcanum', 'Gift of Magic', 'Magic Defense', 'Scholar'],
-  Mystic: ['Empathic', 'Gift of Magic', 'Intuitive', 'Magic Resistance (Lesser)', 'Strong-Willed'],
-  Rogue: ['Expeditious', 'Fortunate', 'Streetwise', 'Underworld Contacts'],
-  Theurgist: ['Gift of Magic', 'Magic Defense', 'Religion', 'Strong-Willed'],
-  Warrior: ['Commanding', 'Intimidation', 'Magic Resistance (+1)', 'Tactician']
-};
-
-export const classFeats: Record<string, string[]> = {
-  Adept: ['Guile', 'Lore', 'Ritual Magic', 'Quick-witted'],
-  Assassin: ['Death Strike', 'Lethal Exploit', 'Ranged Ambush', 'Shadow Walk'],
-  Barbarian: ['Berserk', 'Brawl', 'Feat of Strength', 'Grapple'],
-  Mage: ['Arcane Finesse', 'Dweomers', 'Intangible Threat', 'Path Mastery'],
-  Mystic: ['Iron Mind', 'Path Mastery', 'Premonition', 'Psychic Powers'],
-  Rogue: ['Backstab', 'Evasion', 'Roguish Charm', 'Stealth'],
-  Theurgist: ['Divine Healing', 'Path Mastery', 'Spiritual Smite', 'Supernatural Intervention'],
-  Warrior: ['Battle Savvy', 'Maneuvers', 'Stunning Reversal', 'Sunder Foe']
-};
-
-export const raceFlaws: Record<string, string[]> = {
-  Gnome: ['Restriction: small weapons only'],
-  Halfling: ['Restriction: small weapons only'],
-  'Half-Orc': ['Ugliness']
-};
-
-export const startingEquipment: Record<string, string[]> = {
-  common: ['Set of ordinary clothes', 'Purse of 5 gold coins', 'Backpack', 'Small dagger', "Week's rations", 'Waterskin', 'Tinderbox', "50' rope", 'Iron spikes', 'Small hammer', "6' traveling staff or 10' pole", 'Hooded lantern and 2 oil flasks or d4+1 torches'],
-  Adept: ['Book of knowledge (area of expertise)'],
-  Assassin: ['Assassin hood, jacket, cape, robe, or tunic'],
-  Barbarian: ['Garments of woven wool or linen', 'Tunic', 'Overcoat or cloak'],
-  Mage: ['Spellbook', 'Staff or focus item'],
-  Mystic: ['Robes or shawl', 'Cloak', 'Armor up to leather'],
-  Rogue: ["Set of thieves' tools", 'Light armor (up to leather)', 'One weapon'],
-  Theurgist: ['Prayer book', 'Holy relic or symbol', 'Focus item', 'Armor up to chain'],
-  Warrior: ['One weapon of choice', 'Armor up to chain', 'Small to large shield', 'Steed']
-};
-
-export const stepCost: Record<DieRank, number> = { d4: 6, d6: 8, d8: 10, d10: 12, d12: Infinity } as const;
-export const focusStepCost = 4;
-
-export const classAxes: Record<string, string[]> = {
-  Warrior: ['Prowess', 'Melee', 'Strength', 'Fortitude', 'Endurance', 'Threat', 'Agility', 'Might'],
-  Barbarian: ['Prowess', 'Melee', 'Strength', 'Fortitude', 'Endurance', 'Ferocity', 'Might', 'Vitality'],
-  Rogue: ['Prowess', 'Agility', 'Competence', 'Adroitness', 'Perception', 'Skulduggery', 'Cleverness', 'Speed'],
-  Assassin: ['Prowess', 'Agility', 'Melee', 'Competence', 'Adroitness', 'Finesse', 'Speed', 'Perception'],
-  Mage: ['Competence', 'Expertise', 'Wizardry', 'Fortitude', 'Willpower', 'Resistance', 'Perception'],
-  Mystic: ['Fortitude', 'Willpower', 'Competence', 'Expertise', 'Endurance', 'Prowess', 'Melee', 'Resilience', 'Vitality'],
-  Adept: ['Competence', 'Expertise', 'Adroitness', 'Perception', 'Cleverness', 'Wizardry', 'Perspicacity'],
-  Theurgist: ['Competence', 'Expertise', 'Theurgy', 'Fortitude', 'Willpower', 'Endurance', 'Courage']
-};
+export const races = raceNames;
+export const classes = classNames;
 
 export interface Character {
-  race: string;
-  class: string;
+  race: RaceName;
+  class: ClassName;
   level: number;
   abilities: Record<string, string>;
   specialties: Record<string, Record<string, string>>;
@@ -176,7 +74,7 @@ export function applyMinima(ch: Character, minima: Record<string, string>) {
 }
 
 const buildWeights = (klass: string, style: string) => {
-  const axis = classAxes[klass as keyof typeof classAxes] || [];
+  const axis = classDefinitions[klass as ClassName]?.axes ?? [];
   const w: Record<string, number> = {};
   axis.forEach((k, i) => (w[k] = style === 'specialist' ? 100 - i * 4 : style === 'balanced' ? 60 - i * 3 : 80 - i * 3));
   if (style === 'balanced') {
@@ -206,7 +104,7 @@ export function spendCP(
       const cur = ch.abilities[key];
       if (cur === 'd12') return false;
       if (!canUpgrade(ch, key, 'ability', level, style, enforceSoftcaps)) return false;
-      const cost = stepCost[cur as DieRank];
+      const cost = costToRankUpDie[cur as DieRank];
       if (cpBudget.value < cost) return false;
       ch.abilities[key] = dieRanks[idx(cur) + 1] as DieRank;
       cpBudget.value -= cost;
@@ -217,7 +115,7 @@ export function spendCP(
       const cur = ch.specialties[pa][key];
       if (cur === 'd12') return false;
       if (!canUpgrade(ch, key, 'spec', level, style, enforceSoftcaps)) return false;
-      const cost = stepCost[cur as DieRank];
+      const cost = costToRankUpDie[cur as DieRank];
       if (cpBudget.value < cost) return false;
       ch.specialties[pa][key] = dieRanks[idx(cur) + 1] as DieRank;
       cpBudget.value -= cost;
@@ -229,9 +127,9 @@ export function spendCP(
       if (pa2) {
         const val = fnum(ch.focuses[pa2][key]);
         if (val >= 5) return false;
-        if (cpBudget.value < focusStepCost) return false;
+        if (cpBudget.value < costToRankUpFocus) return false;
         ch.focuses[pa2][key] = `+${val + 1}`;
-        cpBudget.value -= focusStepCost;
+        cpBudget.value -= costToRankUpFocus;
         return true;
       }
     }
@@ -282,16 +180,17 @@ export function calculateCPSpent(finalChar: Character, baseChar: Character, icon
     const baseRankIndex = idx(baseChar.abilities[ab]);
     const finalRankIndex = idx(finalChar.abilities[ab]);
     for (let i = baseRankIndex; i < finalRankIndex; i++) {
-      spent.abilities += stepCost[dieRanks[i] as DieRank];
+      spent.abilities += costToRankUpDie[dieRanks[i] as DieRank];
     }
 
     for (const sp of specs[abilityKey]) {
       const baseSpecIndex = idx(baseChar.specialties[ab][sp]);
       const finalSpecIndex = idx(finalChar.specialties[ab][sp]);
       for (let i = baseSpecIndex; i < finalSpecIndex; i++) {
-        spent.specialties += stepCost[dieRanks[i] as DieRank];
+        spent.specialties += costToRankUpDie[dieRanks[i] as DieRank];
       }
     }
+
 
     for (const specKey of specs[abilityKey]) {
       const focusKeys = foci[specKey as keyof typeof foci];
@@ -301,6 +200,17 @@ export function calculateCPSpent(finalChar: Character, baseChar: Character, icon
         spent.focuses += (finalFocusValue - baseFocusValue) * focusStepCost;
       });
     }
+
+    Object.keys(foci).forEach(specKey => {
+      if (specs[abilityKey].includes(specKey)) {
+        foci[specKey as keyof typeof foci].forEach(focusKey => {
+          const baseFocusValue = fnum(baseChar.focuses[ab][focusKey]);
+          const finalFocusValue = fnum(finalChar.focuses[ab][focusKey]);
+          spent.focuses += (finalFocusValue - baseFocusValue) * costToRankUpFocus;
+        });
+      }
+    });
+
   }
 
   spent.total = 10 + spent.abilities + spent.specialties + spent.focuses + spent.advantages;
@@ -308,13 +218,14 @@ export function calculateCPSpent(finalChar: Character, baseChar: Character, icon
 }
 
 export function getAdvantages(race: string, klass: string) {
-  const raceAdv = allAdvantages[race as keyof typeof allAdvantages] || [];
-  const classAdv = allAdvantages[klass as keyof typeof allAdvantages] || [];
+  const raceAdv = raceDefinitions[race as RaceName]?.advantages ?? [];
+  const classAdv = classDefinitions[klass as ClassName]?.advantages ?? [];
   return [...new Set([...raceAdv, ...classAdv])];
 }
 
 export function getEquipment(klass: string) {
-  return [...startingEquipment.common, ...(startingEquipment[klass as keyof typeof startingEquipment] || [])];
+  const equipment = classDefinitions[klass as ClassName]?.equipment ?? [];
+  return [...equipment];
 }
 
 export function createCharacterShell(race: string, klass: string, level: number) {
@@ -348,15 +259,15 @@ export function createCharacterShell(race: string, klass: string, level: number)
   });
 
   const baseCharacter = deepCloneCharacter(ch);
-  applyMinima(baseCharacter, raceMinima[race] || {});
-  applyMinima(baseCharacter, classMinima[klass] || {});
+  applyMinima(baseCharacter, raceDefinitions[race as RaceName]?.minima || {});
+  applyMinima(baseCharacter, classDefinitions[klass as ClassName]?.minima || {});
 
   const workingCharacter = deepCloneCharacter(baseCharacter);
   workingCharacter.masteryDie = levelInfo[level - 1]?.masteryDie || 'd4';
   workingCharacter.pools = computePools(workingCharacter);
   workingCharacter.advantages = getAdvantages(race, klass);
-  workingCharacter.flaws = raceFlaws[race as keyof typeof raceFlaws] || [];
-  workingCharacter.classFeats = classFeats[klass as keyof typeof classFeats] || [];
+  workingCharacter.flaws = [...(raceDefinitions[race as RaceName]?.flaws ?? [])];
+  workingCharacter.classFeats = [...(classDefinitions[klass as ClassName]?.feats ?? [])];
   workingCharacter.equipment = getEquipment(klass);
   updateActionSummaries(workingCharacter);
 
@@ -388,8 +299,8 @@ export function updateActionSummaries(ch: Character) {
 export function updateDerivedCharacterData(ch: Character) {
   ch.masteryDie = levelInfo[ch.level - 1]?.masteryDie || 'd4';
   ch.advantages = getAdvantages(ch.race, ch.class);
-  ch.flaws = raceFlaws[ch.race as keyof typeof raceFlaws] || [];
-  ch.classFeats = classFeats[ch.class as keyof typeof classFeats] || [];
+  ch.flaws = [...(raceDefinitions[ch.race as RaceName]?.flaws ?? [])];
+  ch.classFeats = [...(classDefinitions[ch.class as ClassName]?.feats ?? [])];
   ch.equipment = getEquipment(ch.class);
   updateActionSummaries(ch);
 }
