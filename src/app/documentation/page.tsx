@@ -1,6 +1,13 @@
 import Link from 'next/link';
+import { resolveBackTargetFromSearchParams } from '../../utils/backNavigation';
+import { PagePropsWithSearchParams, resolvePageSearchParams } from '../../types/page';
 
-export default function Documentation() {
+type PageProps = PagePropsWithSearchParams;
+
+export default async function Documentation({ searchParams }: PageProps) {
+  const resolvedSearchParams = await resolvePageSearchParams(searchParams);
+  const backTarget = resolveBackTargetFromSearchParams(resolvedSearchParams, 'gm-tools');
+
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="text-center mb-8">
@@ -32,10 +39,10 @@ export default function Documentation() {
 
       <div className="text-center">
         <Link
-          href="/"
+          href={backTarget.href}
           className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors"
         >
-          Back to Home
+          {backTarget.label}
         </Link>
       </div>
     </div>

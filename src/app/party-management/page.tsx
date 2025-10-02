@@ -1,19 +1,26 @@
 import PartyManagement from '../../components/PartyManagement';
 import Link from 'next/link';
+import { resolveBackTargetFromSearchParams } from '../../utils/backNavigation';
+import { PagePropsWithSearchParams, resolvePageSearchParams } from '../../types/page';
 
-export default function PartyManagementPage() {
+type PageProps = PagePropsWithSearchParams;
+
+export default async function PartyManagementPage({ searchParams }: PageProps) {
+  const resolvedSearchParams = await resolvePageSearchParams(searchParams);
+  const backTarget = resolveBackTargetFromSearchParams(resolvedSearchParams, 'player-tools');
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6 flex justify-between items-center">
           <Link
-            href="/"
+            href={backTarget.href}
             className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
           >
-            ← Back to Home
+            {backTarget.label}
           </Link>
           <Link
-            href="/roster"
+            href="/roster?from=player-tools"
             className="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors"
           >
             View PC Roster →

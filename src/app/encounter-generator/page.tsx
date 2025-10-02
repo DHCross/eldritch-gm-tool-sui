@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useMemo, useState, useEffect } from 'react';
+import { Suspense, useCallback, useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   getAllPartyFolders,
   getPartyCharacters,
@@ -10,6 +11,7 @@ import {
   initializeDefaultFolders
 } from '../../utils/partyStorage';
 import { PartyFolder, SavedCharacter, MonsterData, PartyDefenseProfile } from '../../types/party';
+import { resolveBackTargetFromParam } from '../../utils/backNavigation';
 
 const difficultyLevels = ['Easy', 'Moderate', 'Difficult', 'Demanding', 'Formidable', 'Deadly'] as const;
 const defenseLevels = ['Practitioner', 'Competent', 'Proficient', 'Advanced', 'Elite'] as const;
@@ -82,24 +84,6 @@ interface MonsterResult {
   battlePhase: number;
 }
 
-const readLocalPartyDefense = () => {
-  if (typeof window === 'undefined') return null;
-  try {
-    const value = window.localStorage.getItem('eldritch_party_defense');
-    if (!value) return null;
-    return JSON.parse(value) as {
-      totalAD: number;
-      totalPD: number;
-      total: number;
-      tier: (typeof defenseLevels)[number];
-      range?: string;
-      count?: number;
-    };
-  } catch (error) {
-    console.error('Unable to read stored party defense', error);
-    return null;
-  }
-};
 
 function calculateHitPoints(threatMV: number, size: keyof typeof hpMultipliers, nature: (typeof natureOrder)[number]) {
   const multiplier = hpMultipliers[size][nature];
@@ -181,6 +165,17 @@ function generateMonster(
 }
 
 export default function EncounterGeneratorPage() {
+  return (
+    <Suspense fallback={<div className="p-4 text-center">Loading encounter generator...</div>}>
+      <EncounterGeneratorContent />
+    </Suspense>
+  );
+}
+
+function EncounterGeneratorContent() {
+  const searchParams = useSearchParams();
+  const backTarget = resolveBackTargetFromParam(searchParams.get('from'), 'gm-tools');
+
   const [partySize, setPartySize] = useState<number>(4);
   const [defenseLevelIndex, setDefenseLevelIndex] = useState<number>(0);
   const [difficultyIndex, setDifficultyIndex] = useState<number>(1);
@@ -194,7 +189,6 @@ export default function EncounterGeneratorPage() {
     Legendary: false,
   });
   const [encounterOutput, setEncounterOutput] = useState<string>('');
-  const [importSummary, setImportSummary] = useState<string>('');
 
   // Party management state
   const [partyFolders, setPartyFolders] = useState<PartyFolder[]>([]);
@@ -265,27 +259,48 @@ export default function EncounterGeneratorPage() {
       return;
     }
 
-    const difficultyBand = encounterDifficultyTable[partySize];
-    const targetThreat = difficultyBand[activeDefenseLevel][difficultyIndex];
+    // Always use calculated defense tier if party stats are enabled
+    let defenseTier = activeDefenseLevel;
+    let partySz = partySize;
+    if (usePartyStats && partyDefenseProfile) {
+      defenseTier = partyDefenseProfile.defense_tier;
+      partySz = partyDefenseProfile.character_count;
+    }
+    const difficultyBand = encounterDifficultyTable[partySz];
+    const targetThreat = difficultyBand[defenseTier][difficultyIndex];
 
-    let remainingThreat = targetThreat;
+    // Generate monsters so that their total threatMV matches or is just under the targetThreat
+    let totalThreatMV = 0;
     const monsters: MonsterResult[] = [];
+    let safety = 0;
+    let remainingBudget = targetThreat;
 
-    while (remainingThreat > 0) {
+    while (remainingBudget > 0 && safety < 100) {
       const monster = generateMonster(
         enabledTypes,
         nonMediumPercentage,
         nonMundanePercentage,
         specialTypePercentage,
       );
-      monsters.push(monster);
-      remainingThreat -= monster.threatMV;
+
       if (monster.threatMV === 0) break;
-      if (monsters.length > 100) {
-        // avoid edge case infinite loops if data changes unexpectedly
-        break;
+
+      // Only add monster if it fits within the remaining budget
+      if (monster.threatMV <= remainingBudget) {
+        monsters.push(monster);
+        totalThreatMV += monster.threatMV;
+        remainingBudget -= monster.threatMV;
       }
+
+      safety++;
+
+      // Stop if remaining budget is too small for any meaningful threat
+      if (remainingBudget < 4) break;
     }
+
+    // Check if encounter exceeds budget (should not happen with new logic)
+    const budgetExceeded = totalThreatMV > targetThreat;
+    const budgetUtilization = targetThreat > 0 ? (totalThreatMV / targetThreat) * 100 : 0;
 
     const lines: string[] = [];
     lines.push('Eldritch RPG Encounter');
@@ -310,7 +325,15 @@ export default function EncounterGeneratorPage() {
     }
 
     lines.push(`Difficulty: ${activeDifficultyLabel}`);
-    lines.push(`Total Threat Score: ${targetThreat}`);
+    lines.push(`Target Threat Budget: ${targetThreat}`);
+    lines.push(`Generated Total Threat: ${totalThreatMV} (${budgetUtilization.toFixed(1)}% of budget)`);
+
+    if (budgetExceeded) {
+      lines.push('⚠️  WARNING: Generated encounter exceeds target threat budget!');
+    } else if (budgetUtilization < 80) {
+      lines.push(`ℹ️  Note: Encounter uses ${budgetUtilization.toFixed(1)}% of available threat budget`);
+    }
+
     lines.push('');
     lines.push('Creatures:');
     lines.push('=========================');
@@ -380,47 +403,19 @@ export default function EncounterGeneratorPage() {
     [selectedTypes],
   );
 
-  const handleImportPartyDefense = useCallback(() => {
-    const partyDefense = readLocalPartyDefense();
-    if (!partyDefense) {
-      setImportSummary('No party defense found. Select PCs in the roster first and try again.');
-      return;
-    }
-
-    setImportSummary(
-      `Imported: Active Defense ${partyDefense.totalAD}, Passive Defense ${partyDefense.totalPD}, Total ${partyDefense.total} → Tier: ${partyDefense.tier}${partyDefense.range ? ` (${partyDefense.range})` : ''}`,
-    );
-
-    const tierIndex = defenseLevels.indexOf(partyDefense.tier);
-    if (tierIndex !== -1) {
-      setDefenseLevelIndex(tierIndex);
-    }
-  }, []);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-10 sm:px-6 lg:px-8">
-        <header className="flex items-center justify-between gap-4">
+        <header className="flex items-center gap-4">
           <Link
-            href="/"
+            href={backTarget.href}
             className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
           >
-            ← Back to Home
+            {backTarget.label}
           </Link>
-          <button
-            type="button"
-            onClick={handleImportPartyDefense}
-            className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400"
-          >
-            Import Party Defense
-          </button>
         </header>
 
-        {importSummary && (
-          <div className="rounded-lg border border-slate-700 bg-slate-900/70 p-4 text-sm text-slate-200 shadow-inner">
-            {importSummary}
-          </div>
-        )}
 
         <h1 className="text-center text-3xl font-bold tracking-tight text-emerald-400 sm:text-4xl">
           Eldritch RPG Encounter Generator
@@ -445,37 +440,87 @@ export default function EncounterGeneratorPage() {
             <div className="space-y-4">
               {/* Party Folder Selection */}
               <div>
-                <label className="block text-sm font-medium text-emerald-300 mb-2">
-                  Select Party Folders
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-emerald-300">
+                    Select Party Folders
+                  </label>
+                  <div className="flex space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPartyIds(partyFolders.map(f => f.id))}
+                      className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded"
+                    >
+                      Select All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPartyIds([])}
+                      className="text-xs bg-slate-600 hover:bg-slate-700 text-white px-2 py-1 rounded"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {partyFolders.map(folder => (
-                    <label key={folder.id} className="flex items-center space-x-2 p-2 bg-slate-800 rounded">
-                      <input
-                        type="checkbox"
-                        checked={selectedPartyIds.includes(folder.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedPartyIds([...selectedPartyIds, folder.id]);
-                          } else {
-                            setSelectedPartyIds(selectedPartyIds.filter(id => id !== folder.id));
-                          }
-                        }}
-                        className="rounded border-gray-300 text-emerald-600"
-                      />
-                      <span className="text-sm text-slate-200">
-                        {folder.name} ({folder.folder_type === 'PC_party' ? 'PC' : 'NPC'})
-                      </span>
-                    </label>
-                  ))}
+                  {partyFolders.map(folder => {
+                    const folderChars = getPartyCharacters(folder.id);
+                    return (
+                      <label key={folder.id} className="flex items-center space-x-2 p-2 bg-slate-800 rounded">
+                        <input
+                          type="checkbox"
+                          checked={selectedPartyIds.includes(folder.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedPartyIds([...selectedPartyIds, folder.id]);
+                            } else {
+                              setSelectedPartyIds(selectedPartyIds.filter(id => id !== folder.id));
+                            }
+                          }}
+                          className="rounded border-gray-300 text-emerald-600"
+                        />
+                        <div className="flex-1">
+                          <span className="text-sm text-slate-200 font-medium">
+                            {folder.name}
+                          </span>
+                          <span className="text-xs text-slate-400 ml-1">
+                            ({folder.folder_type === 'PC_party' ? 'PC' : 'NPC'}) - {folderChars.length} characters
+                          </span>
+                          {folderChars.length > 0 && (
+                            <div className="text-xs text-slate-500 mt-1">
+                              {folderChars.slice(0, 3).map(char => char.name).join(', ')}
+                              {folderChars.length > 3 && ` +${folderChars.length - 3} more`}
+                            </div>
+                          )}
+                        </div>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Individual Character Selection */}
               <div>
-                <label className="block text-sm font-medium text-emerald-300 mb-2">
-                  Additional Individual Characters
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-emerald-300">
+                    Additional Individual Characters
+                  </label>
+                  <div className="flex space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCharacterIds(availableCharacters.map(c => c.id))}
+                      className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded"
+                    >
+                      Select All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCharacterIds([])}
+                      className="text-xs bg-slate-600 hover:bg-slate-700 text-white px-2 py-1 rounded"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                   {availableCharacters.map(character => (
                     <label key={character.id} className="flex items-center space-x-2 p-2 bg-slate-800 rounded">
@@ -491,9 +536,17 @@ export default function EncounterGeneratorPage() {
                         }}
                         className="rounded border-gray-300 text-emerald-600"
                       />
-                      <span className="text-xs text-slate-200">
-                        {character.name} ({character.type})
-                      </span>
+                      <div className="flex-1">
+                        <span className="text-xs text-slate-200 font-medium">
+                          {character.name}
+                        </span>
+                        <span className="text-xs text-slate-400 ml-1">
+                          ({character.type})
+                        </span>
+                        <div className="text-xs text-slate-500">
+                          Level {character.level} • {character.race} {character.class}
+                        </div>
+                      </div>
                     </label>
                   ))}
                 </div>

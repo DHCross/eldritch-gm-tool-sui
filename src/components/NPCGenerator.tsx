@@ -13,8 +13,7 @@ import {
   generateNPCGroup,
   addPersonalityToNPC,
   exportNPCToMarkdown,
-  exportNPCGroupToMarkdown,
-  createNPCForBattle
+  exportNPCGroupToMarkdown
 } from '../utils/npcUtils';
 
 export default function NPCGenerator() {

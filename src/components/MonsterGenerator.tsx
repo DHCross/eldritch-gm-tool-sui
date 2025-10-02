@@ -1,114 +1,372 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
-  saveCharacter,
-  generateId,
-  getCurrentUserId,
-  getAllPartyFolders,
-  savePartyMembership,
-  getPartyMemberships,
-  calculateComputedStats
-} from '../utils/partyStorage';
-import {
-  calculateMonsterHP,
-  calculateMovementRate,
-  determineCreatureCategory,
-  getPrimaryThreatType,
-  generateBattlePhase,
-  generateSavingThrow,
-  getSuggestedTropes,
-  parseThreatDice
-} from '../utils/monsterUtils';
-import {
-  MonsterData,
-  PartyFolder,
-  PartyMembership,
   CreatureCategory,
   CreatureNature,
   CreatureSize,
   DefenseSplit,
-  ThreatType,
   ThreatDice,
-  MovementCalculation
+  SavedCharacter,
+  PartyFolder
 } from '../types/party';
-import { armorTypes } from '../data/battleData';
+import {
+  calculateMonsterHP,
+  determineCreatureCategory,
+  generateBattlePhase,
+  generateSavingThrow,
+  parseThreatDice
+} from '../utils/monsterUtils';
+import { getAllPartyFolders, saveCharacter } from '../utils/partyStorage';
 
-interface QSBResult {
-  // Core QSB Stats
-  creature_category: CreatureCategory;
-  creature_nature: CreatureNature;
-  creature_size: CreatureSize;
-  defense_split: DefenseSplit;
+// Armor types with DR values and HP bonuses
+const ARMOR_TYPES = [
+  { name: 'None', dr_die: 'None', hp_bonus: 0 },
+  { name: 'Hide', dr_die: 'd4', hp_bonus: 2 },
+  { name: 'Leather', dr_die: 'd6', hp_bonus: 3 },
+  { name: 'Chain', dr_die: 'd8', hp_bonus: 4 },
+  { name: 'Plate', dr_die: 'd10', hp_bonus: 5 },
+  { name: 'Mithral', dr_die: 'd12', hp_bonus: 6 }
+];
 
-  // Threat System
-  threat_dice: ThreatDice;
-  primary_threat_type: ThreatType;
-  threat_mv: number;
+// Shield types with threat reduction
+const SHIELD_TYPES = [
+  { name: 'None', threat_reduction: 0 },
+  { name: 'Small', threat_reduction: 1 },
+  { name: 'Medium', threat_reduction: 2 },
+  { name: 'Large', threat_reduction: 3 }
+];
 
-  // Calculated Stats
-  hp_calculation: MonsterData['hp_calculation'];
-  movement_calculation: MovementCalculation;
-  battle_phase: string;
-  saving_throw: string;
+// Creature categories with threat dice counts
+const CREATURE_CATEGORIES = [
+  { name: 'Minor', description: '1 Threat Die', threat_dice_count: 1 },
+  { name: 'Standard', description: '2 Threat Dice', threat_dice_count: 2 },
+  { name: 'Exceptional', description: '3 Threat Dice', threat_dice_count: 3 },
+  { name: 'Legendary', description: '3+ Threat Dice', threat_dice_count: 3 }
+];
 
-  // Additional
-  damage_reduction: string;
-  extra_attacks: string[];
-}
+// Size categories
+const SIZE_CATEGORIES = [
+  'Minuscule', 'Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan'
+];
 
-interface LegacyCalculatorResult {
-  hitPoints: number;
-  threatLevel: string;
-  totalThreatMV: number;
+// Metaphysical Nature Classifications
+const NATURE_CATEGORIES = [
+  { name: 'Mundane', title: 'Mortal Kin', description: 'Ordinary denizens lacking arcane spark, obeying terrestrial physics' },
+  { name: 'Magical', title: 'Enchanted Kin', description: 'Corporeal beings tapping ambient Meterea or primal forces' },
+  { name: 'Preternatural', title: 'Unquiet Kin', description: 'Nightmare-forged beings from Unsettled Lands, defying mundane order' },
+  { name: 'Supernatural', title: 'Reifiants', description: 'Meterea\'s refined manifestations from persistent myth and belief' }
+];
+
+// Constitution types
+const CONSTITUTION_TYPES = [
+  { name: 'Regular', description: '50/50 HP split' },
+  { name: 'Tough', description: '25/75 HP split' },
+  { name: 'Fast', description: '75/25 HP split' }
+];
+
+// Meterea Conceptual Manifestations
+const METEREA_MANIFESTATIONS = {
+  'Reifiants': 'Legend-forged archetypes crystallized from collective belief',
+  'Inklings': 'Raw dream-spirits, unstable flickers of subconscious intent',
+  'Extantars': 'Perception-reactive entities that morph based on observer expectations',
+  'Aethelborn': 'Stabilized forms fixed by focused external will'
+};
+
+// Racial Archetypal Tropes
+const RACIAL_ARCHETYPES = {
+  'Goblinoids': 'Cunning and covetous kin, blending bestial ferocity with reptilian traits',
+  'Alfar': 'Magical humanoids sharing a spark of Meterea&apos;s dream-stuff',
+  'Dwarves': 'Resilient mountain-dwellers, renowned miners and smiths',
+  'Elves': 'Forest-bound, long-lived beings where nature&apos;s magic is strongest',
+  'Halflings': 'Diminutive beings with nimble grace and adventurous spirits',
+  'Gnomes': 'Intricate workshop masters favoring arcane experiments',
+  'Drakkin': 'Dragon-descended humanoids blending ambition with draconic power'
+};
+
+// Human Regional Backgrounds (Eldritch Realms)
+const HUMAN_REGIONS = {
+  'Dalmavand': {
+    description: 'Norse and later medieval society, shaped by Nordic myth',
+    characteristics: 'Hardiest heroes are descendants of the Varangian Guard. Sturdy, high-hearted, produce many adventurers.',
+    encounters: 'Elves (border skirmishes in Echoes Forest), Eborian Ape-Men (Losels)'
+  },
+  'Psarmorum': {
+    description: 'Racial and religious purists descended from Templar Knights and pilgrims',
+    characteristics: 'Worship Sol Invictus (Baphomet). Evangelistic, conformist, derive magical strength from demon blood.',
+    encounters: 'Gethra (demonic goat-humanoids), Devil Worshipers (human cultists), wandering demons'
+  },
+  'Maedoen': {
+    description: 'Founded on pre-Roman Celtic/Welsh culture',
+    characteristics: 'Influenced by native shee (faerie folk). Spiritual life guided by Gan Creadigaeth (druids).',
+    encounters: 'Troublesome shee (faerie folk), forces from Psarmorum, cythraul (terrible fiends from the sea)'
+  },
+  'Crossroads': {
+    description: 'Neutral city-state and active trading center',
+    characteristics: 'Meeting place for travelers from across Realms. Notable: Duchess Sibyl, Virgil (Guardian\'s Guild), Bertran Forthwind.',
+    encounters: 'Diverse travelers, Alfar, interdimensional visitors via Equinox Portals'
+  },
+  'Northern Reaches': {
+    description: 'Rugged human clans (Wolf, Bear, Boar) north of Dalmavand',
+    characteristics: 'Resilient due to severe winters. Wolf Clan (amicable), Bear Clan (hired soldiers), Boar Clan (pirates).',
+    encounters: 'Clan conflicts, winter predators, raiders from the sea'
+  },
+  'Outlander': {
+    description: 'Souls plucked from Earth by Revorage Rifts (dream storms)',
+    characteristics: 'Real by definition, obey rigid terrestrial physics, Earth-shaped mindset can warp local reality.',
+    encounters: 'Reality distortions, conflicts with local customs, adaptation challenges'
+  }
+};
+
+// Story Lineage Tropes - Cross-cutting narrative categories spanning all power tiers and natures
+const STORY_TROPES = {
+  'Goblinoids': {
+    description: 'Cunning and covetous kin, blending bestial ferocity with reptilian traits',
+    examples: {
+      'Minor': 'Goblin Scout (1d6 Mundane) • Goblin Trapper (1d4 Mundane)',
+      'Standard': 'Orc Warrior (2d6 Mundane) • Hobgoblin Captain (2d8 Mundane)',
+      'Exceptional': 'Bugbear Enforcer (3d8 Mundane) • Hobgoblin Warlord (3d10 Mundane)',
+      'Legendary': 'Goblin King (3d12+ Mundane) • Ancient Orc Warlord (3d12+ Mundane)'
+    }
+  },
+  'Alfar': {
+    description: 'Magical humanoids sharing a spark of Meterea\'s dream-stuff',
+    examples: {
+      'Minor': 'Pixie (1d4 Magical) • Gnome Tinker (1d6 Mundane)',
+      'Standard': 'Dwarf Warrior (2d6 Mundane) • Elf Mage (2d8 Magical)',
+      'Exceptional': 'Elven Archdruid (3d10 Magical) • Dwarven Forge-Lord (3d8 Magical)',
+      'Legendary': 'Elven Deity (3d12+ Supernatural) • Ancient Dwarf King (3d12+ Magical)'
+    }
+  },
+  'Undead': {
+    description: 'Death-touched beings, primarily Preternatural but spanning all natures',
+    examples: {
+      'Minor': 'Skeleton (1d4 Preternatural) • Zombie (1d6 Preternatural)',
+      'Standard': 'Vampire (2d8 Preternatural) • Wraith (2d8 Preternatural)',
+      'Exceptional': 'Lich (3d10 Preternatural) • Vampire Lord (3d12 Preternatural)',
+      'Legendary': 'Undead Dragon (3d12+ Preternatural) • Death God (3d12+ Supernatural)'
+    }
+  },
+  'Dragons': {
+    description: 'Ancient wyrms straddling Magical and Supernatural realms',
+    examples: {
+      'Minor': 'Dragon Wyrmling (1d8 Magical) • Pseudo-dragon (1d6 Magical)',
+      'Standard': 'Young Dragon (2d10 Magical) • Drake (2d8 Magical)',
+      'Exceptional': 'Adult Dragon (3d10 Magical) • Ancient Wyrm (3d12 Magical)',
+      'Legendary': 'Great Wyrm (3d12+ Magical) • Cosmic Dragon (3d12+ Supernatural)'
+    }
+  },
+  'Beasts': {
+    description: 'Natural animals and monstrous creatures across all metaphysical natures',
+    examples: {
+      'Minor': 'Rat (1d3 Mundane) • Dire Rat (1d4 Magical)',
+      'Standard': 'Bear (2d8 Mundane) • Owlbear (2d8 Magical)',
+      'Exceptional': 'Tiger (3d10 Mundane) • Behemoth (3d10 Magical)',
+      'Legendary': 'Whale (3d12+ Mundane) • World Serpent (3d12+ Supernatural)'
+    }
+  },
+  'Fey': {
+    description: 'Nature spirits and dream-born entities of the Otherworld',
+    examples: {
+      'Minor': 'Sprite (1d6 Magical) • Brownie (1d4 Magical)',
+      'Standard': 'Dryad (2d8 Magical) • Satyr (2d6 Magical)',
+      'Exceptional': 'Fey Lord (3d12 Magical) • Wild Hunt Leader (3d10 Magical)',
+      'Legendary': 'Fey Court Monarch (3d12+ Supernatural) • Titania/Oberon (3d12+ Supernatural)'
+    }
+  },
+  'Celestials': {
+    description: 'Divine messengers and heavenly beings, primarily Supernatural',
+    examples: {
+      'Minor': 'Guardian Spirit (1d6 Supernatural) • Lantern Archon (1d8 Supernatural)',
+      'Standard': 'Angel (2d10 Supernatural) • Celestial Guardian (2d10 Supernatural)',
+      'Exceptional': 'Archangel (3d10 Supernatural) • Seraph (3d12 Supernatural)',
+      'Legendary': 'Divine Avatar (3d12+ Supernatural) • Aspect of Deity (3d12+ Supernatural)'
+    }
+  },
+  'Fiends': {
+    description: 'Infernal beings and corrupted entities of darkness',
+    examples: {
+      'Minor': 'Imp (1d6 Preternatural) • Minor Fiend (1d8 Supernatural)',
+      'Standard': 'Demon (2d10 Preternatural) • Devil (2d12 Supernatural)',
+      'Exceptional': 'Greater Demon (3d10 Preternatural) • Pit Fiend (3d12 Supernatural)',
+      'Legendary': 'Demon Prince (3d12+ Supernatural) • Archdevil (3d12+ Supernatural)'
+    }
+  },
+  'Humans': {
+    description: 'Most adaptable race in Ainerêve, Mortal Kin lacking innate arcane spark',
+    examples: {
+      'Minor': 'Villager (1d4 Mundane) • Inexperienced Bandit (1d6 Mundane)',
+      'Standard': 'Trained Guard (2d6 Mundane) • Seasoned Brigand (2d8 Mundane)',
+      'Exceptional': 'Veteran Warrior (3d8 Mundane) • Cunning Assassin (3d10 Mundane)',
+      'Legendary': 'Renowned Champion (3d12+ Mundane) • Warlord (3d12+ Mundane)'
+    }
+  }
+};
+
+// Legacy creature examples organized by nature and category for backward compatibility
+const CREATURE_TROPES = {
+  'Mundane': {
+    'Minor': [
+      'Goblin Sneak (1d6)',
+      'Goblin Trapper (1d4)',
+      'Bandit Lookout (1d6)',
+      'Peasant Militia (1d4)',
+      'Wolf Pack (1d6)'
+    ],
+    'Standard': [
+      'Orc Raider (2d6)',
+      'Hobgoblin Captain (2d8)',
+      'Seasoned Brigand (2d8)',
+      'Soldier Patrol (2d6)',
+      'Dire Wolf (2d8)'
+    ],
+    'Exceptional': [
+      'Bugbear Enforcer (3d8)',
+      'Hobgoblin Warlord (3d10)',
+      'Veteran Champion (3d10)',
+      'Elite Mercenary (3d8)',
+      'War Mammoth (3d10)'
+    ],
+    'Legendary': [
+      'Goblin King (3d12+)',
+      'Ancient Orc Warlord (3d12+)',
+      'Renowned Champion (3d12+)',
+      'Colossal War Beast (3d12+)',
+      'Warlord of the Red Banner (3d12+)'
+    ]
+  },
+  'Magical': {
+    'Minor': ['Pixie (1d4)', 'Sprite (1d6)', 'Novice Druid (1d6)', 'Hedge Wizard (1d8)', 'Minor Familiar (1d4)'],
+    'Standard': ['Elven Mage (2d8)', 'Druidic Circle (2d8)', 'Unicorn (2d10)', 'Fey Noble (2d8)', 'Elemental (2d10)'],
+    'Exceptional': ['Griffin (3d8)', 'Manticore (3d10)', 'Powerful Sorcerer (3d10)', 'Archdruid (3d10)', 'Fey Lord (3d12)'],
+    'Legendary': ['Archmage (3d12+)', 'True Dragon (3d12+)', 'Fey Nobility (3d12+)', 'Elemental Lord (3d12+)', 'Celestial (3d12+)']
+  },
+  'Preternatural': {
+    'Minor': ['Skeleton (1d4)', 'Zombie (1d6)', 'Mimic (1d8)', 'Shadow (1d6)', 'Doppelganger (1d8)'],
+    'Standard': ['Vampire (2d8)', 'Werewolf (2d10)', 'Potent Specter (2d10)', 'Wraith (2d8)', 'Ghoul Pack (2d6)'],
+    'Exceptional': ['Lich (3d10)', 'Ancient Shapeshifter (3d10)', 'Vampire Lord (3d12)', 'Death Knight (3d12)', 'Nightmare (3d10)'],
+    'Legendary': ['Undead Dragon (3d12+)', 'Bound Demon (3d12+)', 'Legendary Shapeshifter (3d12+)', 'Lich King (3d12+)', 'Avatar of Death (3d12+)']
+  },
+  'Supernatural': {
+    'Minor': ['Local Guardian Spirit (1d6)', 'Lesser Angel (1d8)', 'Minor Fiend (1d8)', 'Dryad (1d6)', 'Nymph (1d6)'],
+    'Standard': ['Elder Nature Spirit (2d10)', 'True Angel (2d10)', 'Powerful Demon (2d12)', 'Celestial Guardian (2d10)', 'Infernal Warrior (2d12)'],
+    'Exceptional': ['Archangel (3d10)', 'Demon Lord (3d12)', 'Avatar of Minor Deity (3d12)', 'Seraph (3d12)', 'Balor (3d12)'],
+    'Legendary': ['God/Goddess (3d12+)', 'Primordial Titan (3d12+)', 'Cosmic Force (3d12+)', 'Divine Avatar (3d12+)', 'World Spirit (3d12+)']
+  }
+};
+
+// Threat Dice combinations based on MV Range and creature category
+const THREAT_DICE_TABLE = {
+  '2-4': {
+    minor: ['d2', 'd4'],
+    standard: ['2d2'],
+    exceptional: []
+  },
+  '6-8': {
+    minor: ['d6', 'd8'],
+    standard: ['d6+2', '2d4'],
+    exceptional: []
+  },
+  '10-12': {
+    minor: ['d10', 'd12'],
+    standard: ['d6+d4', '2d6'],
+    exceptional: ['3d4']
+  },
+  '14-16': {
+    minor: ['d10+d4', 'd16'],
+    standard: ['2d6+2', '2d8'],
+    exceptional: ['d6+2d4', 'd10+d6']
+  },
+  '18-20': {
+    minor: ['d12+d6', '2d10'],
+    standard: ['d10+d8', '2d6+d8'],
+    exceptional: ['3d6', '2d8+d6']
+  },
+  '22-24': {
+    minor: ['d10+d12', '3d8'],
+    standard: ['2d12'],
+    exceptional: ['d10+2d6', '3d8']
+  },
+  '28-30': {
+    minor: ['2d10+d4', '3d10'],
+    standard: ['2d10+d8', 'd10+2d8'],
+    exceptional: ['2d10+d6', '3d8+d4']
+  },
+  '32-36': {
+    minor: ['2d8+d6', '3d12'],
+    standard: ['2d12+d6'],
+    exceptional: ['2d10+2d8', '3d12']
+  }
+};
+
+// Threat MV ranges for dropdown
+const THREAT_MV_RANGES = Object.keys(THREAT_DICE_TABLE);
+
+// Speed focus bonuses
+const SPEED_FOCUS_BONUSES = {
+  'd4': 1, 'd6': 1, 'd8': 2, 'd10': 2, 'd12': 3, 'd14': 3, 'd16': 3, 'd18': 3, 'd20': 3
+};
+
+// Movement action multipliers
+const MOVEMENT_MULTIPLIERS = {
+  'Walk': { normal: 1, speedy: 1, penalty: 'None' },
+  'Run': { normal: 2, speedy: 3, penalty: '-3 Threat Points to attacks' },
+  'Sprint': { normal: 4, speedy: 5, penalty: 'No other actions permitted' },
+  'Burst': { normal: 0, speedy: 7, penalty: 'Lasts 1 phase, must rest 1 round (Especially Speedy only)' }
+};
+
+interface MonsterForm {
+  name: string;
+  category: CreatureCategory;
+  nature: CreatureNature;
+  size: CreatureSize;
+  defenseSplit: DefenseSplit;
+  threatDice: ThreatDice;
+  threatMvRange: string;
+  extraAttacks: string;
+  armor: string;
+  shield: string;
+  savingThrow: string;
+  battlePhase: string;
+  notes: string;
+  concept: string;
+  trope: string;
+  storyTrope: string;
+  humanRegion: string;
+  useEldritchRealms: boolean;
+  speedFocus: string;
+  especiallySpeedy: boolean;
 }
 
 export default function MonsterGenerator() {
-  const monsterNatures = [
-    { value: 'mundane', label: 'Mundane', nature: 'Mundane' as CreatureNature, modifier: 1 },
-    { value: 'magical', label: 'Magical', nature: 'Magical' as CreatureNature, modifier: 2 },
-    { value: 'preternatural', label: 'Preternatural', nature: 'Preternatural' as CreatureNature, modifier: 3 },
-    { value: 'supernatural', label: 'Supernatural', nature: 'Supernatural' as CreatureNature, modifier: 4 }
-  ];
-
-  const monsterSizes = [
-    { value: 'minuscule', label: 'Minuscule', size: 'Minuscule' as CreatureSize, modifier: 0 },
-    { value: 'tiny', label: 'Tiny', size: 'Tiny' as CreatureSize, modifier: 0 },
-    { value: 'small', label: 'Small', size: 'Small' as CreatureSize, modifier: 1 },
-    { value: 'medium', label: 'Medium', size: 'Medium' as CreatureSize, modifier: 1 },
-    { value: 'large', label: 'Large', size: 'Large' as CreatureSize, modifier: 2 },
-    { value: 'huge', label: 'Huge', size: 'Huge' as CreatureSize, modifier: 3 },
-    { value: 'gargantuan', label: 'Gargantuan', size: 'Gargantuan' as CreatureSize, modifier: 4 }
-  ];
-
-  const threatDieSelections = [
-    { value: '0', label: 'None (0)' },
-    { value: '4', label: 'd4 (4)' },
-    { value: '6', label: 'd6 (6)' },
-    { value: '8', label: 'd8 (8)' },
-    { value: '10', label: 'd10 (10)' },
-    { value: '12', label: 'd12 (12)' },
-    { value: '14', label: 'd14 (14)' },
-    { value: '16', label: 'd16 (16)' },
-    { value: '18', label: 'd18 (18)' },
-    { value: '20', label: 'd20 (20)' },
-    { value: '30', label: 'd30 (30)' }
-  ];
-
-  const monsterArmorOptions = armorTypes.map(armor => ({ value: armor, label: armor }));
-
-  // Official QSB Construction State
-  const [creatureNature, setCreatureNature] = useState<CreatureNature>('Mundane');
-  const [creatureSize, setCreatureSize] = useState<CreatureSize>('Medium');
-  const [defenseSplit, setDefenseSplit] = useState<DefenseSplit>('Regular');
-
-  // Threat Dice (QSB Core)
-  const [threatDice, setThreatDice] = useState<ThreatDice>({
-    melee: 'd6',
-    natural: 'None',
-    ranged: 'None',
-    arcane: 'None'
+  const [monsterForm, setMonsterForm] = useState<MonsterForm>({
+    name: '',
+    category: 'Minor',
+    nature: 'Mundane',
+    size: 'Medium',
+    defenseSplit: 'Regular',
+    threatDice: {
+      melee: 'd6',
+      natural: 'None',
+      ranged: 'None',
+      arcane: 'None'
+    },
+    threatMvRange: '6-8',
+    extraAttacks: '',
+    armor: 'None',
+    shield: 'None',
+    savingThrow: 'd6',
+    battlePhase: 'd6',
+    notes: '',
+    concept: '',
+    trope: '',
+    storyTrope: '',
+    humanRegion: '',
+    useEldritchRealms: false,
+    speedFocus: 'None',
+    especiallySpeedy: false
   });
+
 
   // QSB Additional Components
   const [extraAttacks, setExtraAttacks] = useState<string[]>([]);
@@ -148,25 +406,38 @@ export default function MonsterGenerator() {
   const [result, setResult] = useState<LegacyCalculatorResult | null>(null);
 
   // Party assignment state
+
+
   const [partyFolders, setPartyFolders] = useState<PartyFolder[]>([]);
-  const [selectedParty, setSelectedParty] = useState<string>('');
+  const [selectedParty, setSelectedParty] = useState('');
   const [showSaveDialog, setShowSaveDialog] = useState(false);
 
+  // Refs for smooth scrolling navigation
+  const basicInfoRef = useRef<HTMLDivElement>(null);
+  const combatStatsRef = useRef<HTMLDivElement>(null);
+  const notesRef = useRef<HTMLDivElement>(null);
+  const qsbRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    // Load Monster trope folders for assignment
-    const monsterFolders = getAllPartyFolders().filter(folder => folder.folder_type === 'Monster_trope');
-    setPartyFolders(monsterFolders);
+    setPartyFolders(getAllPartyFolders());
   }, []);
 
-  // Official Eldritch RPG Constants
-  const creatureNatures: CreatureNature[] = ['Mundane', 'Magical', 'Preternatural', 'Supernatural'];
-  const creatureSizes: CreatureSize[] = ['Minuscule', 'Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan'];
-  const defenseSplits: DefenseSplit[] = ['Regular', 'Tough', 'Fast'];
+  // Smooth scroll to section function
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement | null>) => {
+    ref.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+  };
 
-  const threatDiceOptions = ['None', 'd4', 'd6', 'd8', 'd10', 'd12', 'd14', 'd16', 'd18', 'd20', 'd30'];
-  const multiThreatDiceOptions = ['None', '1d4', '1d6', '1d8', '1d10', '1d12', '2d4', '2d6', '2d8', '2d10', '2d12', '3d4', '3d6', '3d8', '3d10', '3d12', '3d14', '3d16', '3d18', '3d20'];
+  // Get available threat dice options based on MV range and category
+  const getAvailableThreatDice = (mvRange: string, category: CreatureCategory) => {
+    const threatData = THREAT_DICE_TABLE[mvRange as keyof typeof THREAT_DICE_TABLE];
+    if (!threatData) return ['None'];
 
-  const speedModifierOptions = ['Fast', 'Especially Speedy', 'Speed Focus d4-d6', 'Speed Focus d8-d10', 'Speed Focus d12+'];
+    const categoryKey = category.toLowerCase() as 'minor' | 'standard' | 'exceptional';
+    const options = threatData[categoryKey] || [];
+
 
   const monsterNatures = creatureNatures.map((nature, index) => ({
     value: String(index + 1),
@@ -206,125 +477,105 @@ export default function MonsterGenerator() {
 
   const commonTropes = getSuggestedTropes(creatureNature, qsbResult?.creature_category || 'Minor');
 
-  // QSB Construction Function (Official Algorithm)
-  const generateQSB = () => {
-    // Calculate primary threat MV from threat dice
-    const primaryThreatType = getPrimaryThreatType(threatDice);
-    const threatMV = Math.max(
-      parseThreatDice(threatDice.melee),
-      parseThreatDice(threatDice.natural),
-      parseThreatDice(threatDice.ranged),
-      parseThreatDice(threatDice.arcane)
-    );
+    return ['None', ...options];
+  };
 
-    if (threatMV === 0) {
-      alert('Please set at least one threat dice category to a value other than "None"');
-      return;
-    }
 
-    // Determine creature category based on threat dice
-    const category = determineCreatureCategory(threatDice);
+  // Update threat dice when MV range or category changes
+  const updateThreatDiceForCategory = (newMvRange?: string, newCategory?: CreatureCategory) => {
+    const mvRange = newMvRange || monsterForm.threatMvRange;
+    const category = newCategory || monsterForm.category;
+    const availableOptions = getAvailableThreatDice(mvRange, category);
 
-    // Calculate HP using official formula
-    const hpCalculation = calculateMonsterHP(threatMV, creatureSize, creatureNature, defenseSplit);
-
-    // Generate Battle Phase and Saving Throw
-    const battlePhase = generateBattlePhase(category, creatureNature);
-    const savingThrow = generateSavingThrow(category, creatureNature);
-
-    // Calculate Movement Rate
-    const battlePhaseMV = parseThreatDice(battlePhase);
-    const movementCalculation = calculateMovementRate(battlePhaseMV, creatureSize, agilityMV, speedModifiers);
-
-    const result: QSBResult = {
-      creature_category: category,
-      creature_nature: creatureNature,
-      creature_size: creatureSize,
-      defense_split: defenseSplit,
-      threat_dice: threatDice,
-      primary_threat_type: primaryThreatType,
-      threat_mv: threatMV,
-      hp_calculation: hpCalculation,
-      movement_calculation: movementCalculation,
-      battle_phase: battlePhase,
-      saving_throw: savingThrow,
-      damage_reduction: damageReduction,
-      extra_attacks: extraAttacks
+    // Reset threat dice to first available option if current value is not valid
+    const resetIfInvalid = (currentValue: string) => {
+      return availableOptions.includes(currentValue) ? currentValue : (availableOptions[0] || 'None');
     };
 
-    setQSBResult(result);
+    setMonsterForm(prev => ({
+      ...prev,
+      threatMvRange: mvRange,
+      category: category,
+      threatDice: {
+        melee: resetIfInvalid(prev.threatDice.melee),
+        natural: resetIfInvalid(prev.threatDice.natural),
+        ranged: resetIfInvalid(prev.threatDice.ranged),
+        arcane: resetIfInvalid(prev.threatDice.arcane)
+      }
+    }));
   };
 
-  function calculateHitPoints(
-    threatMinor: number,
-    threatStandard: number,
-    threatExceptional: number,
-    creatureSize: number,
-    creatureNature: number,
-    armorBonus: number
-  ): number {
-    const sizeModifier = parseFloat(creatureSize.toString());
-    const natureModifier = parseFloat(creatureNature.toString());
+  // Calculate stats based on current form
+  const highestThreatMV = Math.max(
+    parseThreatDice(monsterForm.threatDice.melee),
+    parseThreatDice(monsterForm.threatDice.natural),
+    parseThreatDice(monsterForm.threatDice.ranged),
+    parseThreatDice(monsterForm.threatDice.arcane)
+  );
 
-    const totalModifier = (sizeModifier + natureModifier) / 2;
-    const totalHitPoints = threatMinor + threatStandard + threatExceptional;
-    let finalHitPoints = Math.ceil(totalHitPoints * totalModifier);
+  const calculatedCategory = determineCreatureCategory(monsterForm.threatDice);
+  const hpCalc = calculateMonsterHP(highestThreatMV, monsterForm.size, monsterForm.nature, monsterForm.defenseSplit);
 
-    finalHitPoints += armorBonus; // Add armor bonus to final hit points
+  // Get armor and shield bonuses
+  const selectedArmor = ARMOR_TYPES.find(a => a.name === monsterForm.armor) || ARMOR_TYPES[0];
+  const selectedShield = SHIELD_TYPES.find(s => s.name === monsterForm.shield) || SHIELD_TYPES[0];
 
-    return finalHitPoints;
+  // Calculate final HP with armor bonus
+  const finalHP = hpCalc.final_hp + selectedArmor.hp_bonus;
+
+  // Recalculate active/passive split with final HP
+  let finalActiveHP: number, finalPassiveHP: number;
+  switch (monsterForm.defenseSplit) {
+    case 'Fast':
+      finalActiveHP = Math.ceil(finalHP * 0.75);
+      finalPassiveHP = Math.floor(finalHP * 0.25);
+      break;
+    case 'Tough':
+      finalActiveHP = Math.floor(finalHP * 0.25);
+      finalPassiveHP = Math.ceil(finalHP * 0.75);
+      break;
+    case 'Regular':
+    default:
+      finalActiveHP = Math.ceil(finalHP * 0.5);
+      finalPassiveHP = Math.floor(finalHP * 0.5);
+      break;
   }
 
-  function determineThreatLevel(minor: string, standard: string, exceptional: string): string {
-    if (minor !== "0" && standard === "0" && exceptional === "0") {
-      return "a Minor";
-    } else if (standard === "0" && exceptional !== "0") {
-      return "a Standard";
-    } else if (standard !== "0" && exceptional === "0") {
-      return "a Standard";
-    } else if (standard === "0" && exceptional === "0") {
-      return "a Minor";
-    } else {
-      return "an Exceptional";
+  const hpString = `${finalHP} (${finalActiveHP}/${finalPassiveHP})`;
+
+  // Calculate DR display
+  const drDisplay = selectedArmor.dr_die === 'None' && selectedShield.threat_reduction === 0
+    ? 'None'
+    : `${selectedArmor.dr_die === 'None' ? '' : selectedArmor.dr_die}${selectedArmor.dr_die !== 'None' && selectedShield.threat_reduction > 0 ? ', ' : ''}${selectedShield.threat_reduction > 0 ? `-${selectedShield.threat_reduction} Shield` : ''}`;
+
+  // Calculate tactical movement
+  const calculateMovement = () => {
+    const bpMV = parseThreatDice(monsterForm.battlePhase);
+    const baseMovement = Math.floor((12 + bpMV) / 5);
+
+    let movement = baseMovement;
+
+    // Add speed focus bonus
+    if (monsterForm.speedFocus !== 'None') {
+      movement += SPEED_FOCUS_BONUSES[monsterForm.speedFocus as keyof typeof SPEED_FOCUS_BONUSES] || 0;
     }
-  }
 
-  const handleCalculate = (e: React.FormEvent) => {
-    e.preventDefault();
+    // Size modifiers (larger creatures move faster)
+    const sizeBonus = {
+      'Minuscule': -1, 'Tiny': -1, 'Small': 0, 'Medium': 0,
+      'Large': 1, 'Huge': 2, 'Gargantuan': 3
+    }[monsterForm.size] || 0;
 
-    const minor = parseInt(tier1Threat);
-    const standard = parseInt(tier2Threat);
-    const exceptional = parseInt(tier3Threat);
-    const armorBonus = parseFloat(monsterArmor) || 0;
-    const selectedNature = monsterNatures.find(nature => nature.value === monsterNature) ?? monsterNatures[0];
-    const selectedSize = monsterSizes.find(size => size.value === monsterSize) ?? monsterSizes[3];
+    movement += sizeBonus;
 
-    const totalThreatMV = minor + standard + exceptional;
-    const threatLevel = determineThreatLevel(tier1Threat, tier2Threat, tier3Threat);
+    // Fast trait bonus
+    if (monsterForm.defenseSplit === 'Fast') {
+      movement += 1;
+    }
 
-    const hitPoints = calculateHitPoints(
-      minor,
-      standard,
-      exceptional,
-      selectedSize.modifier,
-      selectedNature.modifier,
-      armorBonus
-    );
-
-    setResult({
-      hitPoints,
-      threatLevel,
-      totalThreatMV
-    });
+    return Math.max(1, movement); // Minimum 1 square per phase
   };
 
-  const saveMonster = () => {
-    if (!result) {
-      alert('Generate monster stats first!');
-      return;
-    }
-    setShowSaveDialog(true);
-  };
 
   const getCreatureNatureFromLegacy = (value: string): CreatureNature => {
     switch (value) {
@@ -455,38 +706,58 @@ export default function MonsterGenerator() {
       arcane: baseThreatDiceState.arcane ?? 'None'
     };
 
-    const normalizedPrimaryAttack = primaryAttack.toLowerCase();
-    const primaryThreatTypeFromSelection: ThreatType | null =
-      normalizedPrimaryAttack.includes('melee') ? 'Melee'
-        : normalizedPrimaryAttack.includes('natural') ? 'Natural'
-          : normalizedPrimaryAttack.includes('ranged') ? 'Ranged'
-            : normalizedPrimaryAttack.includes('arcane') ? 'Arcane'
-              : null;
+  const baseMovement = calculateMovement();
 
-    if (primaryThreatTypeFromSelection && highestThreatValue > 0) {
-      threatDiceForMonster.melee = 'None';
-      threatDiceForMonster.natural = 'None';
-      threatDiceForMonster.ranged = 'None';
-      threatDiceForMonster.arcane = 'None';
+  // Get suggested tropes based on nature and category
+  const suggestedTropes = CREATURE_TROPES[monsterForm.nature]?.[monsterForm.category] || [];
 
-      const threatKey = primaryThreatTypeFromSelection.toLowerCase() as keyof ThreatDice;
-      threatDiceForMonster[threatKey] = `d${highestThreatValue}`;
-    } else if (highestThreatValue > 0) {
-      const fallbackKey = getPrimaryThreatType(threatDiceForMonster).toLowerCase() as keyof ThreatDice;
-      threatDiceForMonster[fallbackKey] = `d${highestThreatValue}`;
+  // Generate formatted QSB string
+  const generateQSBString = () => {
+    const tdString = `Melee ${monsterForm.threatDice.melee}, Natural ${monsterForm.threatDice.natural}, Ranged ${monsterForm.threatDice.ranged}, Arcane ${monsterForm.threatDice.arcane}`;
+    const eaString = monsterForm.extraAttacks ? monsterForm.extraAttacks : 'None';
+    const hpMultiplier = hpCalc.hp_multiplier.toFixed(1);
+    const hpModifiers = `[${monsterForm.defenseSplit}, ${monsterForm.size}, ${monsterForm.nature}; x${hpMultiplier}]`;
+
+
+    const movementString = `${baseMovement} sq/phase (Walk ×${MOVEMENT_MULTIPLIERS.Walk.normal}, Run ×${monsterForm.especiallySpeedy ? MOVEMENT_MULTIPLIERS.Run.speedy : MOVEMENT_MULTIPLIERS.Run.normal}, Sprint ×${monsterForm.especiallySpeedy ? MOVEMENT_MULTIPLIERS.Sprint.speedy : MOVEMENT_MULTIPLIERS.Sprint.normal}${monsterForm.especiallySpeedy ? ', Burst ×7' : ''})`;
+
+    return `${monsterForm.name || '[Monster Name]'}
+TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString} ${hpModifiers} | DR: ${drDisplay} | ST: ${monsterForm.savingThrow} | BP: ${monsterForm.battlePhase} | Movement: ${movementString} | Notes: ${monsterForm.notes || 'None'}`;
+  };
+
+  const updateForm = (field: keyof MonsterForm, value: string | boolean) => {
+    if (field === 'category') {
+      updateThreatDiceForCategory(undefined, value as CreatureCategory);
+    } else {
+      setMonsterForm(prev => ({ ...prev, [field]: value }));
     }
+  };
 
-    const resolvedThreatMV = Math.max(
-      parseThreatDice(threatDiceForMonster.melee),
-      parseThreatDice(threatDiceForMonster.natural),
-      parseThreatDice(threatDiceForMonster.ranged),
-      parseThreatDice(threatDiceForMonster.arcane)
-    );
+  const updateThreatDice = (type: keyof ThreatDice, value: string) => {
+    setMonsterForm(prev => ({
+      ...prev,
+      threatDice: { ...prev.threatDice, [type]: value }
+    }));
+  };
 
-    if (resolvedThreatMV <= 0) {
-      alert('Please configure at least one threat die before saving this monster.');
+  const autoGenerateStats = () => {
+    const newBattlePhase = generateBattlePhase(calculatedCategory, monsterForm.nature);
+    const newSavingThrow = generateSavingThrow(calculatedCategory, monsterForm.nature);
+
+    setMonsterForm(prev => ({
+      ...prev,
+      battlePhase: newBattlePhase,
+      savingThrow: newSavingThrow,
+      category: calculatedCategory
+    }));
+  };
+
+  const saveMonster = () => {
+    if (!monsterForm.name.trim()) {
+      alert('Please enter a monster name');
       return;
     }
+
 
     const resolvedPrimaryThreatType = primaryThreatTypeFromSelection ?? getPrimaryThreatType(threatDiceForMonster);
     const creatureCategory = determineCreatureCategory(threatDiceForMonster);
@@ -579,13 +850,52 @@ export default function MonsterGenerator() {
       level: Math.max(1, Math.floor(result.totalThreatMV / 6)),
       race: `${selectedNature.label} Creature`,
 
+
+    const extraAttacksList = monsterForm.extraAttacks
+      .split(',')
+      .map(attack => attack.trim())
+      .filter(Boolean);
+
+    const combinedTags = Array.from(new Set([
+      monsterForm.category.toLowerCase(),
+      monsterForm.nature.toLowerCase(),
+      monsterForm.size.toLowerCase(),
+      'custom'
+    ]));
+
+    const character: SavedCharacter = {
+      id: Date.now().toString(),
+      user_id: 'default_user',
+      name: monsterForm.name,
+      type: 'Monster',
+      level: Math.max(1, Math.floor(highestThreatMV / 6)),
+      race: `${monsterForm.nature} ${monsterForm.size}`,
+
       class: 'Monster',
-      abilities: baseAbilities,
-      computed: calculateComputedStats(baseAbilities),
+      abilities: {
+        prowess_mv: Math.max(4, Math.min(12, highestThreatMV / 3)),
+        agility_mv: Math.max(4, Math.min(12, highestThreatMV / 3)),
+        melee_mv: Math.max(4, Math.min(12, highestThreatMV / 2)),
+        fortitude_mv: Math.max(4, Math.min(12, highestThreatMV / 3)),
+        endurance_mv: Math.max(4, Math.min(12, highestThreatMV / 3)),
+        strength_mv: Math.max(4, Math.min(12, highestThreatMV / 3)),
+        competence_mv: Math.max(4, Math.min(8, highestThreatMV / 4)),
+        willpower_mv: Math.max(4, Math.min(8, highestThreatMV / 4)),
+        expertise_mv: Math.max(4, Math.min(8, highestThreatMV / 4)),
+        perception_mv: Math.max(4, Math.min(8, highestThreatMV / 4)),
+        adroitness_mv: Math.max(4, Math.min(8, highestThreatMV / 4)),
+        precision_mv: Math.max(4, Math.min(8, highestThreatMV / 4))
+      },
+      computed: {
+        active_dp: finalActiveHP,
+        passive_dp: finalPassiveHP,
+        spirit_pts: Math.max(4, highestThreatMV / 2)
+      },
       status: {
-        current_hp_active: hpCalculation.active_hp,
-        current_hp_passive: hpCalculation.passive_hp,
+        current_hp_active: finalActiveHP,
+        current_hp_passive: finalPassiveHP,
         status_flags: [],
+
         gear: weaponsArmorTreasure,
 
         notes: statusNotes
@@ -759,70 +1069,268 @@ export default function MonsterGenerator() {
 
     return Array.from(new Set(roles));
 
+
+        gear: [],
+        notes: monsterForm.notes
+      },
+      tags: combinedTags,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      full_data: {
+        category: monsterForm.category,
+        nature: monsterForm.nature,
+        size: monsterForm.size,
+        defenseSplit: monsterForm.defenseSplit,
+        threatDice: {
+          melee: monsterForm.threatDice.melee,
+          natural: monsterForm.threatDice.natural,
+          ranged: monsterForm.threatDice.ranged,
+          arcane: monsterForm.threatDice.arcane
+        },
+        threatMvRange: monsterForm.threatMvRange,
+        extraAttacks: monsterForm.extraAttacks,
+        extraAttacksList,
+        armor: monsterForm.armor,
+        shield: monsterForm.shield,
+        savingThrow: monsterForm.savingThrow,
+        battlePhase: monsterForm.battlePhase,
+        notes: monsterForm.notes,
+        description: monsterForm.notes,
+        dr: drDisplay,
+        hp: hpString,
+        threatMV: highestThreatMV,
+        finalHP,
+        finalActiveHP,
+        finalPassiveHP,
+        baseMovement,
+        speedFocus: monsterForm.speedFocus,
+        especiallySpeedy: monsterForm.especiallySpeedy,
+        qsbString: generateQSBString()
+      }
+    };
+
+    saveCharacter(character);
+    alert(`Monster "${monsterForm.name}" saved successfully!`);
+    setShowSaveDialog(false);
+
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Eldritch RPG Monster HP Calculator
-        </h1>
-        <p className="text-gray-600">
-          Calculate monster hit points based on threat tiers, size, nature, and armor
-        </p>
+    <div className="relative">
+      {/* Sticky Navigation Sidebar */}
+      <div className="fixed left-4 top-1/2 transform -translate-y-1/2 z-10 hidden lg:block">
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-3 space-y-2">
+          <h3 className="text-sm font-bold text-gray-800 mb-3 text-center">Quick Nav</h3>
+          <button
+            onClick={() => scrollToSection(basicInfoRef)}
+            className="w-full text-left text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded transition-colors"
+            title="Basic Information"
+          >
+            Basic Info
+          </button>
+          <button
+            onClick={() => scrollToSection(combatStatsRef)}
+            className="w-full text-left text-xs bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 rounded transition-colors"
+            title="Combat Statistics"
+          >
+            Combat Stats
+          </button>
+          <button
+            onClick={() => scrollToSection(notesRef)}
+            className="w-full text-left text-xs bg-green-50 hover:bg-green-100 text-green-700 px-3 py-2 rounded transition-colors"
+            title="Notes"
+          >
+            Notes
+          </button>
+          <button
+            onClick={() => scrollToSection(qsbRef)}
+            className="w-full text-left text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 px-3 py-2 rounded transition-colors"
+            title="Generated Quick Stat Block"
+          >
+            QSB Result
+          </button>
+        </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <form onSubmit={handleCalculate} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Monster Nature */}
+      <div className="max-w-6xl mx-auto p-6 space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Eldritch RPG Monster Builder
+          </h1>
+          <p className="text-gray-600">
+            Create complete Quick Stat Block (QSB) monsters based on Eldritch Rules 8.17.2025
+          </p>
+        </div>
+
+        {/* Basic Information */}
+        <div ref={basicInfoRef} className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold mb-4">I. Basic Information</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Monster Name:</label>
+            <input
+              type="text"
+              value={monsterForm.name}
+              onChange={(e) => updateForm('name', e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              placeholder="Enter monster name"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Creature Category:</label>
+            <select
+              value={monsterForm.category}
+              onChange={(e) => updateThreatDiceForCategory(undefined, e.target.value as CreatureCategory)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+            >
+              {CREATURE_CATEGORIES.map(cat => (
+                <option key={cat.name} value={cat.name}>
+                  {cat.name} ({cat.description})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Size:</label>
+            <select
+              value={monsterForm.size}
+              onChange={(e) => updateForm('size', e.target.value as CreatureSize)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+            >
+              {SIZE_CATEGORIES.map(size => (
+                <option key={size} value={size}>{size}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Nature:</label>
+            <select
+              value={monsterForm.nature}
+              onChange={(e) => updateForm('nature', e.target.value as CreatureNature)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+            >
+              {NATURE_CATEGORIES.map(nature => (
+                <option key={nature.name} value={nature.name}>
+                  {nature.name} - {nature.title}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              {NATURE_CATEGORIES.find(n => n.name === monsterForm.nature)?.description}
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Constitution:</label>
+            <select
+              value={monsterForm.defenseSplit}
+              onChange={(e) => updateForm('defenseSplit', e.target.value as DefenseSplit)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+            >
+              {CONSTITUTION_TYPES.map(type => (
+                <option key={type.name} value={type.name}>
+                  {type.name} ({type.description})
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Eldritch Realms Toggle */}
+        <div className="mt-6 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={monsterForm.useEldritchRealms}
+              onChange={(e) => updateForm('useEldritchRealms', e.target.checked)}
+              className="mr-3"
+            />
+            <span className="text-sm font-medium text-gray-700">
+              Use Eldritch Realms Setting Details
+            </span>
+          </label>
+          <p className="text-xs text-gray-600 mt-1">
+            Enable for specific regional backgrounds and encounter tables from Ainerêve
+          </p>
+        </div>
+
+        {/* Three-Axis Design Section */}
+        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h3 className="text-lg font-semibold text-blue-900 mb-3">Three-Axis Monster Design</h3>
+          <p className="text-sm text-blue-800 mb-4">
+            Monsters are defined by three independent axes: <strong>Category</strong> (power tier), <strong>Nature</strong> (metaphysical origin),
+            and <strong>Story Trope</strong> (narrative lineage). Tropes span across categories and natures.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="monsterNature" className="block text-sm font-medium text-gray-700 mb-2">
-                Monster Nature:
-              </label>
-              <select
-                id="monsterNature"
-                value={monsterNature}
-                onChange={(e) => {
-                  const { value } = e.target;
-                  setMonsterNature(value);
-                  const selectedNature = monsterNatures.find(nature => nature.value === value);
-                  if (selectedNature) {
-                    setCreatureNature(selectedNature.nature);
-                  }
-                }}
-                className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-center"
-              >
-                {monsterNatures.map(nature => (
-                  <option key={nature.value} value={nature.value}>{nature.label}</option>
-                ))}
-              </select>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Creature Concept:</label>
+              <input
+                type="text"
+                value={monsterForm.concept}
+                onChange={(e) => updateForm('concept', e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                placeholder="e.g., Ancient forest guardian, Corrupted knight, Goblin chieftain of the Bloodfang clan"
+              />
             </div>
 
-            {/* Monster Size */}
             <div>
-              <label htmlFor="monsterSize" className="block text-sm font-medium text-gray-700 mb-2">
-                Monster Size:
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Story Trope (Cross-cutting lineage):
               </label>
               <select
-                id="monsterSize"
-                value={monsterSize}
-                onChange={(e) => {
-                  const { value } = e.target;
-                  setMonsterSize(value);
-                  const selectedSize = monsterSizes.find(size => size.value === value);
-                  if (selectedSize) {
-                    setCreatureSize(selectedSize.size);
-                  }
-                }}
-                className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-center"
+                value={monsterForm.storyTrope}
+                onChange={(e) => updateForm('storyTrope', e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 mb-3"
               >
-                {monsterSizes.map(size => (
-                  <option key={size.value} value={size.value}>{size.label}</option>
+                <option value="">Select a story trope...</option>
+                {Object.keys(STORY_TROPES).map(trope => (
+                  <option key={trope} value={trope}>{trope}</option>
                 ))}
               </select>
+
+              {/* Human Regional Background */}
+              {(monsterForm.storyTrope === 'Humans' && monsterForm.useEldritchRealms) && (
+                <div className="mb-3">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Human Regional Background:
+                  </label>
+                  <select
+                    value={monsterForm.humanRegion}
+                    onChange={(e) => updateForm('humanRegion', e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  >
+                    <option value="">Select regional background...</option>
+                    {Object.keys(HUMAN_REGIONS).map(region => (
+                      <option key={region} value={region}>{region}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nature Examples ({NATURE_CATEGORIES.find(n => n.name === monsterForm.nature)?.title} - {monsterForm.category}):
+              </label>
+              <select
+                value={monsterForm.trope}
+                onChange={(e) => updateForm('trope', e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2"
+              >
+                <option value="">Select from nature examples...</option>
+                {suggestedTropes.map(trope => (
+                  <option key={trope} value={trope}>{trope}</option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Examples from {NATURE_CATEGORIES.find(n => n.name === monsterForm.nature)?.title} classification
+              </p>
             </div>
           </div>
+
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Threat Tier 1 */}
@@ -842,12 +1350,80 @@ export default function MonsterGenerator() {
                 {threatDieSelections.filter(die => die.value !== '0').map(die => (
 
                   <option key={die.value} value={die.value}>{die.label}</option>
-                ))}
-              </select>
-            </div>
 
-            {/* Threat Tier 2 */}
+          {/* Metaphysical Origin Classifications */}
+          <div className="mt-4">
+            <h4 className="text-sm font-semibold text-indigo-700 mb-3">Metaphysical Nature Classifications</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              {NATURE_CATEGORIES.map(nature => (
+                <div key={nature.name} className={`p-3 rounded border ${
+                  monsterForm.nature === nature.name
+                    ? 'bg-indigo-100 border-indigo-300'
+                    : 'bg-indigo-50 border-indigo-200'
+                }`}>
+                  <span className="font-medium text-indigo-800">{nature.title} ({nature.name}):</span>
+                  <p className="text-indigo-600 mt-1">{nature.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Story Trope Details */}
+          {monsterForm.storyTrope && STORY_TROPES[monsterForm.storyTrope as keyof typeof STORY_TROPES] && (
+            <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <h4 className="text-sm font-semibold text-amber-800 mb-2">
+                {monsterForm.storyTrope} Lineage
+              </h4>
+              <p className="text-xs text-amber-700 mb-3">
+                {STORY_TROPES[monsterForm.storyTrope as keyof typeof STORY_TROPES].description}
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                {Object.entries(STORY_TROPES[monsterForm.storyTrope as keyof typeof STORY_TROPES].examples).map(([tier, examples]) => (
+                  <div key={tier} className="bg-white p-2 rounded border border-amber-200">
+                    <span className="font-medium text-amber-800">{tier}:</span>
+                    <p className="text-amber-600">{examples}</p>
+                  </div>
+
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Human Regional Background Details */}
+          {(monsterForm.storyTrope === 'Humans' && monsterForm.humanRegion && monsterForm.useEldritchRealms && HUMAN_REGIONS[monsterForm.humanRegion as keyof typeof HUMAN_REGIONS]) && (
+            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <h4 className="text-sm font-semibold text-green-800 mb-2">
+                {monsterForm.humanRegion} Regional Background
+              </h4>
+              <div className="space-y-2 text-xs">
+                <div className="bg-white p-2 rounded border border-green-200">
+                  <span className="font-medium text-green-800">Culture:</span>
+                  <p className="text-green-700">{HUMAN_REGIONS[monsterForm.humanRegion as keyof typeof HUMAN_REGIONS].description}</p>
+                </div>
+                <div className="bg-white p-2 rounded border border-green-200">
+                  <span className="font-medium text-green-800">Characteristics:</span>
+                  <p className="text-green-700">{HUMAN_REGIONS[monsterForm.humanRegion as keyof typeof HUMAN_REGIONS].characteristics}</p>
+                </div>
+                <div className="bg-white p-2 rounded border border-green-200">
+                  <span className="font-medium text-green-800">Common Encounters:</span>
+                  <p className="text-green-700">{HUMAN_REGIONS[monsterForm.humanRegion as keyof typeof HUMAN_REGIONS].encounters}</p>
+                </div>
+              </div>
+
+              {monsterForm.humanRegion === 'Outlander' && (
+                <div className="mt-3 p-2 bg-yellow-100 border border-yellow-300 rounded">
+                  <p className="text-xs text-yellow-800">
+                    <strong>Special:</strong> Outlanders have Base Die Ranks: Competence d6; Prowess d6 (Melee d4, Threat +1); Fortitude d4 (Willpower d6). Advantages: Fortunate, Survival.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Traditional Classifications */}
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
+
               <label htmlFor="tier2Threat" className="block text-sm font-medium text-gray-700 mb-2">
                 Threat Tier 2 (MV):
               </label>
@@ -863,12 +1439,21 @@ export default function MonsterGenerator() {
                 {threatDieSelections.map(die => (
 
                   <option key={die.value} value={die.value}>{die.label}</option>
+
+              <h4 className="text-sm font-semibold text-purple-700 mb-2">Meterea Manifestations</h4>
+              <div className="space-y-1 text-xs">
+                {Object.entries(METEREA_MANIFESTATIONS).map(([type, desc]) => (
+                  <div key={type} className="bg-purple-50 p-2 rounded border border-purple-200">
+                    <span className="font-medium text-purple-800">{type}:</span>
+                    <p className="text-purple-600">{desc}</p>
+                  </div>
+
                 ))}
-              </select>
+              </div>
             </div>
 
-            {/* Threat Tier 3 */}
             <div>
+
               <label htmlFor="tier3Threat" className="block text-sm font-medium text-gray-700 mb-2">
                 Threat Tier 3 (MV):
               </label>
@@ -884,173 +1469,480 @@ export default function MonsterGenerator() {
                 {threatDieSelections.map(die => (
 
                   <option key={die.value} value={die.value}>{die.label}</option>
+
+              <h4 className="text-sm font-semibold text-blue-700 mb-2">Racial Archetypes</h4>
+              <div className="space-y-1 text-xs">
+                {Object.entries(RACIAL_ARCHETYPES).slice(0, 4).map(([race, desc]) => (
+                  <div key={race} className="bg-blue-50 p-2 rounded border border-blue-200">
+                    <span className="font-medium text-blue-800">{race}:</span>
+                    <p className="text-blue-600">{desc}</p>
+                  </div>
+
                 ))}
-              </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+        {/* Combat Statistics */}
+        <div ref={combatStatsRef} className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold mb-4">II. Combat Statistics</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Threat MV Range:</label>
+            <select
+              value={monsterForm.threatMvRange}
+              onChange={(e) => updateThreatDiceForCategory(e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 mb-4"
+            >
+              {THREAT_MV_RANGES.map(range => (
+                <option key={range} value={range}>{range}</option>
+              ))}
+            </select>
+
+            <label className="block text-sm font-medium text-gray-700 mb-2">Threat Dice (TD):</label>
+            <div className="space-y-2">
+              <div>
+                <label className="block text-xs text-gray-600">Melee:</label>
+                <select
+                  value={monsterForm.threatDice.melee}
+                  onChange={(e) => updateThreatDice('melee', e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-1"
+                >
+                  {getAvailableThreatDice(monsterForm.threatMvRange, monsterForm.category).map(option => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600">Natural:</label>
+                <select
+                  value={monsterForm.threatDice.natural}
+                  onChange={(e) => updateThreatDice('natural', e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-1"
+                >
+                  {getAvailableThreatDice(monsterForm.threatMvRange, monsterForm.category).map(option => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600">Ranged:</label>
+                <select
+                  value={monsterForm.threatDice.ranged}
+                  onChange={(e) => updateThreatDice('ranged', e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-1"
+                >
+                  {getAvailableThreatDice(monsterForm.threatMvRange, monsterForm.category).map(option => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600">Arcane:</label>
+                <select
+                  value={monsterForm.threatDice.arcane}
+                  onChange={(e) => updateThreatDice('arcane', e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-1"
+                >
+                  {getAvailableThreatDice(monsterForm.threatMvRange, monsterForm.category).map(option => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
-          {/* Monster Armor */}
           <div>
-            <label htmlFor="monsterArmor" className="block text-sm font-medium text-gray-700 mb-2">
-              Monster Armor:
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Extra Attacks (EA):</label>
+            <input
+              type="text"
+              value={monsterForm.extraAttacks}
+              onChange={(e) => updateForm('extraAttacks', e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              placeholder="e.g., Bite follow-up d4, Tail sweep"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Armor Type:</label>
             <select
-              id="monsterArmor"
-              value={monsterArmor}
-              onChange={(e) => setMonsterArmor(e.target.value)}
-              className="w-full md:w-1/2 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-center"
+              value={monsterForm.armor}
+              onChange={(e) => updateForm('armor', e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
             >
-            {monsterArmorOptions.map(armor => (
-              <option key={armor.value} value={armor.value}>{armor.label}</option>
-            ))}
+              {ARMOR_TYPES.map(armor => (
+                <option key={armor.name} value={armor.name}>
+                  {armor.name} {armor.dr_die !== 'None' ? `(${armor.dr_die} or +${armor.hp_bonus} HP)` : '(+0 HP)'}
+                </option>
+              ))}
             </select>
           </div>
 
-          <div className="text-center space-x-4">
-            <button
-              type="submit"
-              className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Shield Type:</label>
+            <select
+              value={monsterForm.shield}
+              onChange={(e) => updateForm('shield', e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
             >
-              Calculate Hit Points
-            </button>
-            {result && (
-              <button
-                type="button"
-                onClick={saveMonster}
-                className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
-              >
-                Save Monster
-              </button>
-            )}
+              {SHIELD_TYPES.map(shield => (
+                <option key={shield.name} value={shield.name}>
+                  {shield.name} {shield.threat_reduction > 0 ? `(-${shield.threat_reduction} Threat)` : ''}
+                </option>
+              ))}
+            </select>
           </div>
-        </form>
-      </div>
 
-      {/* Results */}
-      {result && (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Calculation Results</h2>
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-              <div className="text-3xl font-bold text-red-600 mb-2">
-                {result.hitPoints} Hit Points
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Saving Throw (ST):</label>
+            <input
+              type="text"
+              value={monsterForm.savingThrow}
+              onChange={(e) => updateForm('savingThrow', e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              placeholder="e.g., d6, d8"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Battle Phase (BP):</label>
+            <input
+              type="text"
+              value={monsterForm.battlePhase}
+              onChange={(e) => updateForm('battlePhase', e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              placeholder="e.g., d6, d8"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <button
+            onClick={autoGenerateStats}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4"
+          >
+            Auto-Generate ST & BP
+          </button>
+        </div>
+
+        {/* Threat Dice System Explanation */}
+        <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <h3 className="text-lg font-semibold text-red-900 mb-3">Eldritch Threat Dice System</h3>
+          <p className="text-sm text-red-800 mb-4">
+            Threat Dice map metaphysical origin to mechanical power tier. Each MV Range provides specific dice combinations
+            based on creature category, ensuring balanced progression from mundane threats to legendary entities.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs mb-4">
+            <div className="bg-white p-3 rounded border border-red-200">
+              <h4 className="font-semibold text-red-800 mb-2">Minor (1 die)</h4>
+              <p className="text-red-700">Single threat die, basic creatures</p>
+              <p className="text-red-600 text-xs mt-1">1d3-1d6 typical range</p>
+            </div>
+            <div className="bg-white p-3 rounded border border-red-200">
+              <h4 className="font-semibold text-red-800 mb-2">Standard (2 dice)</h4>
+              <p className="text-red-700">Two dice combinations, seasoned threats</p>
+              <p className="text-red-600 text-xs mt-1">2d6-2d10 typical range</p>
+            </div>
+            <div className="bg-white p-3 rounded border border-red-200">
+              <h4 className="font-semibold text-red-800 mb-2">Exceptional (3 dice)</h4>
+              <p className="text-red-700">Three dice combinations, elite creatures</p>
+              <p className="text-red-600 text-xs mt-1">3d8-3d12 typical range</p>
+            </div>
+            <div className="bg-white p-3 rounded border border-red-200">
+              <h4 className="font-semibold text-red-800 mb-2">Legendary (3+ dice)</h4>
+              <p className="text-red-700">Multiple dice, mythic entities</p>
+              <p className="text-red-600 text-xs mt-1">3d12+ and beyond</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div>
+              <h4 className="font-semibold text-red-800 mb-2">Metaphysical Origin Guidelines</h4>
+              <div className="space-y-2">
+                <div className="bg-white p-2 rounded border border-red-200">
+                  <span className="font-medium text-green-800">Mortal Kin (Mundane):</span>
+                  <p className="text-green-700">1d3-3d12+ range, terrestrial physics. Includes humans, most adaptable race in Ainerêve.</p>
+                </div>
+                <div className="bg-white p-2 rounded border border-red-200">
+                  <span className="font-medium text-blue-800">Enchanted Kin (Magical):</span>
+                  <p className="text-blue-700">1d4-3d12+ range, ambient Meterea</p>
+                </div>
+                <div className="bg-white p-2 rounded border border-red-200">
+                  <span className="font-medium text-purple-800">Unquiet Kin (Preternatural):</span>
+                  <p className="text-purple-700">1d4-3d12+ range, nightmare-forged</p>
+                </div>
+                <div className="bg-white p-2 rounded border border-red-200">
+                  <span className="font-medium text-indigo-800">Reifiants (Supernatural):</span>
+                  <p className="text-indigo-700">1d6-3d12+ range, myth-born entities</p>
+                </div>
               </div>
-              <div className="text-lg text-gray-700">
-                This creature is <strong>{result.threatLevel}</strong> threat (MV {result.totalThreatMV}).
+            </div>
+            <div>
+              <h4 className="font-semibold text-red-800 mb-2">Threat Progression Examples</h4>
+              <div className="space-y-2 text-xs">
+                <div className="bg-white p-2 rounded border border-red-200">
+                  <span className="font-medium">Human (Mundane) progression:</span>
+                  <p>Villager (1d4) → Guard (2d6) → Veteran (3d8) → Champion (3d12+)</p>
+                </div>
+                <div className="bg-white p-2 rounded border border-red-200">
+                  <span className="font-medium">Magical progression:</span>
+                  <p>Pixie (1d4) → Mage (2d8) → Griffin (3d8) → Dragon (3d12+)</p>
+                </div>
+                <div className="bg-white p-2 rounded border border-red-200">
+                  <span className="font-medium">Regional Human examples:</span>
+                  <p>Dalmavand Warrior (2d6) → Psarmorum Templar (2d8) → Maedoen Druid (3d8)</p>
+                </div>
+                <div className="bg-white p-2 rounded border border-red-200">
+                  <span className="font-medium">Supernatural progression:</span>
+                  <p>Guardian Spirit (1d6) → Angel (2d10) → Archangel (3d10) → Deity (3d12+)</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      )}
 
-      {/* Additional Notes */}
-      <div className="bg-gray-50 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Calculation Notes</h3>
-        <div className="text-sm text-gray-700 space-y-2">
-          <p><strong>Size and Nature Modifier:</strong> (Size Value + Nature Value) ÷ 2</p>
-          <p><strong>Base Hit Points:</strong> Tier 1 + Tier 2 + Tier 3 threat dice values</p>
-          <p><strong>Final Hit Points:</strong> Ceil(Base HP × Modifier) + Armor Bonus</p>
+        {/* Tactical Movement Section */}
+        <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <h3 className="text-lg font-semibold text-green-900 mb-3">Tactical Movement (5-foot squares)</h3>
+          <p className="text-sm text-green-800 mb-4">
+            Movement bonuses are derived from Battle Phase die rank, representing the creature&apos;s inherent celerity tier.
+            This is distinct from purchasable Focus abilities (+1 to +5 static bonuses).
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Movement Bonus (Derived from BP Die Rank):
+              </label>
+              <select
+                value={monsterForm.speedFocus}
+                onChange={(e) => updateForm('speedFocus', e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2"
+              >
+                <option value="None">None (No additional movement bonus)</option>
+                <option value="d4">d4-d6 Tier (+1 sq/phase)</option>
+                <option value="d8">d8-d10 Tier (+2 sq/phase)</option>
+                <option value="d12">d12+ Tier (+3 sq/phase)</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                This is an automatic derivation based on Battle Phase die size, not a purchasable Focus ability.
+              </p>
+            </div>
+
+            <div className="flex items-center">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={monsterForm.especiallySpeedy}
+                  onChange={(e) => updateForm('especiallySpeedy', e.target.checked)}
+                  className="mr-2"
+                />
+                <span className="text-sm font-medium text-gray-700">Especially Speedy</span>
+              </label>
+            </div>
+
+            <div className="bg-white p-3 rounded border">
+              <p className="text-sm font-semibold text-gray-700">Base Movement: {baseMovement} sq/phase</p>
+              <p className="text-xs text-gray-600">Formula: (12 + BP MV) ÷ 5 + modifiers</p>
+            </div>
+          </div>
+
+          {/* Movement Action Table */}
+          <div className="mt-4">
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">Movement Action Multipliers:</h4>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs border border-gray-300">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="border border-gray-300 px-2 py-1">Action</th>
+                    <th className="border border-gray-300 px-2 py-1">Normal</th>
+                    <th className="border border-gray-300 px-2 py-1">Especially Speedy</th>
+                    <th className="border border-gray-300 px-2 py-1">Squares</th>
+                    <th className="border border-gray-300 px-2 py-1">Penalty/Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(MOVEMENT_MULTIPLIERS).map(([action, data]) => (
+                    <tr key={action}>
+                      <td className="border border-gray-300 px-2 py-1 font-medium">{action}</td>
+                      <td className="border border-gray-300 px-2 py-1 text-center">
+                        {data.normal > 0 ? `×${data.normal}` : 'N/A'}
+                      </td>
+                      <td className="border border-gray-300 px-2 py-1 text-center">
+                        {data.speedy > 0 ? `×${data.speedy}` : 'N/A'}
+                      </td>
+                      <td className="border border-gray-300 px-2 py-1 text-center">
+                        {data.normal > 0 ? (
+                          monsterForm.especiallySpeedy ?
+                            `${baseMovement * data.speedy}` :
+                            `${baseMovement * data.normal}`
+                        ) : (
+                          monsterForm.especiallySpeedy && data.speedy > 0 ?
+                            `${baseMovement * data.speedy}` : 'N/A'
+                        )}
+                      </td>
+                      <td className="border border-gray-300 px-2 py-1">{data.penalty}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Attack Type Selector */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Primary Attack Type</h3>
-        <select
-          value={primaryAttack}
-          onChange={(e) => setPrimaryAttack(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-center"
-        >
-          <option>Melee attack is highest potential harm</option>
-          <option>Natural weapons is highest potential harm</option>
-          <option>Ranged attack is highest potential harm</option>
-          <option>Arcane attack is highest potential harm</option>
-        </select>
-        <p className="text-sm text-gray-500 mt-2">
-          This selection helps you determine which attack type should be the monster&apos;s primary threat.
-        </p>
+        {/* Notes */}
+        <div ref={notesRef} className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold mb-4">III. Notes</h2>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Special Abilities, Treasure, etc.:</label>
+          <textarea
+            value={monsterForm.notes}
+            onChange={(e) => updateForm('notes', e.target.value)}
+            rows={4}
+            className="w-full border border-gray-300 rounded-md px-3 py-2"
+            placeholder="Describe special abilities, tactics, treasure, or other notes..."
+          />
+        </div>
       </div>
 
-      {/* Save Monster Dialog */}
+        {/* Generated QSB */}
+        <div ref={qsbRef} className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold mb-4">Generated Quick Stat Block (QSB)</h2>
+
+        {/* HP Calculation Display */}
+        <div className="mb-4 p-4 bg-gray-50 rounded">
+          <h3 className="font-semibold mb-2">HP Calculation:</h3>
+          <div className="text-sm space-y-1">
+            <p>Base HP: {hpCalc.base_hp} (highest threat MV: {highestThreatMV})</p>
+            <p>Size Modifier: +{hpCalc.size_modifier} | Nature Modifier: +{hpCalc.nature_modifier}</p>
+            <p>HP Multiplier: {hpCalc.hp_multiplier.toFixed(2)} = (Size + Nature) ÷ 2</p>
+            <p>Base Total: {hpCalc.final_hp} = {hpCalc.base_hp} × {hpCalc.hp_multiplier.toFixed(2)}</p>
+            <p>Armor Bonus: +{selectedArmor.hp_bonus}</p>
+            <p><strong>Final HP: {finalHP} ({finalActiveHP} Active / {finalPassiveHP} Passive)</strong></p>
+          </div>
+        </div>
+
+        {/* Semantic Validation */}
+        {monsterForm.concept && (
+          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded">
+            <h3 className="font-semibold text-yellow-800 mb-2">Concept Validation:</h3>
+            <p className="text-sm text-yellow-700">
+              <strong>Concept:</strong> {monsterForm.concept}
+            </p>
+            {monsterForm.trope && (
+              <p className="text-sm text-yellow-700">
+                <strong>Trope:</strong> {monsterForm.trope}
+              </p>
+            )}
+            <p className="text-xs text-yellow-600 mt-2">
+              Remember: Narrative concept should guide classification and abilities.
+              GM may override mechanical calculations if they don&apos;t fit the creature&apos;s essential nature.
+            </p>
+          </div>
+        )}
+
+        <div className="bg-black text-green-400 p-4 rounded font-mono text-sm whitespace-pre-wrap">
+          {generateQSBString()}
+        </div>
+
+        {/* Movement Summary */}
+        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded">
+          <h4 className="font-semibold text-green-800 mb-2">Tactical Movement Summary</h4>
+          <div className="text-sm text-green-700 space-y-1">
+            <p><strong>Base Movement:</strong> {baseMovement} squares per phase</p>
+            <p><strong>Walk:</strong> {baseMovement} sq ({baseMovement * 5}ft)</p>
+            <p><strong>Run:</strong> {baseMovement * (monsterForm.especiallySpeedy ? MOVEMENT_MULTIPLIERS.Run.speedy : MOVEMENT_MULTIPLIERS.Run.normal)} sq ({baseMovement * (monsterForm.especiallySpeedy ? MOVEMENT_MULTIPLIERS.Run.speedy : MOVEMENT_MULTIPLIERS.Run.normal) * 5}ft) - {MOVEMENT_MULTIPLIERS.Run.penalty}</p>
+            <p><strong>Sprint:</strong> {baseMovement * (monsterForm.especiallySpeedy ? MOVEMENT_MULTIPLIERS.Sprint.speedy : MOVEMENT_MULTIPLIERS.Sprint.normal)} sq ({baseMovement * (monsterForm.especiallySpeedy ? MOVEMENT_MULTIPLIERS.Sprint.speedy : MOVEMENT_MULTIPLIERS.Sprint.normal) * 5}ft) - {MOVEMENT_MULTIPLIERS.Sprint.penalty}</p>
+            {monsterForm.especiallySpeedy && (
+              <p><strong>Burst:</strong> {baseMovement * MOVEMENT_MULTIPLIERS.Burst.speedy} sq ({baseMovement * MOVEMENT_MULTIPLIERS.Burst.speedy * 5}ft) - {MOVEMENT_MULTIPLIERS.Burst.penalty}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+        {/* Mobile Navigation */}
+        <div className="lg:hidden bg-white rounded-lg shadow-lg p-4 mb-6">
+          <h3 className="text-sm font-bold text-gray-800 mb-3">Quick Navigation</h3>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => scrollToSection(basicInfoRef)}
+              className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded transition-colors"
+            >
+              Basic Info
+            </button>
+            <button
+              onClick={() => scrollToSection(combatStatsRef)}
+              className="text-xs bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 rounded transition-colors"
+            >
+              Combat Stats
+            </button>
+            <button
+              onClick={() => scrollToSection(notesRef)}
+              className="text-xs bg-green-50 hover:bg-green-100 text-green-700 px-3 py-2 rounded transition-colors"
+            >
+              Notes
+            </button>
+            <button
+              onClick={() => scrollToSection(qsbRef)}
+              className="text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 px-3 py-2 rounded transition-colors"
+            >
+              QSB Result
+            </button>
+          </div>
+        </div>
+
+        {/* Save Button */}
+        <div className="text-center">
+          <button
+            onClick={() => setShowSaveDialog(true)}
+            className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg"
+          >
+            Save to Monster Roster
+          </button>
+        </div>
+      </div>
+
+      {/* Save Dialog */}
       {showSaveDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
             <h3 className="text-lg font-bold mb-4">Save Monster</h3>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Monster Name</label>
-                <input
-                  type="text"
-                  value={monsterName}
-                  onChange={(e) => setMonsterName(e.target.value)}
-                  placeholder="e.g. Shadow Wolf, Iron Golem, Bandit Captain"
-                  className="w-full border border-gray-300 rounded-lg p-2"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Monster Trope/Tag</label>
-                <div className="flex space-x-2">
-                  <select
-                    value={monsterTrope}
-                    onChange={(e) => setMonsterTrope(e.target.value)}
-                    className="flex-1 border border-gray-300 rounded-lg p-2"
-                  >
-                    <option value="">Select trope...</option>
-                    {commonTropes.map(trope => (
-                      <option key={trope} value={trope}>{trope}</option>
-                    ))}
-                  </select>
-                  <input
-                    type="text"
-                    value={monsterTrope}
-                    onChange={(e) => setMonsterTrope(e.target.value)}
-                    placeholder="Custom trope"
-                    className="flex-1 border border-gray-300 rounded-lg p-2"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Assign to Trope Group (Optional)
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Assign to Party/Roster:
                 </label>
                 <select
                   value={selectedParty}
                   onChange={(e) => setSelectedParty(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg p-2"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
                 >
-                  <option value="">No group assignment</option>
+                  <option value="">Default Monster Roster</option>
                   {partyFolders.map(folder => (
                     <option key={folder.id} value={folder.id}>
                       {folder.name}
                     </option>
                   ))}
                 </select>
-                {partyFolders.length === 0 && (
-                  <p className="text-sm text-gray-500 mt-1">
-                    No monster trope folders available. Create one in the Party Management page.
-                  </p>
-                )}
               </div>
             </div>
 
-            <div className="flex space-x-3 mt-6">
+            <div className="mt-6 flex space-x-3">
               <button
-                onClick={confirmSaveMonster}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded"
+                onClick={saveMonster}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
               >
                 Save Monster
               </button>
               <button
-                onClick={() => {
-                  setShowSaveDialog(false);
-                  setMonsterName('');
-                  setMonsterTrope('');
-                  setSelectedParty('');
-                }}
-                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded"
+                onClick={() => setShowSaveDialog(false)}
+                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
               >
                 Cancel
               </button>

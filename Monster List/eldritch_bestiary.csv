@@ -1,0 +1,59 @@
+Name,Category,Threat Dice (Melee),Threat Dice (Natural),Threat Dice (Ranged),Threat Dice (Arcane),Extra Attacks,Hit Points (Total),Active Defense,Passive Defense,Damage Reduction,Saving Throw,Battle Phase,Movement Rate,Reach,Special Abilities,Behavior,Notes,Source Page
+Gorgon,Legendary,2d8,2d6,,,"Petrifying Gaze (1d6 uses; d10 challenge), Venomous Bite (d8)",80,40,40,+6 HP (Iron Scales),d12,8 (d12),5 sq/phase,1,Petrifying gaze; venomous bite,Balanced bruiser, | Pronunciation: GOR-gon,
+Harpy,Standard,2d6 (talons),,,,1d6; Screech (Natural d8); Luring Song (d6 challenge; Confused/Charmed),40,30,10,+4 HP (Feathered armor),d8,6 (d8),5 sq/phase,1,Screech cone; siren song,Fast skirmisher, | Pronunciation: HAR-pee,
+Dire Wolf,Minor,d8 (bite),,,,1d4,10,5,5,+2 HP (Thick fur),d4,4 (d4),3 sq/phase,1,Pack Tactics (advantage when flanking),Balanced pack-hunter, | Pronunciation: DY-ur wo͝olf,
+Goblin,Minor,d6,d4,d4,,,6,3,3,By armor/shield,d4–d8,d6–d12,—,1,—,Balanced rabble, | Pronunciation: GOB-lin,
+Skeleton,Minor,,d4 (claws),,,,4,2,2,By armor/shield,d4,5 (d4),3 sq/phase,1,Undead traits,Balanced shambling, | Pronunciation: SKEL-uh-tuhn,
+Guard,Standard,2d6,d8,2d4,,,16,8,8,By armor/shield,d6,6 (d6),4 sq/phase,1,Trained formation fighter,Balanced formation, | Pronunciation: GARD,
+Bandit,Standard,2d6 (sword),,2d4 (shortbow),,,12,6,6,By armor/shield,d6,6 (d6),4 sq/phase,1,Ambush tactics,Balanced skirmisher, | Pronunciation: BAN-dit,
+Forest Troll,Standard,2d6,2d8,1d6,—,1d6,20,5,19,+4 HP (Thick hide),d6,4 (d6),2 sq/phase,1,Regeneration (1d4 HP/round; fire/acid halt),Tough bulldozer, | Pronunciation: FOR-ist trohl,
+Orc Warrior,Standard,2d6 (axe),2d4 (claws),1d6 (javelin),,,18,9,9,By armor/shield,d6,6 (d6),4 sq/phase,1,Aggressive press,Balanced shock troop, | Pronunciation: ORK WORE-ee-er,
+Bear — Black,Exceptional,,3d4,,,2d4 (bear hug after hit),18,5,13,+3 HP (Thick fur),d8,4 (d6),4 sq/phase,2,Bear hug extra attack (on armor penetration),Tough mauler, | Pronunciation: BAIR,
+Bear — Brown/Grizzly,Exceptional,,3d6,,,2d6 (bear hug after hit),27,7,20,+3 HP (Thick fur),d8,4 (d6),4 sq/phase,2,Bear hug extra attack (on armor penetration),Tough mauler, | Pronunciation: BAIR,
+Bear — Kodiak/Polar,Exceptional,,3d8,,,2d8 (bear hug after hit),36,9,27,+3 HP (Thick fur),d8,4 (d6),4 sq/phase,2,Bear hug extra attack (on armor penetration),Tough mauler, | Pronunciation: BAIR,
+"Accursed, the",Minor (undead),d4,d6,d4,,,,,,,,,,,,,,464
+Afriti,Preternatural,2d10,,,2d12,,,,,,,,,,,,,468
+Ambulant Thresher,Standard (plant),,2d10,,,,,,,,,,,,,,,466
+Amphisbaena,Exceptional,,3d6,,3d8,,,,,,,,,,,,,470
+Angel,Legendary (Supernatural),2d12+8,,,d12+5,,,,,,,,,,,,,471
+Aniathraul (Cythraul),Extraordinary (humanoid),2d8,2d6,2d4,3d12,,,,,,,,,,,,,410
+Anthropophagi,Minor,d8,d6,,,,,,,,,,,,,,,472
+Arimaspians,Standard to Exceptional (Cyclops-like),2d8,,,d10,,,,,,,,,,,,,473
+Basilisk,Standard to Exceptional,,2d10,,2d8,,,,,,,,,,,,,475
+Brownie,Minor to Standard (fay),,,,,,,,,,,,,,,,,476
+Centaur,Exceptional,2d8,2d12,,,,,,,,,,,,,,,477
+Changeling,Standard (fay),2d6,2d8,2d4,2d8,,,,,,,,,,,,,477
+Cockatrice,Standard,,2d10,,,,,,,,,,,,,,,481
+Credran (Elf),Exceptional Fay/Elves,d8,,d6,d8 (elemental magic),,,,,,,,,,,,,491
+Demon,Legendary (Supernatural),3d16,2d18,2d12,2d12,,,,,,,,,,,,,481
+Dragon,Exceptional (often Legendary Reifiant),,,,,,,,,,,,,,,,,482
+Dwarf,Minor to Exceptional,,,,,,,,,,,,,,,,,483
+Eborian Ape-Men (Losels),Exceptional,2d8,2d6,1d6,,,,,,,,,,,,,,400
+Elemental,Exceptional (often Legendary),,2d8 to 3d18,,2d10 to 3d14,,,,,,,,,,,,,487
+Elf,Minor to full-fledged (Shee),d8,d4,d8,d6,,,,,,,,,,,,,489
+Extantar,Minor up to Exceptional (Perception-reactive),,2d4 to 2d12,,,,,,,,,,,,,,,498
+Fox Folk,Minor (Shee),d6,d8,d6,d4,,,,,,,,,,,,,500
+Gargoyle,Standard,2d6,2d8+1 (claws),,d8,,,,,,,,,,,,,504
+Gethra,Standard,2d8,1d10,2d10,,,,,,,,,,,,,,392
+Ghul,Standard (undead),2d6,2d8 (claws/teeth),,,,,,,,,,,,,,,505
+Giant,Standard to Legendary (Reifiant),2d6 to 3d14,2d12 to 3d18,,,,,,,,,,,,,,,506
+Giant Ant,Minor to Standard,,d4 to 2d12 (bite),,,,,,,,,,,,,,,510
+"Giant Fowl (Roc, Eagles, etc.)",Varies,,,,,,,,,,,,,,,,,511
+Giant Rat,Minor,,d4 (bite/claw),,,,,,,,,,,,,,,512
+Gnome,Minor to Exceptional,,,,,,,,,,,,,,,,,514
+Golem,Exceptional to Legendary (Preternatural),,2d8 to 3d18,,2d10 to 3d14,,,,,,,,,,,,,517
+Gweithraul (Cythraul),Standard (humanoid),2d8,2d8,,,,,,,,,,,,,,,411
+Hag,Standard (spirit/crone),,2d8,,2d12,,,,,,,,,,,,,519
+Halfling,Minor to Legendary,d6,d4,d6,,,,,,,,,,,,,,521
+Harpy,Standard (Preternatural),,2d6 (talons),,,,,,,,,,,,,,,523
+Peri (Rogue Angel),Minor (Magical),d4,d6,,d4,,,,,,,,,,,,,525
+Sentinel,Standard to Legendary,,,,,,,,,,,,,,,,,528
+Shee (Minor Fay/Faerie),Minor Fay/Faerie (Preternatural),d6,d4,d8,d10 (glamor),,,,,,,,,,,,,528
+Shee (Standard Fay/Faerie),Standard Fay/Faerie (Preternatural),d8,d4,2d4,2d6 (glamor),,,,,,,,,,,,,531
+Shee Lord,Exceptional (Fay Nobility),2d8,2d6,,3d12,,,,,,,,,,,,,534
+Source of Evil,Legendary (avatar),,,,,,,,,,,,,,,,,537
+Swipes (Astral Footpads),Minor (extraplanar),d4,d4+2 (claws),d10,,,,,,,,,,,,,,538
+Troll,Standard (Magical),2d8,2d12,2d8,2d8,,,,,,,,,,,,,542
+Vampire,"Standard (undead, Supernatural)",d10+d6,d16+2,,2d12,,,,,,,,,,,,,544
+Werewolf,Exceptional (Magical),d10+8,3d8+8,d6,,,,,,,,,,,,,,546
+Woodshades (Elf),Exceptional (Fallen Credran),3d8,,2d4,2d6,,,,,,,,,,,,,496
