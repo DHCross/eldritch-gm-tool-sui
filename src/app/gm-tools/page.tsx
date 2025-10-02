@@ -120,6 +120,36 @@ export default function GMTools() {
           All-in-one toolkit for Game Masters running Eldritch RPG campaigns
         </p>
       </header>
+
+
+
+      <section className="mb-10 rounded-2xl border border-purple-200 bg-purple-50 p-6 shadow-sm">
+        <div className="flex flex-col gap-4 text-center md:flex-row md:items-center md:justify-between md:text-left">
+          <div>
+            <h2 className="text-2xl font-bold text-purple-900 mb-2">📖 Explore the Full Bestiary</h2>
+            <p className="text-purple-800">
+              Dive into the complete catalog of eldritch creatures, filter by threat level, and pull stat blocks straight into
+              your encounters.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/bestiary?from=gm-tools"
+              className="inline-flex items-center justify-center rounded-md bg-purple-600 px-5 py-3 text-sm font-semibold text-white shadow hover:bg-purple-700 transition-colors"
+            >
+              Open Bestiary Catalog →
+            </Link>
+            <Link
+              href="/monster-roster?from=gm-tools"
+              className="inline-flex items-center justify-center rounded-md border border-purple-200 bg-white px-5 py-3 text-sm font-semibold text-purple-800 shadow-sm hover:border-purple-300 hover:text-purple-900 transition-colors"
+            >
+              Manage Custom Monsters
+            </Link>
+          </div>
+        </div>
+      </section>
+
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {TOOL_SECTIONS.map(section => {
           const hasCtas = Boolean(section.primaryCta || section.secondaryCtas?.length);
