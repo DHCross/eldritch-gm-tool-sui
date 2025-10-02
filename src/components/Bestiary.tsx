@@ -1011,7 +1011,7 @@ export default function Bestiary() {
           The Eldritch RPG Bestiary - A comprehensive guide to creatures, monsters, and adversaries
         </p>
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-800">
-          <p className="font-semibold">⚠️ Warning: Dangerous Knowledge</p>
+          <p className="font-semibold">🐉 Warning: Dangerous Knowledge</p>
           <p>This information is considered not safe to know and is normally kept locked and chained in the archives of the Octocirculi Academy.</p>
         </div>
       </div>

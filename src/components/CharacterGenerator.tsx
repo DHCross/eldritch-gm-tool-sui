@@ -2,6 +2,26 @@
 
 import { useState, useEffect } from 'react';
 import {
+  calculateCPSpent,
+  createCharacterShell,
+  fnum,
+  spendCP,
+  updateDerivedCharacterData,
+  weaknessReport,
+  mv,
+  type Character
+} from '../utils/characterBuild';
+import {
+  abilities,
+  casterClasses,
+  classNames,
+  foci,
+  magicPathsByClass,
+  raceNames,
+  specs,
+  levels
+} from '../data/gameData';
+import {
   saveCharacter,
   generateId,
   getCurrentUserId,
@@ -18,331 +38,8 @@ import {
 } from '../utils/nameGenerator';
 import { SavedCharacter, PartyFolder, PartyMembership } from '../types/party';
 
-// ======= DATA =======
-const dieRanks = ['d4', 'd6', 'd8', 'd10', 'd12'];
-const abilities = ['Competence', 'Prowess', 'Fortitude'];
-const specs = {
-  Competence: ['Adroitness', 'Expertise', 'Perception'],
-  Prowess: ['Agility', 'Melee', 'Precision'],
-  Fortitude: ['Endurance', 'Strength', 'Willpower']
-};
-const foci = {
-  Adroitness: ['Skulduggery', 'Cleverness'],
-  Expertise: ['Wizardry', 'Theurgy'],
-  Perception: ['Alertness', 'Perspicacity'],
-  Agility: ['Speed', 'Reaction'],
-  Melee: ['Threat', 'Finesse'],
-  Precision: ['Ranged Threat', 'Ranged Finesse'],
-  Endurance: ['Vitality', 'Resilience'],
-  Strength: ['Ferocity', 'Might'],
-  Willpower: ['Courage', 'Resistance']
-};
-const races = ['Human', 'Elf', 'Dwarf', 'Gnome', 'Half-Elf', 'Half-Orc', 'Halfling', 'Drakkin'];
-const classes = ['Adept', 'Assassin', 'Barbarian', 'Mage', 'Mystic', 'Rogue', 'Theurgist', 'Warrior'];
-const levels = [1, 2, 3, 4, 5];
-const casterClasses = ['Adept', 'Mage', 'Mystic', 'Theurgist'];
-const magicPathsByClass = {
-  Adept: ['Thaumaturgy', 'Elementalism', 'Sorcery'],
-  Mage: ['Thaumaturgy', 'Elementalism', 'Sorcery'],
-  Mystic: ['Mysticism'],
-  Theurgist: ['Druidry', 'Hieraticism']
-};
-const levelInfo = [
-  { level: 1, masteryDie: 'd4' },
-  { level: 2, masteryDie: 'd6' },
-  { level: 3, masteryDie: 'd8' },
-  { level: 4, masteryDie: 'd10' },
-  { level: 5, masteryDie: 'd12' }
-];
-
-const raceMinima = {
-  Drakkin: { Competence: 'd6', Prowess: 'd6', Fortitude: 'd6', Endurance: 'd6', Strength: 'd4' },
-  Dwarf: { Fortitude: 'd8', Endurance: 'd4', Prowess: 'd6', Melee: 'd6' },
-  Elf: { Competence: 'd6', Expertise: 'd6', Wizardry: '+1', Prowess: 'd4', Agility: 'd4', Reaction: '+1' },
-  Gnome: { Competence: 'd4', Adroitness: 'd6', Expertise: 'd6', Perception: 'd4', Perspicacity: '+1' },
-  'Half-Elf': { Competence: 'd6', Prowess: 'd6', Agility: 'd4', Fortitude: 'd4', Endurance: 'd4', Willpower: 'd4' },
-  'Half-Orc': { Fortitude: 'd6', Strength: 'd8', Ferocity: '+1', Endurance: 'd6' },
-  Halfling: { Competence: 'd6', Adroitness: 'd6', Cleverness: '+1', Fortitude: 'd6', Willpower: 'd4', Courage: '+1' },
-  Human: { Competence: 'd6', Prowess: 'd6', Melee: 'd4', Threat: '+1', Fortitude: 'd4', Willpower: 'd6' }
-};
-
-const classMinima = {
-  Adept: { Competence: 'd6', Adroitness: 'd4', Cleverness: '+1', Expertise: 'd6', Wizardry: '+1', Perception: 'd4', Perspicacity: '+1' },
-  Assassin: { Competence: 'd4', Adroitness: 'd6', Perception: 'd4', Prowess: 'd4', Agility: 'd4', Endurance: 'd6', Melee: 'd4', Finesse: '+1' },
-  Barbarian: { Prowess: 'd6', Melee: 'd8', Fortitude: 'd4', Strength: 'd4', Ferocity: '+1' },
-  Mage: { Competence: 'd6', Expertise: 'd8', Wizardry: '+1', Fortitude: 'd4', Willpower: 'd6', Resistance: '+1' },
-  Mystic: { Competence: 'd6', Expertise: 'd6', Wizardry: '+1', Prowess: 'd4', Melee: 'd4', Fortitude: 'd4', Endurance: 'd6', Resilience: '+1', Vitality: '+2' },
-  Rogue: { Competence: 'd4', Adroitness: 'd4', Skulduggery: '+1', Perception: 'd4', Prowess: 'd6', Agility: 'd8' },
-  Theurgist: { Competence: 'd8', Expertise: 'd4', Theurgy: '+1', Fortitude: 'd6', Willpower: 'd4' },
-  Warrior: { Prowess: 'd8', Melee: 'd6', Threat: '+1', Fortitude: 'd6' }
-};
-
-const allAdvantages = {
-  Human: ['Fortunate', 'Survival'],
-  Elf: ['Night Vision', 'Gift of Magic', 'Magic Resistance (+1)'],
-  Dwarf: ['Night Vision', 'Strong-willed', 'Sense of Direction'],
-  Gnome: ['Eidetic Memory', 'Low-Light Vision', 'Observant'],
-  'Half-Elf': ['Heightened Senses', 'Low-Light Vision', 'Magic Resistance (+1)'],
-  'Half-Orc': ['Low-light Vision', 'Intimidation', 'Menacing'],
-  Halfling: ['Low Light Vision', 'Read Emotions', 'Resilient'],
-  Drakkin: ['Natural Armor', 'Breath Weapon', 'Night Vision'],
-  Adept: ['Arcanum', 'Gift of Magic', 'Literacy', 'Scholar'],
-  Assassin: ['Expeditious', 'Heightened Senses (hearing)', 'Observant', 'Read Emotions'],
-  Barbarian: ['Animal Affinity', 'Brutishness', 'Menacing', 'Resilient'],
-  Mage: ['Arcanum', 'Gift of Magic', 'Magic Defense', 'Scholar'],
-  Mystic: ['Empathic', 'Gift of Magic', 'Intuitive', 'Magic Resistance (Lesser)', 'Strong-Willed'],
-  Rogue: ['Expeditious', 'Fortunate', 'Streetwise', 'Underworld Contacts'],
-  Theurgist: ['Gift of Magic', 'Magic Defense', 'Religion', 'Strong-Willed'],
-  Warrior: ['Commanding', 'Intimidation', 'Magic Resistance (+1)', 'Tactician']
-};
-
-const classFeats = {
-  Adept: ['Guile', 'Lore', 'Ritual Magic', 'Quick-witted'],
-  Assassin: ['Death Strike', 'Lethal Exploit', 'Ranged Ambush', 'Shadow Walk'],
-  Barbarian: ['Berserk', 'Brawl', 'Feat of Strength', 'Grapple'],
-  Mage: ['Arcane Finesse', 'Dweomers', 'Intangible Threat', 'Path Mastery'],
-  Mystic: ['Iron Mind', 'Path Mastery', 'Premonition', 'Psychic Powers'],
-  Rogue: ['Backstab', 'Evasion', 'Roguish Charm', 'Stealth'],
-  Theurgist: ['Divine Healing', 'Path Mastery', 'Spiritual Smite', 'Supernatural Intervention'],
-  Warrior: ['Battle Savvy', 'Maneuvers', 'Stunning Reversal', 'Sunder Foe']
-};
-
-const raceFlaws = {
-  Gnome: ['Restriction: small weapons only'],
-  Halfling: ['Restriction: small weapons only'],
-  'Half-Orc': ['Ugliness']
-};
-
-const startingEquipment = {
-  common: ['Set of ordinary clothes', 'Purse of 5 gold coins', 'Backpack', 'Small dagger', 'Week\'s rations', 'Waterskin', 'Tinderbox', '50\' rope', 'Iron spikes', 'Small hammer', '6\' traveling staff or 10\' pole', 'Hooded lantern and 2 oil flasks or d4+1 torches'],
-  Adept: ['Book of knowledge (area of expertise)'],
-  Assassin: ['Assassin hood, jacket, cape, robe, or tunic'],
-  Barbarian: ['Garments of woven wool or linen', 'Tunic', 'Overcoat or cloak'],
-  Mage: ['Spellbook', 'Staff or focus item'],
-  Mystic: ['Robes or shawl', 'Cloak', 'Armor up to leather'],
-  Rogue: ['Set of thieves\' tools', 'Light armor (up to leather)', 'One weapon'],
-  Theurgist: ['Prayer book', 'Holy relic or symbol', 'Focus item', 'Armor up to chain'],
-  Warrior: ['One weapon of choice', 'Armor up to chain', 'Small to large shield', 'Steed']
-};
-
-const stepCost = { 'd4': 6, 'd6': 8, 'd8': 10, 'd10': 12, 'd12': Infinity };
-const focusStepCost = 4;
-
-const classAxes = {
-  Warrior: ['Prowess', 'Melee', 'Strength', 'Fortitude', 'Endurance', 'Threat', 'Agility', 'Might'],
-  Barbarian: ['Prowess', 'Melee', 'Strength', 'Fortitude', 'Endurance', 'Ferocity', 'Might', 'Vitality'],
-  Rogue: ['Prowess', 'Agility', 'Competence', 'Adroitness', 'Perception', 'Skulduggery', 'Cleverness', 'Speed'],
-  Assassin: ['Prowess', 'Agility', 'Melee', 'Competence', 'Adroitness', 'Finesse', 'Speed', 'Perception'],
-  Mage: ['Competence', 'Expertise', 'Wizardry', 'Fortitude', 'Willpower', 'Resistance', 'Perception'],
-  Mystic: ['Fortitude', 'Willpower', 'Competence', 'Expertise', 'Endurance', 'Prowess', 'Melee', 'Resilience', 'Vitality'],
-  Adept: ['Competence', 'Expertise', 'Adroitness', 'Perception', 'Cleverness', 'Wizardry', 'Perspicacity'],
-  Theurgist: ['Competence', 'Expertise', 'Theurgy', 'Fortitude', 'Willpower', 'Endurance', 'Courage']
-};
-
-// ======= HELPERS =======
-const idx = (r: string) => dieRanks.indexOf(r);
-const mv = (r: string) => r && r.startsWith('d') ? parseInt(r.slice(1), 10) : 0;
-const fnum = (v: string | number) => v ? parseInt(String(v).replace('+', ''), 10) : 0;
-
-interface Character {
-  race: string;
-  class: string;
-  level: number;
-  abilities: Record<string, string>;
-  specialties: Record<string, Record<string, string>>;
-  focuses: Record<string, Record<string, string>>;
-  masteryDie: string;
-  advantages: string[];
-  flaws: string[];
-  classFeats: string[];
-  equipment: string[];
-  actions: Record<string, string>;
-  pools: {
-    active: number;
-    passive: number;
-    spirit: number;
-  };
-}
-
 function showAlert(message: string) {
   alert(message);
-}
-
-function getAdvantages(race: string, klass: string) {
-  const raceAdv = allAdvantages[race as keyof typeof allAdvantages] || [];
-  const classAdv = allAdvantages[klass as keyof typeof allAdvantages] || [];
-  const combined = [...new Set([...raceAdv, ...classAdv])];
-  return combined;
-}
-
-function getEquipment(klass: string) {
-  return [...startingEquipment.common, ...(startingEquipment[klass as keyof typeof startingEquipment] || [])];
-}
-
-function applyMinima(ch: Character, minima: Record<string, string>) {
-  for (const [k, v] of Object.entries(minima || {})) {
-    if (abilities.includes(k)) {
-      if (idx(v) > idx(ch.abilities[k])) ch.abilities[k] = v;
-    } else {
-      const parentA = Object.keys(specs).find(a => specs[a as keyof typeof specs].includes(k));
-      const parentS = Object.keys(foci).find(s => foci[s as keyof typeof foci].includes(k));
-      if (parentA) {
-        if (idx(v) > idx(ch.specialties[parentA][k])) ch.specialties[parentA][k] = v;
-      } else if (parentS) {
-        const pa = Object.keys(specs).find(a => specs[a as keyof typeof specs].includes(parentS));
-        if (pa && fnum(v) > fnum(ch.focuses[pa][k])) ch.focuses[pa][k] = `+${fnum(v)}`;
-      }
-    }
-  }
-}
-
-// function rookieCaps(profile: string) {
-//   if (profile === 'pure') return { abilityMax: 'd6', specMax: 'd6', focusMax: 1, rules: [(_ch: Character) => true] };
-//   if (profile === 'balanced') return { abilityMax: 'd8', specMax: 'd8', focusMax: 2, rules: [(ch: Character) => breadthFloors(ch, 'd6')] };
-//   if (profile === 'specialist') return { abilityMax: 'd8', specMax: 'd10', focusMax: 3, rules: [(ch: Character) => floors(ch, 'd4')] };
-//   return null;
-// }
-
-// function softCaps(level: number, style: string) {
-//   const sc = { abilityMax: 'd12', specMax: 'd12', focusMax: 5, rules: [] as ((ch: Character) => boolean)[] };
-//   if (style === 'balanced') {
-//     if (level <= 3) { sc.abilityMax = 'd10'; sc.specMax = 'd10'; sc.focusMax = 3; }
-//     if (level === 4) { sc.focusMax = 4; }
-//     sc.rules.push((ch: Character) => breadthFloors(ch, 'd8'));
-//     sc.rules.push((ch: Character) => countSpecsAtOrAbove(ch, 'd12') <= 1);
-//   }
-//   if (style === 'hybrid' && level <= 3) sc.focusMax = 4;
-//   if (style === 'specialist') {
-//     if (level <= 3) sc.focusMax = 5;
-//     sc.rules.push((ch: Character) => floors(ch, 'd4'));
-//   }
-//   return sc;
-// }
-
-function buildWeights(klass: string, style: string) {
-  const axis = classAxes[klass as keyof typeof classAxes] || [];
-  const w: Record<string, number> = {};
-  axis.forEach((k, i) => w[k] = (style === 'specialist' ? 100 - i * 4 : style === 'balanced' ? 60 - i * 3 : 80 - i * 3));
-  if (style === 'balanced') {
-    w['Competence'] = (w['Competence'] || 30) + 20;
-    w['Fortitude'] = (w['Fortitude'] || 30) + 20;
-    ['Endurance', 'Strength', 'Willpower', 'Agility'].forEach(k => w[k] = (w[k] || 20) + 10);
-  }
-  return w;
-}
-
-function canUpgrade(ch: Character, key: string, kind: string, level: number, style: string, enforceSoftcaps: boolean) {
-  if (!enforceSoftcaps) return true;
-  // For now, simplified - could add full validation later
-  return true;
-}
-
-function spendCP(ch: Character, cpBudget: { value: number }, style: string, level: number, npcMode: boolean, enforceSoftcaps: boolean) {
-  const weights = buildWeights(ch.class, style);
-  const tryUpgrade = (key: string) => {
-    if (abilities.includes(key)) {
-      const cur = ch.abilities[key];
-      if (cur === 'd12') return false;
-      if (!canUpgrade(ch, key, 'ability', level, style, enforceSoftcaps)) return false;
-      const cost = stepCost[cur as keyof typeof stepCost];
-      if (cpBudget.value < cost) return false;
-      ch.abilities[key] = dieRanks[idx(cur) + 1];
-      cpBudget.value -= cost;
-      return true;
-    }
-    const pa = Object.keys(specs).find(a => specs[a as keyof typeof specs].includes(key));
-    if (pa) {
-      const cur = ch.specialties[pa][key];
-      if (cur === 'd12') return false;
-      if (!canUpgrade(ch, key, 'spec', level, style, enforceSoftcaps)) return false;
-      const cost = stepCost[cur as keyof typeof stepCost];
-      if (cpBudget.value < cost) return false;
-      ch.specialties[pa][key] = dieRanks[idx(cur) + 1];
-      cpBudget.value -= cost;
-      return true;
-    }
-    const ps = Object.keys(foci).find(s => foci[s as keyof typeof foci].includes(key));
-    if (ps) {
-      const pa2 = Object.keys(specs).find(a => specs[a as keyof typeof specs].includes(ps));
-      if (pa2) {
-        const val = fnum(ch.focuses[pa2][key]);
-        if (val >= 5) return false; // max focus
-        if (cpBudget.value < focusStepCost) return false;
-        ch.focuses[pa2][key] = `+${val + 1}`;
-        cpBudget.value -= focusStepCost;
-        return true;
-      }
-    }
-    return false;
-  };
-  const keys = [...new Set([...abilities, ...Object.values(specs).flat(), ...Object.values(foci).flat()])];
-  let safety = 0;
-  while (cpBudget.value > 0 && safety < 5000) {
-    safety++;
-    const sorted = keys.slice().sort((a, b) => (weights[b] || 10) - (weights[a] || 10));
-    let upgraded = false;
-    for (const k of sorted) {
-      if (tryUpgrade(k)) {
-        upgraded = true;
-        break;
-      }
-    }
-    if (!upgraded) break;
-  }
-}
-
-function computePools(ch: Character) {
-  const AD = mv(ch.abilities.Prowess) + mv(ch.specialties.Prowess.Agility) + mv(ch.specialties.Prowess.Melee);
-  const PD = mv(ch.abilities.Fortitude) + mv(ch.specialties.Fortitude.Endurance) + mv(ch.specialties.Fortitude.Strength);
-  const SP = mv(ch.abilities.Competence) + mv(ch.specialties.Fortitude.Willpower);
-  return { active: AD, passive: PD, spirit: SP };
-}
-
-function weaknessReport(ch: Character) {
-  const { active, passive, spirit } = computePools(ch);
-  const flags = [];
-  if (spirit <= 12) flags.push('Low Spirit Points (mental/arcane pressure will hurt).');
-  if (active < 24) flags.push('Low Active DP (poor agility/parry).');
-  if (passive < 24) flags.push('Low Passive DP (fragile to heavy blows).');
-  if (idx(ch.abilities.Competence) <= 1) flags.push('Low Competence (poor perception/social/planning).');
-  if (idx(ch.specialties.Competence.Perception) <= 1) flags.push('Low Perception branch (traps/ambush risk).');
-  if (idx(ch.specialties.Fortitude.Willpower) <= 1) flags.push('Low Willpower (charms/fear/illusions).');
-  if (idx(ch.specialties.Prowess.Precision) <= 1) flags.push('Weak ranged capability.');
-  return flags;
-}
-
-function calculateCPSpent(finalChar: Character, baseChar: Character, iconic: boolean) {
-  const spent = { abilities: 0, specialties: 0, focuses: 0, advantages: 0, total: 0 };
-  spent.advantages = iconic ? 4 : 0;
-
-  for (const ab of abilities) {
-    const baseRankIndex = idx(baseChar.abilities[ab]);
-    const finalRankIndex = idx(finalChar.abilities[ab]);
-    for (let i = baseRankIndex; i < finalRankIndex; i++) {
-      spent.abilities += stepCost[dieRanks[i] as keyof typeof stepCost];
-    }
-
-    for (const sp of specs[ab as keyof typeof specs]) {
-      const baseSpecIndex = idx(baseChar.specialties[ab][sp]);
-      const finalSpecIndex = idx(finalChar.specialties[ab][sp]);
-      for (let i = baseSpecIndex; i < finalSpecIndex; i++) {
-        spent.specialties += stepCost[dieRanks[i] as keyof typeof stepCost];
-      }
-    }
-
-    Object.keys(foci).forEach(specKey => {
-      if (specs[ab as keyof typeof specs].includes(specKey)) {
-        foci[specKey as keyof typeof foci].forEach(focusKey => {
-          const baseFocusValue = fnum(baseChar.focuses[ab][focusKey]);
-          const finalFocusValue = fnum(finalChar.focuses[ab][focusKey]);
-          spent.focuses += (finalFocusValue - baseFocusValue) * focusStepCost;
-        });
-      }
-    });
-  }
-
-  spent.total = 10 + spent.abilities + spent.specialties + spent.focuses + spent.advantages;
-  return spent;
 }
 
 export default function CharacterGenerator() {
@@ -411,39 +108,7 @@ export default function CharacterGenerator() {
       return;
     }
 
-    const ch: Character = {
-      race,
-      class: characterClass,
-      level,
-      abilities: {},
-      specialties: {},
-      focuses: {},
-      masteryDie: '',
-      advantages: [],
-      flaws: [],
-      classFeats: [],
-      equipment: [],
-      actions: {},
-      pools: { active: 0, passive: 0, spirit: 0 }
-    };
-
-    for (const a of abilities) {
-      ch.abilities[a] = 'd4';
-      ch.specialties[a] = {};
-      ch.focuses[a] = {};
-      for (const s of specs[a as keyof typeof specs]) {
-        ch.specialties[a][s] = 'd4';
-        for (const fx of foci[s as keyof typeof foci]) {
-          ch.focuses[a][fx] = '+0';
-        }
-      }
-    }
-
-    const baseCharacter = JSON.parse(JSON.stringify(ch));
-    applyMinima(baseCharacter, raceMinima[race as keyof typeof raceMinima]);
-    applyMinima(baseCharacter, classMinima[characterClass as keyof typeof classMinima]);
-
-    Object.assign(ch, JSON.parse(JSON.stringify(baseCharacter)));
+    const { character: ch, baseCharacter } = createCharacterShell(race, characterClass, level);
 
     const cpBudgetVal = (level === 1 && rookieProfile !== 'off') ? 10 : 10 + (level - 1) * 100;
     const cpBudget = { value: cpBudgetVal };
@@ -462,22 +127,8 @@ export default function CharacterGenerator() {
       spendCP(ch, cpBudget, buildStyle, level, false, enforceSoftcaps);
     }
 
-    ch.masteryDie = levelInfo[level - 1].masteryDie;
-    ch.advantages = getAdvantages(race, characterClass);
-    ch.flaws = raceFlaws[race as keyof typeof raceFlaws] || [];
-    ch.classFeats = classFeats[characterClass as keyof typeof classFeats] || [];
-    ch.equipment = getEquipment(characterClass);
+    updateDerivedCharacterData(ch);
 
-    const w = fnum(ch.focuses.Competence.Wizardry);
-    const t = fnum(ch.focuses.Competence.Theurgy);
-    ch.actions = {
-      meleeAttack: `${ch.abilities.Prowess} + ${ch.specialties.Prowess.Melee}` + (fnum(ch.focuses.Prowess.Threat) ? ` + Threat +${fnum(ch.focuses.Prowess.Threat)}` : ''),
-      rangedAttack: `${ch.abilities.Prowess} + ${ch.specialties.Prowess.Precision}` + (fnum(ch.focuses.Prowess['Ranged Threat']) ? ` + Ranged Threat +${fnum(ch.focuses.Prowess['Ranged Threat'])}` : ''),
-      perceptionCheck: `${ch.abilities.Competence} + ${ch.specialties.Competence.Perception}` + (fnum(ch.focuses.Competence.Perspicacity) ? ` + Perspicacity +${fnum(ch.focuses.Competence.Perspicacity)}` : ''),
-      magicAttack: casterClasses.includes(characterClass) ? `${ch.abilities.Competence} + ${ch.specialties.Competence.Expertise} + ${(w ? `Wizardry +${w}` : t ? `Theurgy +${t}` : '(path focus 0)')}` : '—'
-    };
-
-    ch.pools = computePools(ch);
     const spentTotals = calculateCPSpent(ch, baseCharacter, iconicArcane);
     setCharacter(ch);
     setLastCharacter({ ch, base: baseCharacter, iconic: iconicArcane, style: buildStyle, rp: rookieProfile, spent: spentTotals });
@@ -662,7 +313,7 @@ export default function CharacterGenerator() {
                 onChange={(e) => setRace(e.target.value)}
               >
                 <option value="">Select Race</option>
-                {races.map(r => <option key={r} value={r}>{r}</option>)}
+                {raceNames.map(r => <option key={r} value={r}>{r}</option>)}
               </select>
             </div>
             <div>
@@ -682,7 +333,7 @@ export default function CharacterGenerator() {
                 }}
               >
                 <option value="">Select Class</option>
-                {classes.map(c => <option key={c} value={c}>{c}</option>)}
+                {classNames.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState, useEffect } from 'react';
+import { Suspense, useCallback, useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -165,6 +165,14 @@ function generateMonster(
 }
 
 export default function EncounterGeneratorPage() {
+  return (
+    <Suspense fallback={<div className="p-4 text-center">Loading encounter generator...</div>}>
+      <EncounterGeneratorContent />
+    </Suspense>
+  );
+}
+
+function EncounterGeneratorContent() {
   const searchParams = useSearchParams();
   const backTarget = resolveBackTargetFromParam(searchParams.get('from'), 'gm-tools');
 

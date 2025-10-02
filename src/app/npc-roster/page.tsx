@@ -1,12 +1,12 @@
 import Link from 'next/link';
 import { resolveBackTargetFromSearchParams } from '../../utils/backNavigation';
+import { PagePropsWithSearchParams, resolvePageSearchParams } from '../../types/page';
 
-type PageProps = {
-  searchParams?: Record<string, string | string[] | undefined>;
-};
+type PageProps = PagePropsWithSearchParams;
 
-export default function NPCRoster({ searchParams }: PageProps) {
-  const backTarget = resolveBackTargetFromSearchParams(searchParams, 'gm-tools');
+export default async function NPCRoster({ searchParams }: PageProps) {
+  const resolvedSearchParams = await resolvePageSearchParams(searchParams);
+  const backTarget = resolveBackTargetFromSearchParams(resolvedSearchParams, 'gm-tools');
 
   return (
     <div className="container mx-auto px-4 py-8">

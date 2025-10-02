@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -14,12 +14,14 @@ import {
   calculatePartyDefenseProfile,
   savePartyMembership,
   getPartyMemberships,
-  removePartyMembership
+  removePartyMembership,
+  saveSelectedPartyMembers,
+  getSelectedPartyMembers
 } from '../../utils/partyStorage';
 import { SavedCharacter, PartyFolder, PartyMembership } from '../../types/party';
 import { resolveBackTargetFromParam } from '../../utils/backNavigation';
 
-export default function Roster() {
+function RosterContent() {
   const searchParams = useSearchParams();
   const backTarget = resolveBackTargetFromParam(searchParams.get('from'), 'player-tools');
 
@@ -40,6 +42,16 @@ export default function Roster() {
     const pcFolders = getPartyFoldersByType('PC_party');
     setCharacters(pcs);
     setPartyFolders(pcFolders);
+
+    const storedSelection = getSelectedPartyMembers();
+    if (storedSelection.length > 0) {
+      const validSelection = storedSelection.filter(id => pcs.some(pc => pc.id === id));
+      setSelectedCharacters(new Set(validSelection));
+      saveSelectedPartyMembers(validSelection);
+    } else {
+      setSelectedCharacters(new Set());
+      saveSelectedPartyMembers([]);
+    }
   };
 
   const createNewParty = () => {
@@ -70,6 +82,7 @@ export default function Roster() {
       newSelection.add(characterId);
     }
     setSelectedCharacters(newSelection);
+    saveSelectedPartyMembers(Array.from(newSelection));
   };
 
   const addSelectedToParty = (partyId: string) => {
@@ -358,5 +371,13 @@ export default function Roster() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function Roster() {
+  return (
+    <Suspense fallback={<div className="p-4 text-center">Loading roster...</div>}>
+      <RosterContent />
+    </Suspense>
   );
 }
