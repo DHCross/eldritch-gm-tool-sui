@@ -141,67 +141,30 @@ export default function Home() {
     reader.readAsText(file);
   }, [clearFileInput]);
 
-
-
-  interface HeroCard {
-    title: string;
-    description: string;
-    bullets: string[];
-    cta: { href: string; label: string };
-    secondaryCtas?: { href: string; label: string }[];
-  }
-
-  const heroCards: HeroCard[] = [
-    {
-      title: 'Player Tools',
-      description:
-        'Jump straight into character creation, spell references, and tools to keep your hero ready for every eldritch encounter.',
-      bullets: [
-        'Quick-start character, party, and NPC builders tailored for players.',
-        'Spellbooks, equipment references, and lore summaries at the table.',
-        'Track progress, quests, and campaign history with shared resources.'
-      ],
-      cta: {
-        href: '/player-tools',
-        label: 'Explore Player Tools'
-      }
-    },
-    {
-      title: 'GM Tools',
-      description:
-        'Orchestrate unforgettable sessions with encounter planning, monster management, and campaign organization at your fingertips.',
-      bullets: [
-        'Comprehensive encounter and monster generators.',
-        'Battle calculators, rosters, and party management dashboards.',
-        'Direct links to rules, documentation, and the full bestiary.'
-      ],
-      cta: {
-        href: '/gm-tools',
-        label: 'Explore GM Tools'
-      },
-      secondaryCtas: [
-        {
-          href: '/bestiary?from=home',
-          label: 'Browse Bestiary Catalog'
-        }
-      ]
-    }
-  ];
-
-
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="mb-12">
         <div className="flex flex-col items-center gap-4 text-center md:flex-row md:justify-center md:gap-6 md:text-left">
-          <Image
-            src="/eldritch-logo.png"
-            alt="Eldritch RPG logo"
-            width={600}
-            height={600}
-            sizes="(min-width: 768px) 220px, 160px"
-            priority
-            className="h-auto w-32 max-w-[220px] md:w-[220px]"
-          />
+          <div className="flex items-center justify-center gap-4">
+            <Image
+              src="/eldritch-logo.png"
+              alt="Eldritch RPG logo"
+              width={600}
+              height={600}
+              sizes="(min-width: 768px) 220px, 160px"
+              priority
+              className="h-auto w-28 max-w-[220px] md:w-[220px]"
+            />
+            <Image
+              src="/hoskbrew-logo.png"
+              alt="Hoskbrew logo"
+              width={600}
+              height={600}
+              sizes="(min-width: 768px) 220px, 160px"
+              priority
+              className="h-auto w-24 max-w-[200px] md:w-[200px]"
+            />
+          </div>
           <div>
             <h1 className="text-4xl font-bold text-gray-900 mb-2 md:mb-4">
               Eldritch RPG GM Tools Suite
@@ -289,7 +252,7 @@ export default function Home() {
 
       <footer className="text-center mt-12 pt-8 border-t border-gray-200">
         <div className="text-gray-600">
-          <p>&copy; 2025 Eldritch RPG GM Tools</p>
+          <p>&copy; 2025 Hoskbrew</p>
           <p>Tools for the Eldritch RPG system</p>
           <div className="mt-4 space-x-4">
             <Link href="/rules" className="text-blue-600 hover:text-blue-800">
