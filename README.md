@@ -11,6 +11,11 @@ A modernized web application for running Eldritch RPG campaigns. The suite provi
 
 > The original HTML utilities and reference spreadsheets are still shipped alongside the app inside the repository. They can be opened directly if you prefer the legacy experience.
 
+## 🧙 Player Character Workflows
+
+- **Character Generator** – `/character-generator` rapidly produces leveled heroes by spending CP according to selected build philosophies. Ideal when you want a balanced, hybrid, or specialist archetype in a few clicks.
+- **Manual Character Builder** – `/character-builder` walks you through race/class/level selection and exposes plus/minus controls for every ability, specialty, and focus. It tracks CP budgets by level, enforces racial/class minima, reuses the generator math for validation, and lets you fine-tune characters before saving them to the roster.
+
 ## 🚀 Getting Started
 
 ### Prerequisites
