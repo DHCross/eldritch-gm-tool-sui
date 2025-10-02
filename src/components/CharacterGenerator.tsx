@@ -5,14 +5,7 @@ import {
   calculateCPSpent,
   createCharacterShell,
   fnum,
-
-  foci,
-  levels,
-  magicPathsByClass,
   races,
-  specs,
-
-
   spendCP,
   updateDerivedCharacterData,
   weaknessReport,
