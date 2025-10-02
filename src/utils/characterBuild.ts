@@ -27,6 +27,9 @@ export type { Ability, DieRank, Specialty, Focus };
 export const races = raceNames;
 export const classes = classNames;
 
+export const stepCost = costToRankUpDie;
+export const focusStepCost = costToRankUpFocus;
+
 export interface Character {
   race: RaceName;
   class: ClassName;
