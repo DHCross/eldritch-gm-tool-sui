@@ -837,20 +837,6 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
     const tags = [monsterTrope, resolvedPrimaryThreatType.toLowerCase()].filter(Boolean) as string[];
     const timestamp = new Date().toISOString();
 
-
-    const savedMonster: MonsterData = {
-      id: generateId(),
-      user_id: getCurrentUserId(),
-      name: monsterName.trim(),
-      type: 'Monster',
-
-      level,
-      race: `${creatureNatureValue} ${creatureSizeValue} Creature`,
-
-      level: Math.max(1, Math.floor(result.totalThreatMV / 6)),
-      race: `${selectedNature.label} Creature`,
-
-
     const extraAttacksList = monsterForm.extraAttacks
       .split(',')
       .map(attack => attack.trim())
@@ -863,7 +849,7 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
       'custom'
     ]));
 
-    const character: SavedCharacter = {
+    const savedMonster: MonsterData = {
       id: Date.now().toString(),
       user_id: 'default_user',
       name: monsterForm.name,
@@ -910,9 +896,6 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
       creature_nature: creatureNatureValue,
       creature_size: creatureSizeValue,
       defense_split: defenseSplitValue,
-
-        notes: combinedStatusNotes
-      },
       tags,
       monster_trope: monsterTrope,
       creature_category: creatureCategory,
@@ -958,33 +941,6 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
           extraAttacks,
           damageReduction
         }
-
-      preferred_encounter_roles: roles,
-      hp_calculation: hpCalculation,
-      notes: userNotes || statusNotes,
-      weapons_armor_treasure: weaponsArmorTreasure,
-      created_at: timestamp,
-      updated_at: timestamp,
-      full_data: {
-        monsterNature,
-        monsterSize,
-        tier1Threat,
-        tier2Threat,
-        tier3Threat,
-        monsterArmor,
-        primaryAttack,
-        legacy_threat_dice: legacyThreatDiceString,
-        calculated_threat_dice: threatDiceForMonster,
-        total_threat_mv: result.totalThreatMV,
-        defense_split: defenseSplit,
-        speed_modifiers: speedModifiers,
-        agility_mv: agilityMV,
-        extra_attacks: extraAttacks,
-        damage_reduction: damageReduction,
-        saving_throw: savingThrow,
-        battle_phase: battlePhase,
-        movement_calculation: movementCalculation
-
       }
     };
 
@@ -1068,51 +1024,6 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
     }
 
     return Array.from(new Set(roles));
-
-
-        gear: [],
-        notes: monsterForm.notes
-      },
-      tags: combinedTags,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      full_data: {
-        category: monsterForm.category,
-        nature: monsterForm.nature,
-        size: monsterForm.size,
-        defenseSplit: monsterForm.defenseSplit,
-        threatDice: {
-          melee: monsterForm.threatDice.melee,
-          natural: monsterForm.threatDice.natural,
-          ranged: monsterForm.threatDice.ranged,
-          arcane: monsterForm.threatDice.arcane
-        },
-        threatMvRange: monsterForm.threatMvRange,
-        extraAttacks: monsterForm.extraAttacks,
-        extraAttacksList,
-        armor: monsterForm.armor,
-        shield: monsterForm.shield,
-        savingThrow: monsterForm.savingThrow,
-        battlePhase: monsterForm.battlePhase,
-        notes: monsterForm.notes,
-        description: monsterForm.notes,
-        dr: drDisplay,
-        hp: hpString,
-        threatMV: highestThreatMV,
-        finalHP,
-        finalActiveHP,
-        finalPassiveHP,
-        baseMovement,
-        speedFocus: monsterForm.speedFocus,
-        especiallySpeedy: monsterForm.especiallySpeedy,
-        qsbString: generateQSBString()
-      }
-    };
-
-    saveCharacter(character);
-    alert(`Monster "${monsterForm.name}" saved successfully!`);
-    setShowSaveDialog(false);
-
   };
 
   return (
@@ -1344,12 +1255,11 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
                 onChange={(e) => setTier1Threat(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-center"
               >
-
-                {legacyThreatDiceOptions.filter(die => die.value !== '0').map(die => (
-
                 {threatDieSelections.filter(die => die.value !== '0').map(die => (
-
                   <option key={die.value} value={die.value}>{die.label}</option>
+                ))}
+              </select>
+            </div>
 
           {/* Metaphysical Origin Classifications */}
           <div className="mt-4">
@@ -1433,13 +1343,13 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
                 onChange={(e) => setTier2Threat(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-center"
               >
-
-                {legacyThreatDiceOptions.map(die => (
-
                 {threatDieSelections.map(die => (
-
                   <option key={die.value} value={die.value}>{die.label}</option>
+                ))}
+              </select>
+            </div>
 
+            <div>
               <h4 className="text-sm font-semibold text-purple-700 mb-2">Meterea Manifestations</h4>
               <div className="space-y-1 text-xs">
                 {Object.entries(METEREA_MANIFESTATIONS).map(([type, desc]) => (
@@ -1463,13 +1373,14 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
                 onChange={(e) => setTier3Threat(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-center"
               >
-
-                {legacyThreatDiceOptions.map(die => (
-
                 {threatDieSelections.map(die => (
-
                   <option key={die.value} value={die.value}>{die.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
 
+          <div className="mt-4">
               <h4 className="text-sm font-semibold text-blue-700 mb-2">Racial Archetypes</h4>
               <div className="space-y-1 text-xs">
                 {Object.entries(RACIAL_ARCHETYPES).slice(0, 4).map(([race, desc]) => (
@@ -1952,4 +1863,6 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
       )}
     </div>
   );
+}
+}
 }
