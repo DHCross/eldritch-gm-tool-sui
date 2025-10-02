@@ -10,13 +10,17 @@ import {
   dieRanks,
   fnum,
   foci,
+  focusStepCost,
   magicPathsByClass,
   races,
   specs,
+  stepCost,
   updateDerivedCharacterData,
   weaknessReport,
+  levels,
   mv,
-  type Character
+  type Character,
+  type DieRank
 } from '../utils/characterBuild';
 import {
   saveCharacter,
@@ -43,9 +47,8 @@ interface CPBreakdown {
   total: number;
 }
 
-const levels = [1, 2, 3, 4, 5];
-
 const getBudgetForLevel = (level: number) => (level === 1 ? 10 : 10 + (level - 1) * 100);
+const NAME_CULTURE_OPTIONS: NameCulture[] = ['English', 'Scottish', 'Welsh', 'Irish', 'Norse', 'French', 'Germanic', 'Fantasy'];
 
 export default function ManualCharacterBuilder() {
   const [selectedRace, setSelectedRace] = useState('');
@@ -66,6 +69,7 @@ export default function ManualCharacterBuilder() {
   const [partyFolders, setPartyFolders] = useState<PartyFolder[]>([]);
   const [selectedParty, setSelectedParty] = useState('');
   const [showPartyAssignment, setShowPartyAssignment] = useState(false);
+  const [interactionWarning, setInteractionWarning] = useState<string | null>(null);
 
   useEffect(() => {
     const pcFolders = getAllPartyFolders().filter(folder => folder.folder_type === 'PC_party');
@@ -117,6 +121,7 @@ export default function ManualCharacterBuilder() {
     updateDerivedCharacterData(next);
     setCharacter(next);
     setCpSpent(calculateCPSpent(next, baseCharacter, false));
+    setInteractionWarning(null);
   };
 
   const adjustAbility = (ability: string, delta: number) => {
@@ -125,6 +130,16 @@ export default function ManualCharacterBuilder() {
     const minIndex = dieRanks.indexOf(baseCharacter.abilities[ability]);
     const nextIndex = currentIndex + delta;
     if (nextIndex < minIndex || nextIndex < 0 || nextIndex >= dieRanks.length) return;
+
+    if (delta > 0) {
+      const currentRank = character.abilities[ability] as DieRank;
+      const cost = stepCost[currentRank];
+      if (cost > cpRemaining) {
+        setInteractionWarning('Not enough CP remaining to increase this ability.');
+        return;
+      }
+    }
+
     applyCharacterUpdate(draft => {
       draft.abilities[ability] = dieRanks[nextIndex];
     });
@@ -136,6 +151,16 @@ export default function ManualCharacterBuilder() {
     const minIndex = dieRanks.indexOf(baseCharacter.specialties[ability][specialty]);
     const nextIndex = currentIndex + delta;
     if (nextIndex < minIndex || nextIndex < 0 || nextIndex >= dieRanks.length) return;
+
+    if (delta > 0) {
+      const currentRank = character.specialties[ability][specialty] as DieRank;
+      const cost = stepCost[currentRank];
+      if (cost > cpRemaining) {
+        setInteractionWarning('Not enough CP remaining to increase this specialty.');
+        return;
+      }
+    }
+
     applyCharacterUpdate(draft => {
       draft.specialties[ability][specialty] = dieRanks[nextIndex];
     });
@@ -147,19 +172,23 @@ export default function ManualCharacterBuilder() {
     const minValue = fnum(baseCharacter.focuses[ability][focusKey]);
     const nextValue = currentValue + delta;
     if (nextValue < minValue || nextValue < 0 || nextValue > 5) return;
+
+    if (delta > 0 && focusStepCost > cpRemaining) {
+      setInteractionWarning('Not enough CP remaining to increase this focus.');
+      return;
+    }
+
     applyCharacterUpdate(draft => {
       draft.focuses[ability][focusKey] = `+${nextValue}`;
     });
   };
 
-  const cpRemaining = useMemo(() => {
-    if (!cpSpent) return cpBudget;
-    return cpBudget - cpSpent.total;
-  }, [cpBudget, cpSpent]);
+  const cpSpentFromBudget = useMemo(() => (cpSpent ? Math.max(0, cpSpent.total - 10) : 0), [cpSpent]);
+  const cpRemaining = useMemo(() => cpBudget - cpSpentFromBudget, [cpBudget, cpSpentFromBudget]);
 
   const cpWarning = cpRemaining < 0 ? `You have overspent by ${Math.abs(cpRemaining)} CP.` : null;
   const weaknessWarnings = character ? weaknessReport(character) : [];
-  const combinedWarnings = [cpWarning, ...weaknessWarnings].filter(Boolean) as string[];
+  const combinedWarnings = [interactionWarning, cpWarning, ...weaknessWarnings].filter(Boolean) as string[];
   const canFinalize = Boolean(character && baseCharacter && cpRemaining >= 0);
 
   const resetBuilder = () => {
@@ -169,6 +198,7 @@ export default function ManualCharacterBuilder() {
     setCharacter(null);
     setBaseCharacter(null);
     setCpSpent(null);
+    setInteractionWarning(null);
   };
 
   const saveCharacterToRoster = () => {
@@ -247,12 +277,13 @@ export default function ManualCharacterBuilder() {
     }
 
     setShowPartyAssignment(false);
+    setSelectedParty('');
   };
 
   const handleRandomName = () => {
     if (!character) return;
-    const randomName = generateRandomName(character.race, characterGender, nameCulture);
-    setPcName(randomName);
+    const randomName = generateRandomName(characterGender, nameCulture, true, character.race);
+    setPcName(`${randomName.firstName}${randomName.familyName ? ` ${randomName.familyName}` : ''}`);
   };
 
   return (
@@ -334,13 +365,25 @@ export default function ManualCharacterBuilder() {
             </div>
             <div className="bg-white border border-gray-200 rounded-xl p-4">
               <div className="text-sm text-gray-500">CP Spent</div>
-              <div className="text-2xl font-bold">{cpSpent?.total ?? 0}</div>
+              <div className="text-2xl font-bold">{cpSpentFromBudget}</div>
             </div>
             <div className={`border rounded-xl p-4 ${cpRemaining < 0 ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white'}`}>
               <div className="text-sm text-gray-500">CP Remaining</div>
               <div className={`text-2xl font-bold ${cpRemaining < 0 ? 'text-red-600' : ''}`}>{cpRemaining}</div>
             </div>
           </div>
+
+          {cpSpent && (
+            <div className="bg-white border border-gray-200 rounded-xl p-4 text-sm text-gray-700">
+              <h3 className="font-semibold text-base mb-2">CP Breakdown</h3>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                <div>Abilities: <span className="font-semibold">{cpSpent.abilities}</span></div>
+                <div>Specialties: <span className="font-semibold">{cpSpent.specialties}</span></div>
+                <div>Focuses: <span className="font-semibold">{cpSpent.focuses}</span></div>
+                <div>Advantages: <span className="font-semibold">{cpSpent.advantages}</span></div>
+              </div>
+            </div>
+          )}
 
           {combinedWarnings.length > 0 && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-sm text-yellow-800 space-y-1">
@@ -478,7 +521,7 @@ export default function ManualCharacterBuilder() {
                         onChange={(e) => setNameCulture(e.target.value as NameCulture)}
                         className="text-xs rounded-full border border-gray-300 px-3 py-1.5"
                       >
-                        {Object.keys(RACE_CULTURE_MAP).map(culture => (
+                        {NAME_CULTURE_OPTIONS.map(culture => (
                           <option key={culture} value={culture}>{culture}</option>
                         ))}
                       </select>
@@ -512,15 +555,19 @@ export default function ManualCharacterBuilder() {
                   <div className="mt-3">
                     <div className="text-xs font-semibold text-gray-500 uppercase">Suggestions</div>
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {suggestedNames.map(name => (
-                        <button
-                          key={name.suggestion}
-                          onClick={() => setPcName(name.suggestion)}
-                          className="text-xs rounded-full border border-gray-300 px-3 py-1 hover:bg-gray-100"
-                        >
-                          {name.suggestion}
-                        </button>
-                      ))}
+                      {suggestedNames.map(name => {
+                        const fullName = `${name.firstName}${name.familyName ? ` ${name.familyName}` : ''}`;
+                        return (
+                          <button
+                            key={name.suggestion}
+                            onClick={() => setPcName(fullName)}
+                            className="text-xs rounded-full border border-gray-300 px-3 py-1 hover:bg-gray-100"
+                          >
+                            {fullName}
+                            <span className="text-gray-500 ml-1">({name.culture})</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
