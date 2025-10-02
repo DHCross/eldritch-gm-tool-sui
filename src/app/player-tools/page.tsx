@@ -7,6 +7,7 @@ const playerResources = [
       'Build and maintain your Eldritch heroes with streamlined creation tools and shared rosters for your party.',
     links: [
       { href: '/character-generator?from=player-tools', label: 'Character Generator →' },
+      { href: '/character-builder?from=player-tools', label: 'Manual Builder →' },
       { href: '/roster?from=player-tools', label: 'Character Roster →' }
     ]
   },
