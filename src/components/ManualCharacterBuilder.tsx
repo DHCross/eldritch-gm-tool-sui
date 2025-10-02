@@ -109,7 +109,7 @@ export default function ManualCharacterBuilder() {
     setCharacter(prev => {
       if (!prev) return prev;
       const next = deepCloneCharacter(prev);
-      (next as Record<string, unknown>).magicPath = selectedMagicPath;
+      next.magicPath = selectedMagicPath;
       return next;
     });
   }, [selectedMagicPath]);
@@ -126,8 +126,8 @@ export default function ManualCharacterBuilder() {
 
   const adjustAbility = (ability: string, delta: number) => {
     if (!character || !baseCharacter) return;
-    const currentIndex = dieRanks.indexOf(character.abilities[ability]);
-    const minIndex = dieRanks.indexOf(baseCharacter.abilities[ability]);
+    const currentIndex = dieRanks.indexOf(character.abilities[ability] as DieRank);
+    const minIndex = dieRanks.indexOf(baseCharacter.abilities[ability] as DieRank);
     const nextIndex = currentIndex + delta;
     if (nextIndex < minIndex || nextIndex < 0 || nextIndex >= dieRanks.length) return;
 
@@ -147,8 +147,8 @@ export default function ManualCharacterBuilder() {
 
   const adjustSpecialty = (ability: string, specialty: string, delta: number) => {
     if (!character || !baseCharacter) return;
-    const currentIndex = dieRanks.indexOf(character.specialties[ability][specialty]);
-    const minIndex = dieRanks.indexOf(baseCharacter.specialties[ability][specialty]);
+    const currentIndex = dieRanks.indexOf(character.specialties[ability][specialty] as DieRank);
+    const minIndex = dieRanks.indexOf(baseCharacter.specialties[ability][specialty] as DieRank);
     const nextIndex = currentIndex + delta;
     if (nextIndex < minIndex || nextIndex < 0 || nextIndex >= dieRanks.length) return;
 

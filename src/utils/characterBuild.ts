@@ -39,6 +39,7 @@ export interface Character {
   flaws: string[];
   classFeats: string[];
   equipment: string[];
+  magicPath?: string;
   actions: Record<string, string>;
   pools: {
     active: number;
@@ -60,12 +61,12 @@ export function applyMinima(ch: Character, minima: Record<string, string>) {
     if ((abilities as readonly string[]).includes(k)) {
       if (idx(v) > idx(ch.abilities[k])) ch.abilities[k] = v;
     } else {
-      const parentA = Object.keys(specs).find(a => (specs as Record<string, string[]>)[a].includes(k));
-      const parentS = Object.keys(foci).find(s => (foci as Record<string, string[]>)[s].includes(k));
+      const parentA = Object.keys(specs).find(a => (specs as Record<string, readonly string[]>)[a].includes(k));
+      const parentS = Object.keys(foci).find(s => (foci as Record<string, readonly string[]>)[s].includes(k));
       if (parentA) {
         if (idx(v) > idx(ch.specialties[parentA][k])) ch.specialties[parentA][k] = v;
       } else if (parentS) {
-        const pa = Object.keys(specs).find(a => (specs as Record<string, string[]>)[a].includes(parentS));
+        const pa = Object.keys(specs).find(a => (specs as Record<string, readonly string[]>)[a].includes(parentS));
         if (pa && fnum(v) > fnum(ch.focuses[pa][k])) ch.focuses[pa][k] = `+${fnum(v)}`;
       }
     }
@@ -109,7 +110,7 @@ export function spendCP(
       cpBudget.value -= cost;
       return true;
     }
-    const pa = Object.keys(specs).find(a => (specs as Record<string, string[]>)[a].includes(key));
+    const pa = Object.keys(specs).find(a => (specs as Record<string, readonly string[]>)[a].includes(key));
     if (pa) {
       const cur = ch.specialties[pa][key];
       if (cur === 'd12') return false;
@@ -120,9 +121,9 @@ export function spendCP(
       cpBudget.value -= cost;
       return true;
     }
-    const ps = Object.keys(foci).find(s => (foci as Record<string, string[]>)[s].includes(key));
+    const ps = Object.keys(foci).find(s => (foci as Record<string, readonly string[]>)[s].includes(key));
     if (ps) {
-      const pa2 = Object.keys(specs).find(a => (specs as Record<string, string[]>)[a].includes(ps));
+      const pa2 = Object.keys(specs).find(a => (specs as Record<string, readonly string[]>)[a].includes(ps));
       if (pa2) {
         const val = fnum(ch.focuses[pa2][key]);
         if (val >= 5) return false;
@@ -190,6 +191,16 @@ export function calculateCPSpent(finalChar: Character, baseChar: Character, icon
       }
     }
 
+
+    for (const specKey of specs[abilityKey]) {
+      const focusKeys = foci[specKey as keyof typeof foci];
+      focusKeys.forEach(focusKey => {
+        const baseFocusValue = fnum(baseChar.focuses[ab][focusKey]);
+        const finalFocusValue = fnum(finalChar.focuses[ab][focusKey]);
+        spent.focuses += (finalFocusValue - baseFocusValue) * focusStepCost;
+      });
+    }
+
     Object.keys(foci).forEach(specKey => {
       if (specs[abilityKey].includes(specKey)) {
         foci[specKey as keyof typeof foci].forEach(focusKey => {
@@ -199,6 +210,7 @@ export function calculateCPSpent(finalChar: Character, baseChar: Character, icon
         });
       }
     });
+
   }
 
   spent.total = 10 + spent.abilities + spent.specialties + spent.focuses + spent.advantages;
