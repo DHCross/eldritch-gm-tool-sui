@@ -6,6 +6,51 @@ import Link from 'next/link';
 
 import { exportCampaign, importCampaign } from '@/utils/campaignBackup';
 
+type HeroCard = {
+  title: string;
+  description: string;
+  bullets: string[];
+  cta: { href: string; label: string };
+  secondaryCtas?: { href: string; label: string }[];
+};
+
+const HERO_CARDS: HeroCard[] = [
+  {
+    title: 'Player Tools',
+    description:
+      'Jump straight into character creation, spell references, and tools to keep your hero ready for every eldritch encounter.',
+    bullets: [
+      'Quick-start character, party, and NPC builders tailored for players.',
+      'Spellbooks, equipment references, and lore summaries at the table.',
+      'Track progress, quests, and campaign history with shared resources.'
+    ],
+    cta: {
+      href: '/player-tools',
+      label: 'Explore Player Tools'
+    }
+  },
+  {
+    title: 'GM Tools',
+    description:
+      'Orchestrate unforgettable sessions with encounter planning, monster management, and campaign organization at your fingertips.',
+    bullets: [
+      'Comprehensive encounter and monster generators.',
+      'Battle calculators, rosters, and party management dashboards.',
+      'Direct links to rules, documentation, and the full bestiary.'
+    ],
+    cta: {
+      href: '/gm-tools',
+      label: 'Explore GM Tools'
+    },
+    secondaryCtas: [
+      {
+        href: '/bestiary?from=home',
+        label: 'Browse Bestiary Catalog'
+      }
+    ]
+  }
+];
+
 export default function Home() {
   const [, setRefreshCounter] = useState(0);
   const [feedback, setFeedback] = useState<{
@@ -96,37 +141,6 @@ export default function Home() {
     reader.readAsText(file);
   }, [clearFileInput]);
 
-  const heroCards = [
-    {
-      title: 'Player Tools',
-      description:
-        'Jump straight into character creation, spell references, and tools to keep your hero ready for every eldritch encounter.',
-      bullets: [
-        'Quick-start character, party, and NPC builders tailored for players.',
-        'Spellbooks, equipment references, and lore summaries at the table.',
-        'Track progress, quests, and campaign history with shared resources.'
-      ],
-      cta: {
-        href: '/player-tools',
-        label: 'Explore Player Tools'
-      }
-    },
-    {
-      title: 'GM Tools',
-      description:
-        'Orchestrate unforgettable sessions with encounter planning, monster management, and campaign organization at your fingertips.',
-      bullets: [
-        'Comprehensive encounter and monster generators.',
-        'Battle calculators, rosters, and party management dashboards.',
-        'Direct links to rules, documentation, and the full bestiary.'
-      ],
-      cta: {
-        href: '/gm-tools',
-        label: 'Explore GM Tools'
-      }
-    }
-  ];
-
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="mb-12">
@@ -191,7 +205,7 @@ export default function Home() {
         </section>
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          {heroCards.map(card => (
+          {HERO_CARDS.map(card => (
             <div
               key={card.title}
               className="flex flex-col bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow"
@@ -203,12 +217,23 @@ export default function Home() {
                   <li key={bullet}>• {bullet}</li>
                 ))}
               </ul>
-              <Link
-                href={card.cta.href}
-                className="mt-8 inline-block self-start bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded transition-colors"
-              >
-                {card.cta.label}
-              </Link>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Link
+                  href={card.cta.href}
+                  className="inline-flex items-center justify-center rounded-md bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow hover:bg-blue-700 transition-colors"
+                >
+                  {card.cta.label}
+                </Link>
+                {card.secondaryCtas?.map(secondary => (
+                  <Link
+                    key={secondary.href}
+                    href={secondary.href}
+                    className="inline-flex items-center justify-center rounded-md border border-blue-200 bg-white px-5 py-3 text-sm font-semibold text-blue-700 shadow-sm transition-colors hover:border-blue-300 hover:text-blue-900"
+                  >
+                    {secondary.label}
+                  </Link>
+                ))}
+              </div>
             </div>
           ))}
         </div>
