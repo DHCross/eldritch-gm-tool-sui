@@ -9,6 +9,7 @@ import {
   createCharacterShell,
   fnum,
   foci,
+  levels,
   magicPathsByClass,
   races,
   specs,
@@ -38,6 +39,11 @@ import { SavedCharacter, PartyFolder, PartyMembership } from '../types/party';
 function showAlert(message: string) {
   alert(message);
 }
+
+const isCasterClass = (
+  klass: Character['class']
+): klass is (typeof casterClasses)[number] =>
+  (casterClasses as readonly string[]).includes(klass);
 
 export default function CharacterGenerator() {
   const [race, setRace] = useState('');
@@ -150,7 +156,7 @@ export default function CharacterGenerator() {
       }).join(', ');
       md += `**${a} ${ch.abilities[a]}** → ${sp}.\n`;
     }
-    md += `\n### Actions\n- **Melee Attack:** ${ch.actions.meleeAttack}\n- **Ranged Attack:** ${ch.actions.rangedAttack}\n- **Perception Check:** ${ch.actions.perceptionCheck}\n` + (casterClasses.includes(ch.class) ? `- **Magic Attack:** ${ch.actions.magicAttack}\n\n` : '\n');
+    md += `\n### Actions\n- **Melee Attack:** ${ch.actions.meleeAttack}\n- **Ranged Attack:** ${ch.actions.rangedAttack}\n- **Perception Check:** ${ch.actions.perceptionCheck}\n` + (isCasterClass(ch.class) ? `- **Magic Attack:** ${ch.actions.magicAttack}\n\n` : '\n');
 
     md += `### Advantages & Flaws\n**Advantages:**\n${ch.advantages.map(a => `- ${a}`).join('\n')}\n\n**Flaws:**\n${ch.flaws.length ? ch.flaws.map(f => `- ${f}`).join('\n') : '- None'}\n\n`;
     md += `### Class Feats\n${ch.classFeats.map(f => `- ${f}`).join('\n')}\n\n`;
@@ -518,7 +524,7 @@ export default function CharacterGenerator() {
                   <li><strong>Melee Attack:</strong> {character.actions.meleeAttack}</li>
                   <li><strong>Ranged Attack:</strong> {character.actions.rangedAttack}</li>
                   <li><strong>Perception Check:</strong> {character.actions.perceptionCheck}</li>
-                  {casterClasses.includes(character.class) && (
+                  {isCasterClass(character.class) && (
                     <li><strong>Magic Attack:</strong> {character.actions.magicAttack}</li>
                   )}
                 </ul>

@@ -16,7 +16,8 @@ import {
   updateDerivedCharacterData,
   weaknessReport,
   mv,
-  type Character
+  type Character,
+  type DieRank
 } from '../utils/characterBuild';
 import {
   saveCharacter,
@@ -105,7 +106,7 @@ export default function ManualCharacterBuilder() {
     setCharacter(prev => {
       if (!prev) return prev;
       const next = deepCloneCharacter(prev);
-      (next as Record<string, unknown>).magicPath = selectedMagicPath;
+      next.magicPath = selectedMagicPath;
       return next;
     });
   }, [selectedMagicPath]);
@@ -121,8 +122,8 @@ export default function ManualCharacterBuilder() {
 
   const adjustAbility = (ability: string, delta: number) => {
     if (!character || !baseCharacter) return;
-    const currentIndex = dieRanks.indexOf(character.abilities[ability]);
-    const minIndex = dieRanks.indexOf(baseCharacter.abilities[ability]);
+    const currentIndex = dieRanks.indexOf(character.abilities[ability] as DieRank);
+    const minIndex = dieRanks.indexOf(baseCharacter.abilities[ability] as DieRank);
     const nextIndex = currentIndex + delta;
     if (nextIndex < minIndex || nextIndex < 0 || nextIndex >= dieRanks.length) return;
     applyCharacterUpdate(draft => {
@@ -132,8 +133,8 @@ export default function ManualCharacterBuilder() {
 
   const adjustSpecialty = (ability: string, specialty: string, delta: number) => {
     if (!character || !baseCharacter) return;
-    const currentIndex = dieRanks.indexOf(character.specialties[ability][specialty]);
-    const minIndex = dieRanks.indexOf(baseCharacter.specialties[ability][specialty]);
+    const currentIndex = dieRanks.indexOf(character.specialties[ability][specialty] as DieRank);
+    const minIndex = dieRanks.indexOf(baseCharacter.specialties[ability][specialty] as DieRank);
     const nextIndex = currentIndex + delta;
     if (nextIndex < minIndex || nextIndex < 0 || nextIndex >= dieRanks.length) return;
     applyCharacterUpdate(draft => {
@@ -251,8 +252,8 @@ export default function ManualCharacterBuilder() {
 
   const handleRandomName = () => {
     if (!character) return;
-    const randomName = generateRandomName(character.race, characterGender, nameCulture);
-    setPcName(randomName);
+    const randomName = generateRandomName(characterGender, nameCulture, true, character.race);
+    setPcName(`${randomName.firstName}${randomName.familyName ? ` ${randomName.familyName}` : ''}`);
   };
 
   return (
