@@ -22,6 +22,7 @@ import {
   type Character,
   type DieRank
 } from '../utils/characterBuild';
+import type { ClassName } from '../data/gameData';
 import {
   saveCharacter,
   generateId,
@@ -52,7 +53,7 @@ const NAME_CULTURE_OPTIONS: NameCulture[] = ['English', 'Scottish', 'Welsh', 'Ir
 
 export default function ManualCharacterBuilder() {
   const [selectedRace, setSelectedRace] = useState('');
-  const [selectedClass, setSelectedClass] = useState('');
+  const [selectedClass, setSelectedClass] = useState<ClassName | ''>('');
   const [selectedLevel, setSelectedLevel] = useState<number>(1);
   const [selectedMagicPath, setSelectedMagicPath] = useState('');
 
@@ -65,6 +66,8 @@ export default function ManualCharacterBuilder() {
   const [characterGender, setCharacterGender] = useState<Gender>('Male');
   const [nameCulture, setNameCulture] = useState<NameCulture>('English');
   const [suggestedNames, setSuggestedNames] = useState<Array<{ firstName: string; familyName?: string; culture: NameCulture; suggestion: string }>>([]);
+
+  const selectedClassMagicPaths = selectedClass ? magicPathsByClass[selectedClass] : undefined;
 
   const [partyFolders, setPartyFolders] = useState<PartyFolder[]>([]);
   const [selectedParty, setSelectedParty] = useState('');
@@ -322,7 +325,8 @@ export default function ManualCharacterBuilder() {
               className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5"
               value={selectedClass}
               onChange={(e) => {
-                setSelectedClass(e.target.value);
+                const nextClass = e.target.value as ClassName | '';
+                setSelectedClass(nextClass);
                 setSelectedMagicPath('');
               }}
             >
@@ -341,7 +345,7 @@ export default function ManualCharacterBuilder() {
               {levels.map(level => <option key={level} value={level}>{level}</option>)}
             </select>
           </div>
-          {selectedClass && magicPathsByClass[selectedClass] && selectedClass !== 'Adept' && selectedClass !== 'Mystic' && (
+          {selectedClassMagicPaths && selectedClass !== 'Adept' && selectedClass !== 'Mystic' && (
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="magic-path">Magic Path</label>
               <select
@@ -351,7 +355,7 @@ export default function ManualCharacterBuilder() {
                 onChange={(e) => setSelectedMagicPath(e.target.value)}
               >
                 <option value="">Select Path</option>
-                {magicPathsByClass[selectedClass]?.map(path => <option key={path} value={path}>{path}</option>)}
+                {selectedClassMagicPaths.map(path => <option key={path} value={path}>{path}</option>)}
               </select>
             </div>
           )}
