@@ -601,6 +601,8 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
       tags: combinedTags,
       monster_trope: monsterForm.trope,
       threat_dice: monsterForm.threatDice,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
 
     saveCharacter(savedMonster);
