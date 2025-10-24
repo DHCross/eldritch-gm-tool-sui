@@ -205,7 +205,7 @@ export function calculateCPSpent(finalChar: Character, baseChar: Character, icon
     }
 
     Object.keys(foci).forEach(specKey => {
-      if (specs[abilityKey].includes(specKey)) {
+      if ((specs[abilityKey] as unknown as string[]).includes(specKey)) {
         foci[specKey as keyof typeof foci].forEach(focusKey => {
           const baseFocusValue = fnum(baseChar.focuses[ab][focusKey]);
           const finalFocusValue = fnum(finalChar.focuses[ab][focusKey]);
