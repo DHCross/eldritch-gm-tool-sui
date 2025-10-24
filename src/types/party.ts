@@ -44,8 +44,8 @@ export interface SavedCharacter {
   tags: string[];
   monster_trope?: string;
   threat_dice?: ThreatDice;
-  created_at?: string;
-  updated_at?: string;
+  created_at: string;
+  updated_at: string;
   // Store full character data from generators
   full_data?: Record<string, unknown>;
 }
