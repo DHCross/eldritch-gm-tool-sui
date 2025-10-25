@@ -19,7 +19,9 @@ import {
   magicPathsByClass,
   raceNames,
   specs,
-  levels
+  levels,
+  type ClassName,
+  type RaceName
 } from '../data/gameData';
 import {
   saveCharacter,
@@ -113,7 +115,7 @@ export default function CharacterGenerator() {
       return;
     }
 
-    const { character: ch, baseCharacter } = createCharacterShell(race, characterClass, level);
+    const { character: ch, baseCharacter } = createCharacterShell(race as RaceName, characterClass as ClassName, level);
 
     const cpBudgetVal = (level === 1 && rookieProfile !== 'off') ? 10 : 10 + (level - 1) * 100;
     const cpBudget = { value: cpBudgetVal };
