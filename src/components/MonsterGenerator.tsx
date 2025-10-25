@@ -65,24 +65,6 @@ const CONSTITUTION_TYPES = [
   { name: 'Fast', description: '75/25 HP split' }
 ];
 
-// Meterea Conceptual Manifestations
-const METEREA_MANIFESTATIONS = {
-  'Reifiants': 'Legend-forged archetypes crystallized from collective belief',
-  'Inklings': 'Raw dream-spirits, unstable flickers of subconscious intent',
-  'Extantars': 'Perception-reactive entities that morph based on observer expectations',
-  'Aethelborn': 'Stabilized forms fixed by focused external will'
-};
-
-// Racial Archetypal Tropes
-const RACIAL_ARCHETYPES = {
-  'Goblinoids': 'Cunning and covetous kin, blending bestial ferocity with reptilian traits',
-  'Alfar': 'Magical humanoids sharing a spark of Meterea&apos;s dream-stuff',
-  'Dwarves': 'Resilient mountain-dwellers, renowned miners and smiths',
-  'Elves': 'Forest-bound, long-lived beings where nature&apos;s magic is strongest',
-  'Halflings': 'Diminutive beings with nimble grace and adventurous spirits',
-  'Gnomes': 'Intricate workshop masters favoring arcane experiments',
-  'Drakkin': 'Dragon-descended humanoids blending ambition with draconic power'
-};
 
 // Human Regional Backgrounds (Eldritch Realms)
 const HUMAN_REGIONS = {
