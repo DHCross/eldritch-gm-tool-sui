@@ -204,16 +204,6 @@ export function calculateCPSpent(finalChar: Character, baseChar: Character, icon
       });
     }
 
-    Object.keys(foci).forEach(specKey => {
-      if (specs[abilityKey].includes(specKey)) {
-        foci[specKey as keyof typeof foci].forEach(focusKey => {
-          const baseFocusValue = fnum(baseChar.focuses[ab][focusKey]);
-          const finalFocusValue = fnum(finalChar.focuses[ab][focusKey]);
-          spent.focuses += (finalFocusValue - baseFocusValue) * costToRankUpFocus;
-        });
-      }
-    });
-
   }
 
   spent.total = 10 + spent.abilities + spent.specialties + spent.focuses + spent.advantages;
@@ -231,7 +221,7 @@ export function getEquipment(klass: string) {
   return [...equipment];
 }
 
-export function createCharacterShell(race: string, klass: string, level: number) {
+export function createCharacterShell(race: RaceName, klass: ClassName, level: number) {
   const ch: Character = {
     race,
     class: klass,

@@ -22,7 +22,7 @@ import {
   type Character,
   type DieRank
 } from '../utils/characterBuild';
-import type { ClassName } from '../data/gameData';
+import type { ClassName, RaceName } from '../data/gameData';
 import {
   saveCharacter,
   generateId,
@@ -96,7 +96,11 @@ export default function ManualCharacterBuilder() {
 
   useEffect(() => {
     if (selectedRace && selectedClass) {
-      const { character: workingCharacter, baseCharacter: minimaCharacter } = createCharacterShell(selectedRace, selectedClass, selectedLevel);
+      const { character: workingCharacter, baseCharacter: minimaCharacter } = createCharacterShell(
+        selectedRace as RaceName,
+        selectedClass,
+        selectedLevel
+      );
       updateDerivedCharacterData(workingCharacter);
       setCharacter(workingCharacter);
       setBaseCharacter(minimaCharacter);
