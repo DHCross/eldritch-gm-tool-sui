@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { resolveBackTargetFromSearchParams } from '../../utils/backNavigation';
 import { PagePropsWithSearchParams, resolvePageSearchParams } from '../../types/page';
+import GmQuickGuide from '../../components/GmQuickGuide';
 
 type PageProps = PagePropsWithSearchParams;
 
@@ -19,23 +20,7 @@ export default async function Rules({ searchParams }: PageProps) {
         </p>
       </header>
 
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-        <h2 className="text-2xl font-bold mb-4">Coming Soon</h2>
-        <p className="text-gray-600 mb-4">
-          The Rules Reference is currently under development. This section will provide
-          quick access to core game mechanics and rules.
-        </p>
-        <p className="text-gray-600">
-          Features planned:
-        </p>
-        <ul className="list-disc list-inside text-gray-600 mt-2">
-          <li>Core mechanics quick reference</li>
-          <li>Combat rules and procedures</li>
-          <li>Character creation guidelines</li>
-          <li>Magic and spellcasting rules</li>
-          <li>Equipment and gear references</li>
-        </ul>
-      </div>
+      <GmQuickGuide />
 
       <div className="text-center">
         <Link
