@@ -68,7 +68,7 @@ const GmQuickGuide = () => {
         <h3 className="text-2xl font-bold mb-3 text-gray-700">II. Attack, Defense, and Damage Mitigation</h3>
 
         <h4 className="text-xl font-semibold mb-2 text-gray-700">Table 2.1: Harm Calculation and Attack Formulas</h4>
-        <p className="mb-2 text-gray-600">Attacks determine Threat Points (Potential Harm) using the relevant ability branch; there is no "to-hit" roll.</p>
+        <p className="mb-2 text-gray-600">Attacks determine Threat Points (Potential Harm) using the relevant ability branch; there is no &quot;to-hit&quot; roll.</p>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-300">
             <thead className="bg-gray-200">
@@ -153,7 +153,7 @@ const GmQuickGuide = () => {
         <h3 className="text-2xl font-bold mb-3 text-gray-700">III. Special Combat & Magic Rules</h3>
 
         <h4 className="text-xl font-semibold mb-2 text-gray-700">Table 3.1: Defense Negation Costs</h4>
-        <p className="mb-2 text-gray-600">Defense Negation allows feats and spells to bypass normal defensive layers. Requires a successful challenge roll against the defense's die rank plus the SP cost listed below.</p>
+        <p className="mb-2 text-gray-600">Defense Negation allows feats and spells to bypass normal defensive layers. Requires a successful challenge roll against the defense&apos;s die rank plus the SP cost listed below.</p>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-300">
             <thead className="bg-gray-200">
