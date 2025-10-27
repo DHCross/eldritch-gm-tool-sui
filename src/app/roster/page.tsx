@@ -4,13 +4,10 @@ import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
-  getCharactersByType,
-  getPartyFoldersByType,
   savePartyFolder,
   generateId,
   getCurrentUserId,
   initializeDefaultFolders,
-  getPartyCharacters,
   calculatePartyDefenseProfile,
   savePartyMembership,
   getPartyMemberships,
@@ -18,15 +15,21 @@ import {
   saveSelectedPartyMembers,
   getSelectedPartyMembers
 } from '../../utils/partyStorage';
-import { SavedCharacter, PartyFolder, PartyMembership } from '../../types/party';
+import { PartyFolder, PartyMembership } from '../../types/party';
+import {
+  prepareRosterData,
+  CharacterInRoster,
+  PartyWithMembers,
+} from '../../utils/rosterUtils';
 import { resolveBackTargetFromParam } from '../../utils/backNavigation';
 
 function RosterContent() {
   const searchParams = useSearchParams();
   const backTarget = resolveBackTargetFromParam(searchParams.get('from'), 'player-tools');
 
-  const [characters, setCharacters] = useState<SavedCharacter[]>([]);
-  const [partyFolders, setPartyFolders] = useState<PartyFolder[]>([]);
+  const [allCharacters, setAllCharacters] = useState<CharacterInRoster[]>([]);
+  const [unassignedCharacters, setUnassignedCharacters] = useState<CharacterInRoster[]>([]);
+  const [partiesWithMembers, setPartiesWithMembers] = useState<PartyWithMembers[]>([]);
   const [selectedCharacters, setSelectedCharacters] = useState<Set<string>>(new Set());
   const [showNewPartyForm, setShowNewPartyForm] = useState(false);
   const [newPartyName, setNewPartyName] = useState('');
@@ -38,14 +41,21 @@ function RosterContent() {
   }, []);
 
   const loadData = () => {
-    const pcs = getCharactersByType('PC');
-    const pcFolders = getPartyFoldersByType('PC_party');
-    setCharacters(pcs);
-    setPartyFolders(pcFolders);
+    const {
+      unassignedCharacters: freshUnassigned,
+      partiesWithMembers: freshParties,
+      allCharacters: freshAll,
+    } = prepareRosterData();
+
+    setAllCharacters(freshAll);
+    setUnassignedCharacters(freshUnassigned);
+    setPartiesWithMembers(freshParties);
 
     const storedSelection = getSelectedPartyMembers();
     if (storedSelection.length > 0) {
-      const validSelection = storedSelection.filter(id => pcs.some(pc => pc.id === id));
+      const validSelection = storedSelection.filter((id) =>
+        freshUnassigned.some((char) => char.id === id)
+      );
       setSelectedCharacters(new Set(validSelection));
       saveSelectedPartyMembers(validSelection);
     } else {
@@ -123,9 +133,8 @@ function RosterContent() {
     setExpandedParties(newExpanded);
   };
 
-  const calculatePartyDefense = (partyId: string) => {
-    const partyChars = getPartyCharacters(partyId);
-    return calculatePartyDefenseProfile(partyChars.map(c => c.id));
+  const calculatePartyDefense = (characterIds: string[]) => {
+    return calculatePartyDefenseProfile(characterIds);
   };
 
   return (
@@ -139,7 +148,7 @@ function RosterContent() {
         </p>
       </header>
 
-      {characters.length === 0 ? (
+      {allCharacters.length === 0 ? (
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
           <h2 className="text-2xl font-bold mb-4">No Characters Created Yet</h2>
           <p className="text-gray-600 mb-4">
@@ -163,7 +172,9 @@ function RosterContent() {
           {/* Character Selection Panel */}
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Available Characters ({characters.length})</h2>
+              <h2 className="text-xl font-bold">
+                Available Characters ({unassignedCharacters.length})
+              </h2>
               <div className="space-x-2">
                 <Link
                   href="/character-generator?from=player-tools"
@@ -181,11 +192,13 @@ function RosterContent() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {characters.map(char => (
+              {unassignedCharacters.map((char) => (
                 <div
                   key={char.id}
                   className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                    selectedCharacters.has(char.id) ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                    selectedCharacters.has(char.id)
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
                   }`}
                   onClick={() => toggleCharacterSelection(char.id)}
                 >
@@ -202,7 +215,8 @@ function RosterContent() {
                     Level {char.level} {char.race} {char.class}
                   </p>
                   <div className="text-xs text-gray-500 mt-2">
-                    Active DP: {char.computed.active_dp} | Passive DP: {char.computed.passive_dp} | SP: {char.computed.spirit_pts}
+                    Active DP: {char.computed.active_dp} | Passive DP: {char.computed.passive_dp} |
+                    SP: {char.computed.spirit_pts}
                   </div>
                 </div>
               ))}
@@ -210,9 +224,11 @@ function RosterContent() {
 
             {selectedCharacters.size > 0 && (
               <div className="mt-4 p-4 bg-gray-50 rounded">
-                <p className="font-medium mb-2">{selectedCharacters.size} character(s) selected</p>
+                <p className="font-medium mb-2">
+                  {selectedCharacters.size} character(s) selected
+                </p>
                 <div className="flex flex-wrap gap-2">
-                  {partyFolders.map(party => (
+                  {partiesWithMembers.map((party) => (
                     <button
                       key={party.id}
                       onClick={() => addSelectedToParty(party.id)}
@@ -256,9 +272,11 @@ function RosterContent() {
 
           {/* Party Folders */}
           <div className="space-y-6">
-            {partyFolders.map(party => {
-              const partyMembers = getPartyCharacters(party.id);
-              const defenseProfile = partyMembers.length > 0 ? calculatePartyDefense(party.id) : null;
+            {partiesWithMembers.map((party) => {
+              const defenseProfile =
+                party.members.length > 0
+                  ? calculatePartyDefense(party.members.map((m) => m.id))
+                  : null;
               const isExpanded = expandedParties.has(party.id);
 
               return (
@@ -270,41 +288,41 @@ function RosterContent() {
                     <div className="flex justify-between items-center">
                       <div>
                         <h3 className="text-xl font-bold">{party.name}</h3>
-                        <p className="text-gray-600">{partyMembers.length} members</p>
+                        <p className="text-gray-600">{party.members.length} members</p>
                         {defenseProfile && (
                           <p className="text-sm text-gray-500">
-                            Defense Tier: {defenseProfile.defense_tier} |
-                            Total Active DP: {defenseProfile.total_active_dp} |
-                            Total Passive DP: {defenseProfile.total_passive_dp} |
-                            Total SP: {defenseProfile.total_spirit_pts}
+                            Defense Tier: {defenseProfile.defense_tier} | Total Active DP:{' '}
+                            {defenseProfile.total_active_dp} | Total Passive DP:{' '}
+                            {defenseProfile.total_passive_dp} | Total SP:{' '}
+                            {defenseProfile.total_spirit_pts}
                           </p>
                         )}
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className="text-gray-400">
-                          {isExpanded ? '▼' : '▶'}
-                        </span>
+                        <span className="text-gray-400">{isExpanded ? '▼' : '▶'}</span>
                       </div>
                     </div>
                   </div>
 
                   {isExpanded && (
                     <div className="px-6 pb-6">
-                      {partyMembers.length === 0 ? (
+                      {party.members.length === 0 ? (
                         <p className="text-gray-500 italic">No members in this party yet.</p>
                       ) : (
                         <div className="space-y-3">
-                          {partyMembers.map(member => (
-                            <div key={member.id} className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                          {party.members.map((member) => (
+                            <div
+                              key={member.id}
+                              className="flex justify-between items-center p-3 bg-gray-50 rounded"
+                            >
                               <div>
                                 <span className="font-medium">{member.name}</span>
                                 <span className="text-gray-600 ml-2">
                                   (Level {member.level} {member.race} {member.class})
                                 </span>
                                 <div className="text-xs text-gray-500">
-                                  Active DP: {member.computed.active_dp} |
-                                  Passive DP: {member.computed.passive_dp} |
-                                  SP: {member.computed.spirit_pts}
+                                  Active DP: {member.computed.active_dp} | Passive DP:{' '}
+                                  {member.computed.passive_dp} | SP: {member.computed.spirit_pts}
                                 </div>
                               </div>
                               <button
@@ -318,23 +336,33 @@ function RosterContent() {
 
                           {defenseProfile && (
                             <div className="mt-4 p-4 bg-blue-50 rounded border border-blue-200">
-                              <h4 className="font-bold text-blue-900 mb-2">Party Defense Summary</h4>
+                              <h4 className="font-bold text-blue-900 mb-2">
+                                Party Defense Summary
+                              </h4>
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                                 <div>
                                   <span className="font-medium">Total Active DP:</span>
-                                  <div className="text-lg font-bold text-blue-700">{defenseProfile.total_active_dp}</div>
+                                  <div className="text-lg font-bold text-blue-700">
+                                    {defenseProfile.total_active_dp}
+                                  </div>
                                 </div>
                                 <div>
                                   <span className="font-medium">Total Passive DP:</span>
-                                  <div className="text-lg font-bold text-blue-700">{defenseProfile.total_passive_dp}</div>
+                                  <div className="text-lg font-bold text-blue-700">
+                                    {defenseProfile.total_passive_dp}
+                                  </div>
                                 </div>
                                 <div>
                                   <span className="font-medium">Total Spirit Points:</span>
-                                  <div className="text-lg font-bold text-blue-700">{defenseProfile.total_spirit_pts}</div>
+                                  <div className="text-lg font-bold text-blue-700">
+                                    {defenseProfile.total_spirit_pts}
+                                  </div>
                                 </div>
                                 <div>
                                   <span className="font-medium">Defense Tier:</span>
-                                  <div className="text-lg font-bold text-blue-700">{defenseProfile.defense_tier}</div>
+                                  <div className="text-lg font-bold text-blue-700">
+                                    {defenseProfile.defense_tier}
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -348,9 +376,11 @@ function RosterContent() {
             })}
           </div>
 
-          {partyFolders.length === 0 && (
+          {partiesWithMembers.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-gray-600 mb-4">Create party folders to organize your characters.</p>
+              <p className="text-gray-600 mb-4">
+                Create party folders to organize your characters.
+              </p>
               <button
                 onClick={() => setShowNewPartyForm(true)}
                 className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition-colors"
