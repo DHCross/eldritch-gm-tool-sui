@@ -82,6 +82,13 @@ interface MonsterResult {
   passiveDefense: number;
   savingThrow: string;
   battlePhase: number;
+  // New QSB fields
+  name: string;
+  attackType: 'Melee' | 'Natural' | 'Ranged' | 'Arcane';
+  extraAttacks: number; // EA
+  damageReduction: number; // DR (0 means None)
+  battlePhaseDie: `d${number}`; // e.g., d8
+  specialAbilities: string[];
 }
 
 
@@ -99,6 +106,86 @@ function calculateBattlePhase(prowessDie: number) {
   if (prowessDie >= 8) return 3;
   if (prowessDie >= 6) return 4;
   return 5;
+}
+
+function mapBattlePhaseToDieRank(battlePhase: number): `d${number}` {
+  switch (battlePhase) {
+    case 1:
+      return 'd12';
+    case 2:
+      return 'd10';
+    case 3:
+      return 'd8';
+    case 4:
+      return 'd6';
+    default:
+      return 'd4';
+  }
+}
+
+const attackTypes: Array<MonsterResult['attackType']> = ['Melee', 'Natural', 'Ranged', 'Arcane'];
+
+function chooseAttackType(nature: (typeof natureOrder)[number]): MonsterResult['attackType'] {
+  // Weighted by nature flavor
+  switch (nature) {
+    case 'Mundane':
+      return Math.random() < 0.6 ? 'Melee' : 'Ranged';
+    case 'Magical':
+      return Math.random() < 0.5 ? 'Melee' : 'Arcane';
+    case 'Preternatural':
+      return Math.random() < 0.6 ? 'Natural' : 'Melee';
+    case 'Supernatural':
+      return Math.random() < 0.7 ? 'Arcane' : 'Natural';
+    default:
+      return attackTypes[Math.floor(Math.random() * attackTypes.length)];
+  }
+}
+
+function computeExtraAttacks(category: CreatureCategory): number {
+  if (category === 'Legendary') return 2;
+  if (category === 'Exceptional') return 1;
+  return 0;
+}
+
+function computeDR(category: CreatureCategory, creatureType: MonsterResult['creatureType'], nature: (typeof natureOrder)[number]): number {
+  // Simple DR heuristic; can be refined later
+  let base = 0;
+  if (category === 'Standard') base = 1;
+  if (category === 'Exceptional') base = 2;
+  if (category === 'Legendary') base = 3;
+  if (creatureType === 'Tough') base += 1;
+  if (nature === 'Supernatural') base += 1;
+  return Math.max(0, base);
+}
+
+function sizeAdjective(size: keyof typeof hpMultipliers): string | null {
+  switch (size) {
+    case 'Small':
+      return 'Lesser';
+    case 'Large':
+      return 'Dire';
+    case 'Huge':
+      return 'Greater';
+    case 'Gargantuan':
+      return 'Titanic';
+    default:
+      return null;
+  }
+}
+
+function generateMonsterName(size: keyof typeof hpMultipliers, nature: (typeof natureOrder)[number]): string {
+  const mundane = ['Bandit', 'Mercenary', 'Wolf', 'Bear', 'Brigand'];
+  const magical = ['Dire Wolf', 'Arcane Construct', 'Enchanted Sentinel', 'Spellhound'];
+  const preternatural = ['Ghoul', 'Revenant', 'Shadow Beast', 'Night Stalker'];
+  const supernatural = ['Wraith', 'Specter', 'Hellion', 'Dread Knight'];
+  let pool = mundane;
+  if (nature === 'Magical') pool = magical;
+  if (nature === 'Preternatural') pool = preternatural;
+  if (nature === 'Supernatural') pool = supernatural;
+  const adj = sizeAdjective(size);
+  const base = pool[Math.floor(Math.random() * pool.length)];
+  const prefix = adj ? `${adj} ` : '';
+  return `${prefix}${base}`;
 }
 
 function generateMonster(
@@ -148,6 +235,30 @@ function generateMonster(
   const battlePhase = calculateBattlePhase(sides);
   const savingThrow = `d${4 * (['Minor', 'Standard', 'Exceptional', 'Legendary'].indexOf(category) + 1)}`;
 
+  // Enrich with QSB-required details
+  const attackType = chooseAttackType(nature);
+  const extraAttacks = computeExtraAttacks(category);
+  const damageReduction = computeDR(category, creatureType, nature);
+  const battlePhaseDie = mapBattlePhaseToDieRank(battlePhase);
+  const name = generateMonsterName(size, nature);
+  const specialAbilities: string[] = [];
+  if (category === 'Exceptional' || category === 'Legendary') {
+    // Light-touch flavorful specials; non-numeric by default
+    const pool = [
+      'Pack Tactics: +1 TD vs isolated foes',
+      'Celerity Surge: +1 square per phase when charging',
+      'Terrifying Presence: foes ST at encounter start',
+      'Resilient Hide: ignores first 1 Threat per hit',
+      'Arcane Lash: may convert one attack to Arcane'
+    ];
+    // Pick up to 2 unique abilities
+    const count = category === 'Legendary' ? 2 : 1;
+    while (specialAbilities.length < count && pool.length) {
+      const idx = Math.floor(Math.random() * pool.length);
+      specialAbilities.push(pool.splice(idx, 1)[0]);
+    }
+  }
+
   return {
     category,
     threatDice,
@@ -161,6 +272,12 @@ function generateMonster(
     passiveDefense,
     savingThrow,
     battlePhase,
+    name,
+    attackType,
+    extraAttacks,
+    damageReduction,
+    battlePhaseDie,
+    specialAbilities,
   };
 }
 
@@ -338,12 +455,20 @@ function EncounterGeneratorContent() {
     lines.push('Creatures:');
     lines.push('=========================');
 
-    monsters.forEach((monster, index) => {
-      lines.push(`Monster ${index + 1}`);
+  monsters.forEach((monster) => {
+      // Heading with Type and Name
+      lines.push(`${monster.category} — ${monster.name}`);
+      // Core combat line with explicit attack type and EA/DR
       lines.push(
-        `Type: ${monster.category} | TD: ${monster.threatDice} | HP: ${monster.hitPoints} (${monster.activeDefense}/${monster.passiveDefense}) [${monster.size}, ${monster.nature}; ×${monster.multiplier}] ${monster.creatureType}`,
+        `TD: ${monster.threatDice} [${monster.attackType}] | EA: ${monster.extraAttacks} | DR: ${monster.damageReduction === 0 ? 'None' : monster.damageReduction} | ST: ${monster.savingThrow} | BP: ${monster.battlePhase} (${monster.battlePhaseDie})`
       );
-      lines.push(`ST: ${monster.savingThrow} | BP: ${monster.battlePhase}`);
+      // Defensive profile + traits
+      lines.push(
+        `HP: ${monster.hitPoints} (AD ${monster.activeDefense} / PD ${monster.passiveDefense}) [${monster.size}, ${monster.nature}; ×${monster.multiplier}] ${monster.creatureType}`
+      );
+      if (monster.specialAbilities.length > 0) {
+        lines.push(`Special: ${monster.specialAbilities.join('; ')}`);
+      }
       lines.push('');
     });
 
