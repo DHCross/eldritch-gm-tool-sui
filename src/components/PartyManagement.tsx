@@ -301,7 +301,10 @@ export default function PartyManagement() {
                   )}
                 </div>
                 <button
-                  onClick={() => setShowAddMember(false)}
+                  onClick={() => {
+                    loadData();
+                    setShowAddMember(false);
+                  }}
                   className="mt-2 bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm"
                 >
                   Done
