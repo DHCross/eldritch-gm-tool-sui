@@ -376,10 +376,10 @@ export default function EnhancedMonsterGenerator() {
   };
 
   return (
-    <div className="relative">
+    <div className="relative lg:grid lg:grid-cols-4 gap-6">
       {/* Enhanced Navigation Sidebar */}
-      <div className="fixed left-4 top-1/2 transform -translate-y-1/2 z-10 hidden lg:block">
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-3 space-y-2 max-h-96 overflow-y-auto">
+      <div className="col-span-1 hidden lg:block">
+        <div className="sticky top-4 bg-white rounded-lg shadow-lg border border-gray-200 p-3 space-y-2 max-h-[calc(100vh-2rem)] overflow-y-auto">
           <h3 className="text-sm font-bold text-gray-800 mb-3 text-center">Enhanced Nav</h3>
           {[
             { ref: basicInfoRef, label: 'Basic Info', color: 'blue' },
@@ -401,7 +401,7 @@ export default function EnhancedMonsterGenerator() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="lg:col-span-3 max-w-7xl mx-auto p-6 space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Enhanced Eldritch RPG Monster Builder
