@@ -190,7 +190,7 @@ export default function ManualCharacterBuilder() {
     });
   };
 
-  const cpSpentFromBudget = useMemo(() => (cpSpent ? Math.max(0, cpSpent.total - 10) : 0), [cpSpent]);
+  const cpSpentFromBudget = useMemo(() => (cpSpent ? cpSpent.total : 0), [cpSpent]);
   const cpRemaining = useMemo(() => cpBudget - cpSpentFromBudget, [cpBudget, cpSpentFromBudget]);
 
   const cpWarning = cpRemaining < 0 ? `You have overspent by ${Math.abs(cpRemaining)} CP.` : null;
