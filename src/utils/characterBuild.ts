@@ -206,7 +206,7 @@ export function calculateCPSpent(finalChar: Character, baseChar: Character, icon
 
   }
 
-  spent.total = 10 + spent.abilities + spent.specialties + spent.focuses + spent.advantages;
+  spent.total = spent.abilities + spent.specialties + spent.focuses + spent.advantages;
   return spent;
 }
 
