@@ -370,143 +370,169 @@ function EncounterGeneratorContent() {
   }, []);
 
   const handleGenerate = useCallback(() => {
-    const enabledTypes = (Object.keys(selectedTypes) as CreatureCategory[]).filter(type => selectedTypes[type]);
-    if (!enabledTypes.length) {
-      setEncounterOutput('Please select at least one creature type.');
-      return;
-    }
-
-    // Always use calculated defense tier if party stats are enabled
-    let defenseTier = activeDefenseLevel;
-    let partySz = partySize;
-    if (usePartyStats && partyDefenseProfile) {
-      defenseTier = partyDefenseProfile.defense_tier;
-      partySz = partyDefenseProfile.character_count;
-    }
-    const difficultyBand = encounterDifficultyTable[partySz];
-    const targetThreat = difficultyBand[defenseTier][difficultyIndex];
-
-    // Generate monsters so that their total threatMV matches or is just under the targetThreat
-    let totalThreatMV = 0;
-    const monsters: MonsterResult[] = [];
-    let safety = 0;
-    let remainingBudget = targetThreat;
-
-    while (remainingBudget > 0 && safety < 100) {
-      const monster = generateMonster(
-        enabledTypes,
-        nonMediumPercentage,
-        nonMundanePercentage,
-        specialTypePercentage,
+    try {
+      const enabledTypes = (Object.keys(selectedTypes) as CreatureCategory[]).filter(
+        (type) => selectedTypes[type]
       );
-
-      if (monster.threatMV === 0) break;
-
-      // Only add monster if it fits within the remaining budget
-      if (monster.threatMV <= remainingBudget) {
-        monsters.push(monster);
-        totalThreatMV += monster.threatMV;
-        remainingBudget -= monster.threatMV;
+      if (!enabledTypes.length) {
+        setEncounterOutput('Please select at least one creature type.');
+        return;
       }
 
-      safety++;
-
-      // Stop if remaining budget is too small for any meaningful threat
-      if (remainingBudget < 4) break;
-    }
-
-    // Check if encounter exceeds budget (should not happen with new logic)
-    const budgetExceeded = totalThreatMV > targetThreat;
-    const budgetUtilization = targetThreat > 0 ? (totalThreatMV / targetThreat) * 100 : 0;
-
-    const lines: string[] = [];
-    lines.push('Eldritch RPG Encounter');
-    lines.push('=========================');
-
-    // Add party information if using party stats
-    if (usePartyStats && partyDefenseProfile) {
-      lines.push('Party Information:');
-      lines.push(`Selected Parties: ${selectedPartyIds.map(id => partyFolders.find(f => f.id === id)?.name).filter(Boolean).join(', ') || 'None'}`);
-      lines.push(`Party Size: ${partyDefenseProfile.character_count} characters`);
-      lines.push(`Active DP: ${partyDefenseProfile.total_active_dp} | Passive DP: ${partyDefenseProfile.total_passive_dp} | Spirit: ${partyDefenseProfile.total_spirit_pts}`);
-      lines.push(`Calculated Defense Tier: ${partyDefenseProfile.defense_tier}`);
-      lines.push('');
-      lines.push('Character Breakdown:');
-      partyDefenseProfile.character_breakdown.forEach((char) => {
-        lines.push(`  ${char.name}: A${char.active_dp}/P${char.passive_dp}/S${char.spirit_pts}`);
-      });
-      lines.push('');
-    } else {
-      lines.push(`Party Size: ${partySize}`);
-      lines.push(`Defense Level: ${activeDefenseLevel}`);
-    }
-
-    lines.push(`Difficulty: ${activeDifficultyLabel}`);
-    lines.push(`Target Threat Budget: ${targetThreat}`);
-    lines.push(`Generated Total Threat: ${totalThreatMV} (${budgetUtilization.toFixed(1)}% of budget)`);
-
-    if (budgetExceeded) {
-      lines.push('⚠️  WARNING: Generated encounter exceeds target threat budget!');
-    } else if (budgetUtilization < 80) {
-      lines.push(`ℹ️  Note: Encounter uses ${budgetUtilization.toFixed(1)}% of available threat budget`);
-    }
-
-    lines.push('');
-    lines.push('Creatures:');
-    lines.push('=========================');
-
-  monsters.forEach((monster) => {
-      // Heading with Type and Name
-      lines.push(`${monster.category} — ${monster.name}`);
-      // Core combat line with explicit attack type and EA/DR
-      lines.push(
-        `TD: ${monster.threatDice} [${monster.attackType}] | EA: ${monster.extraAttacks} | DR: ${monster.damageReduction === 0 ? 'None' : monster.damageReduction} | ST: ${monster.savingThrow} | BP: ${monster.battlePhase} (${monster.battlePhaseDie})`
-      );
-      // Defensive profile + traits
-      lines.push(
-        `HP: ${monster.hitPoints} (AD ${monster.activeDefense} / PD ${monster.passiveDefense}) [${monster.size}, ${monster.nature}; ×${monster.multiplier}] ${monster.creatureType}`
-      );
-      if (monster.specialAbilities.length > 0) {
-        lines.push(`Special: ${monster.specialAbilities.join('; ')}`);
+      // Always use calculated defense tier if party stats are enabled
+      let defenseTier = activeDefenseLevel;
+      let partySz = partySize;
+      if (usePartyStats && partyDefenseProfile) {
+        defenseTier = partyDefenseProfile.defense_tier;
+        partySz = partyDefenseProfile.character_count;
       }
-      lines.push('');
-    });
+      const difficultyBand = encounterDifficultyTable[partySz];
+      const targetThreat = difficultyBand[defenseTier][difficultyIndex];
 
-    // Add monster suggestions from saved library
-    if (availableMonsters.length > 0) {
-      lines.push('Saved Monster Suggestions:');
+      // Generate monsters so that their total threatMV matches or is just under the targetThreat
+      let totalThreatMV = 0;
+      const monsters: MonsterResult[] = [];
+      let safety = 0;
+      let remainingBudget = targetThreat;
+
+      while (remainingBudget > 0 && safety < 100) {
+        const monster = generateMonster(
+          enabledTypes,
+          nonMediumPercentage,
+          nonMundanePercentage,
+          specialTypePercentage
+        );
+
+        if (monster.threatMV === 0) break;
+
+        // Only add monster if it fits within the remaining budget
+        if (monster.threatMV <= remainingBudget) {
+          monsters.push(monster);
+          totalThreatMV += monster.threatMV;
+          remainingBudget -= monster.threatMV;
+        }
+
+        safety++;
+
+        // Stop if remaining budget is too small for any meaningful threat
+        if (remainingBudget < 4) break;
+      }
+
+      // Check if encounter exceeds budget (should not happen with new logic)
+      const budgetExceeded = totalThreatMV > targetThreat;
+      const budgetUtilization = targetThreat > 0 ? (totalThreatMV / targetThreat) * 100 : 0;
+
+      const lines: string[] = [];
+      lines.push('Eldritch RPG Encounter');
       lines.push('=========================');
 
-      // Find monsters that fit within the threat budget
-      const suitableMonsters = availableMonsters.filter(monster => {
-        const monsterThreat = monster.threat_mv;
-        return monsterThreat <= targetThreat && monsterThreat >= targetThreat * 0.1; // Within 10% to 100% of budget
+      // Add party information if using party stats
+      if (usePartyStats && partyDefenseProfile) {
+        lines.push('Party Information:');
+        lines.push(
+          `Selected Parties: ${
+            selectedPartyIds
+              .map((id) => partyFolders.find((f) => f.id === id)?.name)
+              .filter(Boolean)
+              .join(', ') || 'None'
+          }`
+        );
+        lines.push(`Party Size: ${partyDefenseProfile.character_count} characters`);
+        lines.push(
+          `Active DP: ${partyDefenseProfile.total_active_dp} | Passive DP: ${partyDefenseProfile.total_passive_dp} | Spirit: ${partyDefenseProfile.total_spirit_pts}`
+        );
+        lines.push(`Calculated Defense Tier: ${partyDefenseProfile.defense_tier}`);
+        lines.push('');
+        lines.push('Character Breakdown:');
+        partyDefenseProfile.character_breakdown.forEach((char) => {
+          lines.push(`  ${char.name}: A${char.active_dp}/P${char.passive_dp}/S${char.spirit_pts}`);
+        });
+        lines.push('');
+      } else {
+        lines.push(`Party Size: ${partySize}`);
+        lines.push(`Defense Level: ${activeDefenseLevel}`);
+      }
+
+      lines.push(`Difficulty: ${activeDifficultyLabel}`);
+      lines.push(`Target Threat Budget: ${targetThreat}`);
+      lines.push(`Generated Total Threat: ${totalThreatMV} (${budgetUtilization.toFixed(1)}% of budget)`);
+
+      if (budgetExceeded) {
+        lines.push('⚠️  WARNING: Generated encounter exceeds target threat budget!');
+      } else if (budgetUtilization < 80) {
+        lines.push(`ℹ️  Note: Encounter uses ${budgetUtilization.toFixed(1)}% of available threat budget`);
+      }
+
+      lines.push('');
+      lines.push('Creatures:');
+      lines.push('=========================');
+
+      monsters.forEach((monster) => {
+        // Heading with Type and Name
+        lines.push(`${monster.category} — ${monster.name}`);
+        // Core combat line with explicit attack type and EA/DR
+        lines.push(
+          `TD: ${monster.threatDice} [${monster.attackType}] | EA: ${monster.extraAttacks} | DR: ${
+            monster.damageReduction === 0 ? 'None' : monster.damageReduction
+          } | ST: ${monster.savingThrow} | BP: ${monster.battlePhase} (${monster.battlePhaseDie})`
+        );
+        // Defensive profile + traits
+        lines.push(
+          `HP: ${monster.hitPoints} (AD ${monster.activeDefense} / PD ${monster.passiveDefense}) [${monster.size}, ${monster.nature}; ×${monster.multiplier}] ${monster.creatureType}`
+        );
+        if (monster.specialAbilities.length > 0) {
+          lines.push(`Special: ${monster.specialAbilities.join('; ')}`);
+        }
+        lines.push('');
       });
 
-      if (suitableMonsters.length > 0) {
-        // Group by trope
-        const monstersByTrope = suitableMonsters.reduce((acc, monster) => {
-          if (!acc[monster.monster_trope]) acc[monster.monster_trope] = [];
-          acc[monster.monster_trope].push(monster);
-          return acc;
-        }, {} as Record<string, MonsterData[]>);
+      // Add monster suggestions from saved library
+      if (availableMonsters.length > 0) {
+        lines.push('Saved Monster Suggestions:');
+        lines.push('=========================');
 
-        Object.entries(monstersByTrope).forEach(([trope, monsters]) => {
-          lines.push(`${trope.toUpperCase()}:`);
-          monsters.slice(0, 3).forEach(monster => { // Limit to 3 per trope
-            const roles = monster.preferred_encounter_roles.join(', ');
-            lines.push(`  ${monster.name} (Threat MV ${monster.threat_mv}, HP ${monster.hp_calculation.final_hp}) [${roles}]`);
-          });
-          lines.push('');
+        // Find monsters that fit within the threat budget
+        const suitableMonsters = availableMonsters.filter((monster) => {
+          const monsterThreat = monster.threat_mv;
+          return monsterThreat <= targetThreat && monsterThreat >= targetThreat * 0.1; // Within 10% to 100% of budget
         });
-      } else {
-        lines.push('No saved monsters match the current threat budget.');
-        lines.push('Consider creating monsters in the Monster Generator.');
-        lines.push('');
-      }
-    }
 
-    setEncounterOutput(lines.join('\n'));
+        if (suitableMonsters.length > 0) {
+          // Group by trope
+          const monstersByTrope = suitableMonsters.reduce(
+            (acc, monster) => {
+              if (!acc[monster.monster_trope]) acc[monster.monster_trope] = [];
+              acc[monster.monster_trope].push(monster);
+              return acc;
+            },
+            {} as Record<string, MonsterData[]>
+          );
+
+          Object.entries(monstersByTrope).forEach(([trope, monsters]) => {
+            lines.push(`${trope.toUpperCase()}:`);
+            monsters.slice(0, 3).forEach((monster) => {
+              // Limit to 3 per trope
+              const roles = monster.preferred_encounter_roles.join(', ');
+              lines.push(
+                `  ${monster.name} (Threat MV ${monster.threat_mv}, HP ${monster.hp_calculation.final_hp}) [${roles}]`
+              );
+            });
+            lines.push('');
+          });
+        } else {
+          lines.push('No saved monsters match the current threat budget.');
+          lines.push('Consider creating monsters in the Monster Generator.');
+          lines.push('');
+        }
+      }
+
+      setEncounterOutput(lines.join('\n'));
+    } catch (err) {
+      console.error('Encounter generation failed:', err);
+      setEncounterOutput(
+        `Error generating encounter: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
   }, [
     selectedTypes,
     partySize,
