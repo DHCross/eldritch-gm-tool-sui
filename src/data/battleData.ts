@@ -23,6 +23,7 @@ export interface Combatant {
   spiritPoints: number;
   role: CombatantRole;
   classification: string;
+  movement: number;
   npcDetail?: string;
 }
 
@@ -30,6 +31,7 @@ export interface BattleState {
   combatants: Combatant[];
   defeatedCombatants: Combatant[];
   autoRollEnabled: boolean;
+  autoRollMovementEnabled: boolean;
   round: number;
 }
 

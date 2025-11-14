@@ -215,6 +215,7 @@ export function createCombatant(
   shield: number = 0,
   reactionFocus: number = 0,
   spiritPoints: number = 0,
+  movement: number = 30,
   npcDetail?: string
 ): Combatant {
   let adp: number, pdp: number, classificationName: string;
@@ -281,6 +282,7 @@ export function createCombatant(
     spiritPoints,
     role: role as CombatantRole,
     classification: classificationName,
+    movement,
     npcDetail
   };
 }
