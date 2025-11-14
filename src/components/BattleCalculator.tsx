@@ -42,6 +42,7 @@ export default function BattleCalculator() {
     combatants: [],
     defeatedCombatants: [],
     autoRollEnabled: false,
+    autoRollMovementEnabled: false,
     round: 1
   });
 
@@ -59,6 +60,7 @@ export default function BattleCalculator() {
     shield: 0,
     reactionFocus: 0,
     spiritPoints: 0,
+    movement: 30,
     npcDetail: ''
   });
 
@@ -203,6 +205,7 @@ export default function BattleCalculator() {
     const spiritPoints = character.computed?.spirit_pts ?? 0;
     const maxAdp = character.computed?.active_dp ?? 15;
     const maxPdp = character.computed?.passive_dp ?? 10;
+    const movement = character.computed?.movement_pts ?? 30;
     const npcDetail = category === 'npc' ? inferNpcDetail(character) : undefined;
     const npcLevel = category === 'npc' ? clampNpcLevel(character.level) : undefined;
     const qsbClassification = category === 'qsb' ? inferMonsterClassification(character) : undefined;
@@ -221,6 +224,7 @@ export default function BattleCalculator() {
       shield,
       reactionFocus,
       spiritPoints,
+      movement,
       npcDetail
     );
 
@@ -375,6 +379,13 @@ export default function BattleCalculator() {
       return;
     }
 
+    let movement = newCombatant.movement;
+    if (battleState.autoRollMovementEnabled) {
+      const prowessMVs = [4, 6, 8, 10, 12];
+      const randomProwessMV = prowessMVs[Math.floor(Math.random() * prowessMVs.length)];
+      movement = 12 + randomProwessMV;
+    }
+
     const combatant = createCombatant(
       newCombatant.category,
       newCombatant.name,
@@ -389,6 +400,7 @@ export default function BattleCalculator() {
       newCombatant.shield,
       newCombatant.reactionFocus,
       newCombatant.spiritPoints,
+      movement,
       newCombatant.npcDetail
     );
 
@@ -412,6 +424,7 @@ export default function BattleCalculator() {
       shield: 0,
       reactionFocus: 0,
       spiritPoints: 0,
+      movement: 30,
       npcDetail: ''
     });
   };
@@ -634,6 +647,15 @@ export default function BattleCalculator() {
             />
             <span className="text-sm font-medium">Auto-roll Armor</span>
           </label>
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={battleState.autoRollMovementEnabled}
+              onChange={(e) => setBattleState(prev => ({ ...prev, autoRollMovementEnabled: e.target.checked }))}
+              className="mr-2"
+            />
+            <span className="text-sm font-medium">Auto-roll Movement</span>
+          </label>
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">Round:</span>
             <input
@@ -664,8 +686,9 @@ export default function BattleCalculator() {
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <label htmlFor="combatant-name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
               <input
+                id="combatant-name"
                 type="text"
                 value={newCombatant.name}
                 onChange={(e) => setNewCombatant(prev => ({ ...prev, name: e.target.value }))}
@@ -782,6 +805,18 @@ export default function BattleCalculator() {
               </select>
             </div>
 
+            <div>
+              <label htmlFor="movement-input" className="block text-sm font-medium text-gray-700 mb-1">Movement</label>
+              <input
+                type="number"
+                id="movement-input"
+                value={newCombatant.movement}
+                onChange={(e) => setNewCombatant(prev => ({ ...prev, movement: parseInt(e.target.value) || 0 }))}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                min="0"
+              />
+            </div>
+
             {newCombatant.category === 'pa' && (
               <>
                 <div>
@@ -831,7 +866,7 @@ export default function BattleCalculator() {
                     <span className="text-lg font-bold text-blue-600">#{index + 1}</span>
                     <span className="text-lg font-medium">{combatant.name}</span>
                     <span className="text-sm text-gray-600">
-                      ({combatant.classification} • BP: {combatant.battlePhase} • {combatant.weaponReach} reach)
+                      ({combatant.classification} • BP: {combatant.battlePhase} • {combatant.weaponReach} reach • MVT: {combatant.movement})
                     </span>
                     <span className={`text-sm px-2 py-1 rounded ${
                       combatant.role === 'Hostile' ? 'bg-red-100 text-red-800' :
