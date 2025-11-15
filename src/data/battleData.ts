@@ -24,6 +24,11 @@ export interface Combatant {
   role: CombatantRole;
   classification: string;
   npcDetail?: string;
+  agilityDie?: number;
+  hasAgilitySpecialty?: boolean;
+  size?: string;
+  defenseSplit?: string;
+  especiallySpeedy?: boolean;
 }
 
 export interface BattleState {
