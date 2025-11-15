@@ -28,6 +28,8 @@ import {
   exportBattleToMarkdown
 } from '../utils/battleUtils';
 import { SavedCharacter } from '../types/party';
+import MovementNotation from './MovementNotation';
+import { DieRank } from '../utils/movement';
 import {
   getPartyFoldersByType,
   getPartyCharacters,
@@ -66,6 +68,7 @@ export default function BattleCalculator() {
   const [armorRolls, setArmorRolls] = useState<Record<number, string>>({});
   const [showRevitalize, setShowRevitalize] = useState<Record<number, boolean>>({});
   const [spInputs, setSPInputs] = useState<Record<number, string>>({});
+  const [showTacticalMovement, setShowTacticalMovement] = useState(true);
 
   useEffect(() => {
     try {
@@ -189,6 +192,8 @@ export default function BattleCalculator() {
         ? 'qsb'
         : 'pa';
 
+    const fullData = character.full_data as Record<string, unknown> | undefined;
+
     const role: CombatantRole = defaultRole
       ? defaultRole
       : category === 'qsb'
@@ -206,6 +211,17 @@ export default function BattleCalculator() {
     const npcDetail = category === 'npc' ? inferNpcDetail(character) : undefined;
     const npcLevel = category === 'npc' ? clampNpcLevel(character.level) : undefined;
     const qsbClassification = category === 'qsb' ? inferMonsterClassification(character) : undefined;
+
+    // Tactical movement fields
+    const agilityDie = mapValueToDie(character.abilities?.agility_mv);
+    const hasAgilitySpecialty = Boolean(character.abilities?.agility_mv);
+    const size = (fullData?.size || fullData?.creature_size) as string | undefined;
+    const defenseSplit = character.tags?.includes('Fast')
+      ? 'Fast'
+      : character.tags?.includes('Tough')
+        ? 'Tough'
+        : 'Balanced';
+    const especiallySpeedy = Boolean(fullData?.especiallySpeedy || fullData?.especially_speedy);
 
     const combatant = createCombatant(
       category,
@@ -231,6 +247,12 @@ export default function BattleCalculator() {
     if (typeof character.status?.current_hp_passive === 'number') {
       combatant.pdp = character.status.current_hp_passive;
     }
+
+    combatant.agilityDie = agilityDie;
+    combatant.hasAgilitySpecialty = hasAgilitySpecialty;
+    combatant.size = size;
+    combatant.defenseSplit = defenseSplit;
+    combatant.especiallySpeedy = especiallySpeedy;
 
     return combatant;
   };
@@ -634,6 +656,15 @@ export default function BattleCalculator() {
             />
             <span className="text-sm font-medium">Auto-roll Armor</span>
           </label>
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={showTacticalMovement}
+              onChange={(e) => setShowTacticalMovement(e.target.checked)}
+              className="mr-2"
+            />
+            <span className="text-sm font-medium">Show Tactical Movement</span>
+          </label>
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">Round:</span>
             <input
@@ -833,6 +864,18 @@ export default function BattleCalculator() {
                     <span className="text-sm text-gray-600">
                       ({combatant.classification} • BP: {combatant.battlePhase} • {combatant.weaponReach} reach)
                     </span>
+                    {showTacticalMovement && (
+                      <MovementNotation
+                        isCreature={combatant.category !== 'pa'}
+                        prowessDieRank={`d${combatant.prowessDie}` as DieRank}
+                        agilityDieRank={`d${combatant.agilityDie || 6}` as DieRank}
+                        hasAgilitySpecialty={combatant.hasAgilitySpecialty}
+                        bpDieRank={`d${combatant.battlePhase}` as DieRank}
+                        size={combatant.size}
+                        defenseSplit={combatant.defenseSplit}
+                        especiallySpeedy={combatant.especiallySpeedy}
+                      />
+                    )}
                     <span className={`text-sm px-2 py-1 rounded ${
                       combatant.role === 'Hostile' ? 'bg-red-100 text-red-800' :
                       combatant.role === 'Ally' ? 'bg-green-100 text-green-800' :
