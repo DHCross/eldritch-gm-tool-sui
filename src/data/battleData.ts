@@ -6,6 +6,9 @@ export type WeaponReach = 'short' | 'medium' | 'long';
 export type NPCLevel = '1' | '2' | '3' | '4' | '5';
 export type QSBClassification = 'Minor' | 'Standard' | 'Exceptional' | 'Legendary';
 export type RevitalizeOption = 'invigorate' | 'deepRecovery' | 'steadyRenewal';
+export type CreatureSize = 'Minuscule' | 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Gargantuan';
+export type CreatureNature = 'Mundane' | 'Magical' | 'Preternatural' | 'Supernatural';
+export type CreatureConstitution = 'Regular' | 'Tough' | 'Fast';
 
 export interface Combatant {
   id: number;
@@ -56,6 +59,10 @@ export const qsbDefaults: Record<QSBClassification, { adp: number; pdp: number }
 export const prowessDieOptions = [4, 6, 8, 10, 12];
 export const weaponReachOptions: WeaponReach[] = ['short', 'medium', 'long'];
 export const combatantRoles: CombatantRole[] = ['Ally', 'Hostile', 'Friendly', 'Companion'];
+
+export const creatureSizes: CreatureSize[] = ['Minuscule', 'Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan'];
+export const creatureNatures: CreatureNature[] = ['Mundane', 'Magical', 'Preternatural', 'Supernatural'];
+export const creatureConstitutions: CreatureConstitution[] = ['Regular', 'Tough', 'Fast'];
 
 export const armorTypes = [
   '0', 'Natural Armor +2', 'Natural Armor +4', 'Natural Armor +6', 'Natural Armor +8',
