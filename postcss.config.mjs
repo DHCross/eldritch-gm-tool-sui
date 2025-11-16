@@ -1,5 +1,7 @@
 const plugins = process.env.VITEST ? [] : ["@tailwindcss/postcss"];
 
-export default {
+const config = {
   plugins,
 };
+
+export default config;
