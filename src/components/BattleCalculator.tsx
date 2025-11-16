@@ -16,7 +16,13 @@ import {
   weaponReachOptions,
   combatantRoles,
   armorTypes,
-  revitalizeOptions
+  revitalizeOptions,
+  CreatureSize,
+  CreatureNature,
+  CreatureConstitution,
+  creatureSizes,
+  creatureNatures,
+  creatureConstitutions
 } from '../data/battleData';
 import {
   sortCombatants,
@@ -57,6 +63,9 @@ export default function BattleCalculator() {
     classification: 'Standard' as QSBClassification,
     customADP: '',
     customPDP: '',
+    size: 'Medium' as CreatureSize,
+    nature: 'Mundane' as CreatureNature,
+    constitution: 'Regular' as CreatureConstitution,
     armor: '0',
     shield: 0,
     reactionFocus: 0,
@@ -405,6 +414,9 @@ export default function BattleCalculator() {
       newCombatant.role,
       newCombatant.level,
       newCombatant.classification,
+      newCombatant.size,
+      newCombatant.nature,
+      newCombatant.constitution,
       newCombatant.customADP ? parseInt(newCombatant.customADP) : undefined,
       newCombatant.customPDP ? parseInt(newCombatant.customPDP) : undefined,
       newCombatant.armor,
@@ -772,6 +784,47 @@ export default function BattleCalculator() {
                   ))}
                 </select>
               </div>
+            )}
+
+            {newCombatant.category === 'qsb' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
+                  <select
+                    value={newCombatant.size}
+                    onChange={(e) => setNewCombatant(prev => ({ ...prev, size: e.target.value as CreatureSize }))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  >
+                    {creatureSizes.map(size => (
+                      <option key={size} value={size}>{size}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nature</label>
+                  <select
+                    value={newCombatant.nature}
+                    onChange={(e) => setNewCombatant(prev => ({ ...prev, nature: e.target.value as CreatureNature }))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  >
+                    {creatureNatures.map(nature => (
+                      <option key={nature} value={nature}>{nature}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Constitution</label>
+                  <select
+                    value={newCombatant.constitution}
+                    onChange={(e) => setNewCombatant(prev => ({ ...prev, constitution: e.target.value as CreatureConstitution }))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  >
+                    {creatureConstitutions.map(constitution => (
+                      <option key={constitution} value={constitution}>{constitution}</option>
+                    ))}
+                  </select>
+                </div>
+              </>
             )}
 
             <div>

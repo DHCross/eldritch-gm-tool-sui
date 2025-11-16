@@ -7,7 +7,10 @@ import {
   QSBClassification,
   RevitalizeOption,
   npcDefaults,
-  qsbDefaults
+  qsbDefaults,
+  CreatureSize,
+  CreatureNature,
+  CreatureConstitution
 } from '../data/battleData';
 
 export function rollDie(dieSize: number): number {
@@ -201,6 +204,40 @@ export function performRevitalize(
   return { combatant: newCombatant, message, success };
 }
 
+function getSizeModifier(size: CreatureSize): number {
+  switch (size) {
+    case 'Minuscule':
+    case 'Tiny':
+      return 0;
+    case 'Small':
+    case 'Medium':
+      return 1;
+    case 'Large':
+      return 2;
+    case 'Huge':
+      return 3;
+    case 'Gargantuan':
+      return 4;
+    default:
+      return 1;
+  }
+}
+
+function getNatureModifier(nature: CreatureNature): number {
+  switch (nature) {
+    case 'Mundane':
+      return 1;
+    case 'Magical':
+      return 2;
+    case 'Preternatural':
+      return 3;
+    case 'Supernatural':
+      return 4;
+    default:
+      return 1;
+  }
+}
+
 export function createCombatant(
   category: CombatantCategory,
   name: string,
@@ -209,6 +246,9 @@ export function createCombatant(
   role: string,
   level?: NPCLevel,
   classification?: QSBClassification,
+  size?: CreatureSize,
+  nature?: CreatureNature,
+  constitution?: CreatureConstitution,
   customADP?: number,
   customPDP?: number,
   armor: string = '0',
@@ -216,7 +256,7 @@ export function createCombatant(
   reactionFocus: number = 0,
   spiritPoints: number = 0,
   npcDetail?: string
-): Combatant {
+): Combat.tsx {
   let adp: number, pdp: number, classificationName: string;
 
   switch (category) {
@@ -239,10 +279,31 @@ export function createCombatant(
       break;
 
     case 'qsb':
-      if (classification && qsbDefaults[classification]) {
-        const defaults = qsbDefaults[classification];
-        adp = customADP || defaults.adp;
-        pdp = customPDP || defaults.pdp;
+      if (classification) {
+        const threatDiceCount = {
+          'Minor': 1,
+          'Standard': 2,
+          'Exceptional': 3,
+          'Legendary': 3,
+        }[classification] || 2;
+
+        const baseHp = prowessDie * threatDiceCount;
+        const sizeModifier = getSizeModifier(size || 'Medium');
+        const natureModifier = getNatureModifier(nature || 'Mundane');
+        const hpMultiplier = (sizeModifier + natureModifier) / 2;
+
+        const totalHp = Math.ceil(baseHp * (hpMultiplier > 0 ? hpMultiplier : 1));
+
+        let adpSplit = 0.5;
+        if (constitution === 'Fast') {
+          adpSplit = 0.75;
+        } else if (constitution === 'Tough') {
+          adpSplit = 0.25;
+        }
+
+        const calculatedAdp = Math.round(totalHp * adpSplit);
+        adp = customADP || calculatedAdp;
+        pdp = customPDP || (totalHp - calculatedAdp);
         classificationName = classification;
       } else {
         adp = customADP || 10;
