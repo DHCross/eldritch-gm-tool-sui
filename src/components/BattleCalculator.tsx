@@ -69,6 +69,7 @@ export default function BattleCalculator() {
   const [showRevitalize, setShowRevitalize] = useState<Record<number, boolean>>({});
   const [spInputs, setSPInputs] = useState<Record<number, string>>({});
   const [showTacticalMovement, setShowTacticalMovement] = useState(true);
+  const [showAddCombatant, setShowAddCombatant] = useState(true);
 
   useEffect(() => {
     try {
@@ -679,173 +680,186 @@ export default function BattleCalculator() {
 
         {/* Add Combatant Form */}
         <div className="border-t pt-6">
-          <h3 className="text-lg font-bold mb-4">Add Combatant</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-              <select
-                value={newCombatant.category}
-                onChange={(e) => setNewCombatant(prev => ({ ...prev, category: e.target.value as CombatantCategory }))}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-              >
-                <option value="pa">Player Adventurer</option>
-                <option value="npc">NPC</option>
-                <option value="qsb">Quick Stat Block</option>
-              </select>
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-              <input
-                type="text"
-                value={newCombatant.name}
-                onChange={(e) => setNewCombatant(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                placeholder="Enter combatant name"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Prowess Die</label>
-              <select
-                value={newCombatant.prowessDie}
-                onChange={(e) => setNewCombatant(prev => ({ ...prev, prowessDie: parseInt(e.target.value) }))}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-              >
-                {prowessDieOptions.map(die => (
-                  <option key={die} value={die}>d{die}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Weapon Reach</label>
-              <select
-                value={newCombatant.weaponReach}
-                onChange={(e) => setNewCombatant(prev => ({ ...prev, weaponReach: e.target.value as WeaponReach }))}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-              >
-                {weaponReachOptions.map(reach => (
-                  <option key={reach} value={reach}>{reach}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-              <select
-                value={newCombatant.role}
-                onChange={(e) => setNewCombatant(prev => ({ ...prev, role: e.target.value }))}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-              >
-                {combatantRoles.map(role => (
-                  <option key={role} value={role}>{role}</option>
-                ))}
-              </select>
-            </div>
-
-            {newCombatant.category === 'npc' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>
-                <select
-                  value={newCombatant.level}
-                  onChange={(e) => setNewCombatant(prev => ({ ...prev, level: e.target.value as NPCLevel }))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                >
-                  {Object.keys(npcDefaults).map(level => (
-                    <option key={level} value={level}>Level {level}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {newCombatant.category === 'qsb' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Classification</label>
-                <select
-                  value={newCombatant.classification}
-                  onChange={(e) => setNewCombatant(prev => ({ ...prev, classification: e.target.value as QSBClassification }))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                >
-                  {Object.keys(qsbDefaults).map(classification => (
-                    <option key={classification} value={classification}>{classification}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                ADP (Default: {defaults.adp})
-              </label>
-              <input
-                type="number"
-                value={newCombatant.customADP}
-                onChange={(e) => setNewCombatant(prev => ({ ...prev, customADP: e.target.value }))}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                placeholder={defaults.adp.toString()}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                PDP (Default: {defaults.pdp})
-              </label>
-              <input
-                type="number"
-                value={newCombatant.customPDP}
-                onChange={(e) => setNewCombatant(prev => ({ ...prev, customPDP: e.target.value }))}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                placeholder={defaults.pdp.toString()}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Armor</label>
-              <select
-                value={newCombatant.armor}
-                onChange={(e) => setNewCombatant(prev => ({ ...prev, armor: e.target.value }))}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-              >
-                {armorTypes.map(armor => (
-                  <option key={armor} value={armor}>{armor === '0' ? 'None' : armor}</option>
-                ))}
-              </select>
-            </div>
-
-            {newCombatant.category === 'pa' && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Reaction Focus</label>
-                  <input
-                    type="number"
-                    value={newCombatant.reactionFocus}
-                    onChange={(e) => setNewCombatant(prev => ({ ...prev, reactionFocus: parseInt(e.target.value) || 0 }))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                    min="0"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Spirit Points</label>
-                  <input
-                    type="number"
-                    value={newCombatant.spiritPoints}
-                    onChange={(e) => setNewCombatant(prev => ({ ...prev, spiritPoints: parseInt(e.target.value) || 0 }))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                    min="0"
-                  />
-                </div>
-              </>
-            )}
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold">Add Combatant</h3>
+            <button
+              onClick={() => setShowAddCombatant(prev => !prev)}
+              className="text-sm text-blue-600 hover:text-blue-800"
+            >
+              {showAddCombatant ? 'Hide Form' : 'Show Form'}
+            </button>
           </div>
 
-          <button
-            onClick={addCombatant}
-            className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors"
-          >
-            Add Combatant
-          </button>
+          {showAddCombatant && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                  <select
+                    value={newCombatant.category}
+                    onChange={(e) => setNewCombatant(prev => ({ ...prev, category: e.target.value as CombatantCategory }))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  >
+                    <option value="pa">Player Adventurer</option>
+                    <option value="npc">NPC</option>
+                    <option value="qsb">Quick Stat Block</option>
+                  </select>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                  <input
+                    type="text"
+                    value={newCombatant.name}
+                    onChange={(e) => setNewCombatant(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    placeholder="Enter combatant name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Prowess Die</label>
+                  <select
+                    value={newCombatant.prowessDie}
+                    onChange={(e) => setNewCombatant(prev => ({ ...prev, prowessDie: parseInt(e.target.value) }))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  >
+                    {prowessDieOptions.map(die => (
+                      <option key={die} value={die}>d{die}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Weapon Reach</label>
+                  <select
+                    value={newCombatant.weaponReach}
+                    onChange={(e) => setNewCombatant(prev => ({ ...prev, weaponReach: e.target.value as WeaponReach }))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  >
+                    {weaponReachOptions.map(reach => (
+                      <option key={reach} value={reach}>{reach}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                  <select
+                    value={newCombatant.role}
+                    onChange={(e) => setNewCombatant(prev => ({ ...prev, role: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  >
+                    {combatantRoles.map(role => (
+                      <option key={role} value={role}>{role}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {newCombatant.category === 'npc' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>
+                    <select
+                      value={newCombatant.level}
+                      onChange={(e) => setNewCombatant(prev => ({ ...prev, level: e.target.value as NPCLevel }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    >
+                      {Object.keys(npcDefaults).map(level => (
+                        <option key={level} value={level}>Level {level}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {newCombatant.category === 'qsb' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Classification</label>
+                    <select
+                      value={newCombatant.classification}
+                      onChange={(e) => setNewCombatant(prev => ({ ...prev, classification: e.target.value as QSBClassification }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    >
+                      {Object.keys(qsbDefaults).map(classification => (
+                        <option key={classification} value={classification}>{classification}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    ADP (Default: {defaults.adp})
+                  </label>
+                  <input
+                    type="number"
+                    value={newCombatant.customADP}
+                    onChange={(e) => setNewCombatant(prev => ({ ...prev, customADP: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    placeholder={defaults.adp.toString()}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    PDP (Default: {defaults.pdp})
+                  </label>
+                  <input
+                    type="number"
+                    value={newCombatant.customPDP}
+                    onChange={(e) => setNewCombatant(prev => ({ ...prev, customPDP: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    placeholder={defaults.pdp.toString()}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Armor</label>
+                  <select
+                    value={newCombatant.armor}
+                    onChange={(e) => setNewCombatant(prev => ({ ...prev, armor: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  >
+                    {armorTypes.map(armor => (
+                      <option key={armor} value={armor}>{armor === '0' ? 'None' : armor}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {newCombatant.category === 'pa' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Reaction Focus</label>
+                      <input
+                        type="number"
+                        value={newCombatant.reactionFocus}
+                        onChange={(e) => setNewCombatant(prev => ({ ...prev, reactionFocus: parseInt(e.target.value) || 0 }))}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                        min="0"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Spirit Points</label>
+                      <input
+                        type="number"
+                        value={newCombatant.spiritPoints}
+                        onChange={(e) => setNewCombatant(prev => ({ ...prev, spiritPoints: parseInt(e.target.value) || 0 }))}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                        min="0"
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <button
+                onClick={addCombatant}
+                className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors"
+              >
+                Add Combatant
+              </button>
+            </>
+          )}
         </div>
       </div>
 
