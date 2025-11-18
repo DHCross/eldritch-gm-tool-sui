@@ -396,6 +396,9 @@ export default function ManualCharacterBuilder() {
                 <div>Focuses: <span className="font-semibold">{cpSpent.focuses}</span></div>
                 <div>Advantages: <span className="font-semibold">{cpSpent.advantages}</span></div>
               </div>
+              <p className="text-xs text-gray-500 mt-2 italic">
+                Focus bonuses also spend CP unless they are part of the starting race/class package.
+              </p>
             </div>
           )}
 
