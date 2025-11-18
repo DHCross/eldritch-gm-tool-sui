@@ -581,7 +581,10 @@ export default function CharacterGenerator() {
                     <li><strong>Spent on Advantages:</strong> {lastCharacter.spent.advantages}</li>
                     <li><strong>Total CP Spent from Budget:</strong> {lastCharacter.spent.total}</li>
                   </ul>
-                  <p className="text-xs text-gray-500 mt-2 italic">This shows CPs spent from the customization budget (10 CP + Level Bonus). Free racial/class minimums cost 0 CP.</p>
+                  <p className="text-xs text-gray-500 mt-2 italic">
+                    This shows CPs spent from the customization budget (10 CP + Level Bonus). Free racial/class minimums cost 0 CP.
+                    Focus bonuses also draw from the CP budget unless granted by your starting race/class combination.
+                  </p>
                 </div>
               )}
               <div className="lg:col-span-2">
