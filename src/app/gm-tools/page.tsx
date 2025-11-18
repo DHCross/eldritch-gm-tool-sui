@@ -51,7 +51,7 @@ const TOOL_SECTIONS: ToolSection[] = [
     links: [
       {
         href: '/character-generator?from=gm-tools',
-        label: 'Character Generator →'
+        label: 'Random PC Generator →'
       },
       {
         href: '/roster?from=gm-tools',
