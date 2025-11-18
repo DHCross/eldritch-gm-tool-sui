@@ -173,7 +173,8 @@ export function generateRandomName(
 ): { firstName: string; familyName?: string; culture: NameCulture } {
 
   // Prioritize explicit culture selection, otherwise fall back to race-based defaults
-  const actualCulture = culture ?? (customRace && RACE_CULTURE_MAP[customRace]) ?? 'Fantasy';
+  const mappedCulture = customRace ? RACE_CULTURE_MAP[customRace] : undefined;
+  const actualCulture: NameCulture = culture ?? mappedCulture ?? 'Fantasy';
   const nameSet = NAME_SETS[actualCulture];
 
   if (!nameSet) {
