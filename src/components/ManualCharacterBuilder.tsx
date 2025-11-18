@@ -294,9 +294,13 @@ export default function ManualCharacterBuilder() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10">
+    <div className="max-w-6xl mx-auto px-4 py-10 pb-32">
       {character && (
-        <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-80 z-40">
+        <div
+          className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-80 z-40"
+          role="region"
+          aria-label="CP Budget Summary"
+        >
           <div className="bg-white/95 backdrop-blur border border-gray-200 shadow-xl rounded-2xl p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="text-xs uppercase tracking-wide text-gray-500">CP Budget</div>
