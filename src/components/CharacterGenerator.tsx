@@ -93,11 +93,12 @@ export default function CharacterGenerator() {
         character.race,
         character.class,
         characterGender,
-        5
+        8,
+        nameCulture
       );
       setSuggestedNames(suggestions);
     }
-  }, [character?.race, character?.class, characterGender]);
+  }, [character?.race, character?.class, characterGender, nameCulture]);
 
   const [lastCharacter, setLastCharacter] = useState<{
     ch: Character;
