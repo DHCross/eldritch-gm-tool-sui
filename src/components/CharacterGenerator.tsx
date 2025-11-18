@@ -309,7 +309,7 @@ export default function CharacterGenerator() {
       <div className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
         <header className="mb-6 sm:mb-8 text-center">
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Eldritch RPG 2nd Edition</h1>
-          <p className="text-gray-600">Character Generator — <span className="font-semibold">Balanced · Specialist · Rookie</span></p>
+          <p className="text-gray-600">Random PC Generator — <span className="font-semibold">Balanced · Specialist · Rookie</span></p>
         </header>
 
         {/* Controls */}

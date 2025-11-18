@@ -295,9 +295,28 @@ export default function ManualCharacterBuilder() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
+      {character && (
+        <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-80 z-40">
+          <div className="bg-white/95 backdrop-blur border border-gray-200 shadow-xl rounded-2xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="text-xs uppercase tracking-wide text-gray-500">CP Budget</div>
+              <div className="font-semibold text-gray-900">{cpBudget}</div>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="text-xs uppercase tracking-wide text-gray-500">CP Spent</div>
+              <div className="font-semibold text-gray-900">{cpSpentFromBudget}</div>
+            </div>
+            <div className={`flex items-center justify-between ${cpRemaining < 0 ? 'text-red-700' : 'text-green-700'}`}>
+              <div className="text-xs uppercase tracking-wide">CP Remaining</div>
+              <div className="text-lg font-extrabold">{cpRemaining}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Manual Character Builder</h1>
+          <h1 className="text-3xl font-bold">Standard Character Generator</h1>
           <p className="text-sm text-gray-600">Plan every CP by hand to create bespoke heroes. Choose race, class, and level, then allocate abilities, specialties, and focuses within your budget.</p>
         </div>
         <button
