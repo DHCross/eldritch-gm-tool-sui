@@ -171,7 +171,7 @@ export default function StatBlockParser() {
                   ? 'Paste game content here...\n\nExamples:\n• **Goblin Warrior** AC 15, HP 12, disposition neutral...\n• *Fireball* Path: Elementalism, Rank: d6, Tier: Common...\n• **Sword +1** A magical blade with enhanced sharpness...'
                   : 'Paste document text with multiple entries here...\n\nThe parser will automatically identify and analyze:\n• Stat blocks (NPCs & monsters)\n• Spells with paths and effects\n• Magic items with properties\n\nWhile filtering out headers, narrative text, and equipment lists.'
               }
-              className="w-full h-64 border border-gray-300 rounded-md px-3 py-2 font-mono text-sm"
+              className="w-full h-64 border border-gray-300 rounded-md px-3 py-2 font-mono text-sm bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
