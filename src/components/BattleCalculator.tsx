@@ -588,7 +588,7 @@ export default function BattleCalculator() {
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       {/* Import Options UI */}
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+      <div className="bg-white text-gray-900 rounded-lg shadow-lg p-6 mb-6">
         <h3 className="text-lg font-bold mb-4">Import Combatants</h3>
         <div className="flex flex-wrap gap-4">
           <button
@@ -620,7 +620,7 @@ export default function BattleCalculator() {
       </div>
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Battle Phase Calculator
+          Battle Phase Tracker
         </h1>
         <p className="text-gray-600">
           Manage combat initiative and health tracking for Eldritch RPG 2nd Edition
@@ -628,7 +628,7 @@ export default function BattleCalculator() {
       </div>
 
       {/* Controls */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white text-gray-900 rounded-lg shadow-lg p-6">
         <div className="flex flex-wrap gap-4 mb-6">
           <button
             onClick={handleRestoreAllADP}
@@ -865,7 +865,7 @@ export default function BattleCalculator() {
 
       {/* Active Combatants */}
       {sortedCombatants.length > 0 && (
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-white text-gray-900 rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold mb-4">Active Combatants (Initiative Order)</h2>
 
           <div className="space-y-4">
@@ -1043,7 +1043,7 @@ export default function BattleCalculator() {
 
       {/* Defeated Combatants */}
       {battleState.defeatedCombatants.length > 0 && (
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-white text-gray-900 rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold mb-4">Defeated Combatants</h2>
           <div className="space-y-2">
             {battleState.defeatedCombatants.map(combatant => (
