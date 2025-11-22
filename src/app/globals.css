@@ -2,7 +2,8 @@
 
 :root {
   --background: #0d0a12;
-  --foreground: #E6E6E6;
+  --foreground: #f1f2f4;
+  --panel: rgba(20, 15, 29, 0.9);
 }
 
 @theme inline {
@@ -14,8 +15,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0b0811;
+    --foreground: #f6f7fb;
   }
 }
 
@@ -24,7 +25,36 @@ html {
 }
 
 body {
-  background: var(--background);
+  background: radial-gradient(circle at 20% 20%, rgba(184, 132, 243, 0.12), transparent 35%),
+    radial-gradient(circle at 80% 0%, rgba(127, 222, 115, 0.12), transparent 30%),
+    linear-gradient(180deg, rgba(12, 9, 18, 0.9), rgba(9, 7, 14, 0.95)),
+    var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.7;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: #7fde73;
+  text-decoration: none;
+  font-weight: 600;
+  text-underline-offset: 4px;
+}
+
+a:hover,
+a:focus-visible {
+  color: #b884f3;
+  text-decoration: underline;
+}
+
+p,
+li {
+  color: var(--foreground);
+}
+
+::selection {
+  background: rgba(184, 132, 243, 0.35);
+  color: #ffffff;
 }
