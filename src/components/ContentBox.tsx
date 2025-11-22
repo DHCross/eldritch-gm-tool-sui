@@ -11,11 +11,13 @@ const ContentBox: React.FC<ContentBoxProps> = ({ children, className }) => {
   return (
     <div
       className={`
-        bg-charcoal-violet/50
-        border border-muted-eldritch-green/40
-        shadow-[0_0_6px_rgba(127,222,115,0.15)]
-        rounded-lg
+        bg-[var(--panel)]
+        border border-muted-eldritch-green/35
+        shadow-[0_14px_40px_rgba(0,0,0,0.35)]
+        rounded-xl
         p-6
+        text-off-white
+        backdrop-blur-md
         ${className || ''}
       `}
     >

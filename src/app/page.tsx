@@ -146,8 +146,8 @@ export default function Home() {
     <div className="container mx-auto px-4 py-8">
       <header className="mb-12">
         <ContentBox>
-          <div className="flex flex-col items-center gap-4 text-center md:flex-row md:justify-center md:gap-6 md:text-left">
-            <div className="flex items-center justify-center gap-4">
+          <div className="flex flex-col items-center gap-4 text-center md:flex-row md:justify-center md:gap-8 md:text-left">
+            <div className="flex items-center justify-center gap-3 rounded-2xl bg-charcoal-violet/80 px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.35)] md:gap-5">
               <Image
                 src="/eldritch-logo.png"
                 alt="Eldritch RPG logo"
@@ -155,23 +155,29 @@ export default function Home() {
                 height={600}
                 sizes="(min-width: 768px) 220px, 160px"
                 priority
-                className="h-auto w-28 max-w-[220px] md:w-[220px]"
+                className="h-auto w-28 max-w-[220px] drop-shadow-[0_0_18px_rgba(184,132,243,0.45)] md:w-[220px]"
               />
-              <Image
-                src="/hoskbrew-logo.png"
-                alt="Hoskbrew logo"
-                width={600}
-                height={600}
-                sizes="(min-width: 768px) 220px, 160px"
-                priority
-                className="h-auto w-24 max-w-[200px] md:w-[200px]"
-              />
+              <div className="flex flex-col items-center justify-center gap-1">
+                <Image
+                  src="/hoskbrew-logo.png"
+                  alt="Hoskbrew logo"
+                  width={600}
+                  height={600}
+                  sizes="(min-width: 768px) 200px, 140px"
+                  priority
+                  className="h-auto w-24 max-w-[200px] drop-shadow-[0_0_16px_rgba(127,222,115,0.4)] md:w-[200px]"
+                />
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-eldritch-green/90 md:text-sm">
+                  Powered by Hoskbrew
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-4xl font-bold text-off-white mb-2 md:mb-4">
+            <div className="max-w-xl space-y-2">
+              <p className="text-sm uppercase tracking-[0.32em] text-muted-eldritch-green/80">Eldritch Suite</p>
+              <h1 className="text-4xl font-bold text-off-white md:text-5xl">
                 Eldritch RPG GM Tools Suite
               </h1>
-              <p className="text-xl text-off-white/80">
+              <p className="text-lg text-off-white/85 md:text-xl">
                 Essential tools for Game Masters running Eldritch RPG campaigns
               </p>
             </div>
