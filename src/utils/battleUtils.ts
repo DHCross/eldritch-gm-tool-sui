@@ -303,7 +303,7 @@ export function exportBattleToMarkdown(
 ): string {
   const sortedCombatants = sortCombatants(combatants);
 
-  let markdown = `# Battle Phase Calculator - Round ${round}\n\n`;
+  let markdown = `# Battle Phase Tracker - Round ${round}\n\n`;
 
   if (sortedCombatants.length > 0) {
     markdown += `## Active Combatants (Initiative Order)\n\n`;
