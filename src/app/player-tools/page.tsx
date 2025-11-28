@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import ContentBox from '@/components/ContentBox';
 
 const playerResources = [
   {
@@ -33,10 +34,10 @@ const playerResources = [
 
 export default function PlayerToolsPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 text-off-white">
       <header className="text-center mb-10">
-        <h1 className="text-3xl font-bold text-gray-900 mb-3">Player Tools</h1>
-        <p className="text-lg text-gray-600">
+        <h1 className="text-3xl font-bold text-off-white mb-3">Player Tools</h1>
+        <p className="text-lg text-off-white/80">
           Stay prepared for every Eldritch RPG adventure with quick access to character utilities, spell references, and
           campaign coordination aids.
         </p>
@@ -44,30 +45,34 @@ export default function PlayerToolsPage() {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 mb-12">
         {playerResources.map(section => (
-          <div key={section.title} className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-3">{section.title}</h2>
-            <p className="text-gray-600 mb-4">{section.description}</p>
-            <div className="space-y-2">
+          <ContentBox key={section.title} className="flex flex-col h-full">
+            <h2 className="text-xl font-bold text-off-white mb-3">{section.title}</h2>
+            <p className="text-off-white/80 mb-4 flex-grow">{section.description}</p>
+            <div className="space-y-2 mt-auto">
               {section.links.map(link => (
-                <Link key={link.href} href={link.href} className="block text-blue-600 hover:text-blue-800 font-medium">
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="block text-muted-eldritch-green hover:text-soft-amethyst font-medium transition-colors"
+                >
                   {link.label}
                 </Link>
               ))}
             </div>
-          </div>
+          </ContentBox>
         ))}
       </div>
 
       <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
         <Link
           href="/"
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors"
+          className="inline-flex items-center justify-center rounded-md bg-btn-bg px-5 py-3 text-sm font-semibold text-off-white shadow-md transition-colors hover:bg-btn-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-soft-amethyst"
         >
           Back to Home
         </Link>
         <Link
           href="/gm-tools"
-          className="bg-white border border-blue-200 text-blue-700 hover:text-blue-900 hover:border-blue-300 font-bold py-2 px-4 rounded transition-colors shadow-sm"
+          className="inline-flex items-center justify-center rounded-md border border-muted-eldritch-green/50 bg-charcoal-violet/70 px-5 py-3 text-sm font-semibold text-muted-eldritch-green shadow-sm transition-colors hover:border-muted-eldritch-green hover:text-off-white focus:outline-none focus-visible:ring-2 focus-visible:ring-muted-eldritch-green"
         >
           Explore GM Tools
         </Link>
