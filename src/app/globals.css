@@ -50,11 +50,6 @@ html {
     text-decoration: underline;
   }
 
-  p,
-  li {
-    color: var(--foreground);
-  }
-
   ::selection {
     background: rgba(184, 132, 243, 0.35);
     color: #ffffff;
