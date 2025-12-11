@@ -2,8 +2,11 @@
 
 import { useState, useCallback } from 'react';
 import { documentAnalyzer, generateAutoCorrections, AnalysisResult, DocumentAnalysis, ComplianceIssue } from '../utils/documentAnalyzer';
+import convertRevisedTo2E, { ConvertedEntity } from '../utils/revisedConverter';
+import { RevisedEntity } from '../types/revisedEntity';
+import exporter from '../utils/exporters/htmlExporter';
 
-type ParseMode = 'single' | 'batch';
+type ParseMode = 'single' | 'batch' | 'revised';
 
 interface CorrectionSuggestion {
   original: string;
@@ -19,12 +22,43 @@ export default function StatBlockParser() {
   const [selectedEntry, setSelectedEntry] = useState<AnalysisResult | null>(null);
   const [autoCorrections, setAutoCorrections] = useState<CorrectionSuggestion[]>([]);
   const [showCorrections, setShowCorrections] = useState(false);
+  const [revisedConversion, setRevisedConversion] = useState<ConvertedEntity | null>(null);
 
   const analyzeText = useCallback(async () => {
     if (!inputText.trim()) return;
 
     setIsAnalyzing(true);
+    setRevisedConversion(null);
     try {
+      // Detect if input is Revised Edition JSON (or force if in revised mode)
+      const trimmed = inputText.trim();
+      const looksLikeJSON = trimmed.startsWith('{') && trimmed.endsWith('}');
+      
+      if (mode === 'revised' || looksLikeJSON) {
+        try {
+          const parsed = JSON.parse(trimmed) as RevisedEntity;
+          if (parsed.name && parsed.kind && Array.isArray(parsed.abilities)) {
+            const converted = convertRevisedTo2E(parsed);
+            setRevisedConversion(converted);
+            setAnalysis(null);
+            setAutoCorrections([]);
+            setIsAnalyzing(false);
+            return;
+          } else if (mode === 'revised') {
+            alert('Invalid Revised Edition JSON. Expected: { name, kind, abilities[] }');
+            setIsAnalyzing(false);
+            return;
+          }
+        } catch (e) {
+          if (mode === 'revised') {
+            alert('Invalid JSON format. Please check the syntax.');
+            setIsAnalyzing(false);
+            return;
+          }
+          // Not valid JSON, fall through to normal analysis
+        }
+      }
+
       // Simulate async processing for large documents
       await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -49,7 +83,7 @@ export default function StatBlockParser() {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [inputText]);
+  }, [inputText, mode]);
 
   const applyAutoCorrection = (correction: CorrectionSuggestion) => {
     const newText = inputText.replace(correction.original, correction.corrected);
@@ -155,13 +189,23 @@ export default function StatBlockParser() {
             >
               Batch Processing
             </button>
+            <button
+              onClick={() => setMode('revised')}
+              className={`px-4 py-2 rounded ${
+                mode === 'revised'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              Convert from Revised
+            </button>
           </div>
         </div>
 
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {mode === 'single' ? 'Enter game content:' : 'Enter document text (multiple entries):'}
+              {mode === 'single' ? 'Enter game content:' : mode === 'batch' ? 'Enter document text (multiple entries):' : 'Paste Revised Edition JSON:'}
             </label>
             <textarea
               value={inputText}
@@ -169,7 +213,9 @@ export default function StatBlockParser() {
               placeholder={
                 mode === 'single'
                   ? 'Paste game content here...\n\nExamples:\n• **Goblin Warrior** AC 15, HP 12, disposition neutral...\n• *Fireball* Path: Elementalism, Rank: d6, Tier: Common...\n• **Sword +1** A magical blade with enhanced sharpness...'
-                  : 'Paste document text with multiple entries here...\n\nThe parser will automatically identify and analyze:\n• Stat blocks (NPCs & monsters)\n• Spells with paths and effects\n• Magic items with properties\n\nWhile filtering out headers, narrative text, and equipment lists.'
+                  : mode === 'batch'
+                  ? 'Paste document text with multiple entries here...\n\nThe parser will automatically identify and analyze:\n• Stat blocks (NPCs & monsters)\n• Spells with paths and effects\n• Magic items with properties\n\nWhile filtering out headers, narrative text, and equipment lists.'
+                  : '{\n  "name": "Cultist Acolyte",\n  "kind": "NPC",\n  "abilities": [\n    { "name": "Perception", "tier": "basic", "die_rank": "d6" },\n    { "name": "Melee Weapons", "tier": "basic", "die_rank": "d6" },\n    { "name": "Agility", "tier": "basic", "die_rank": "d6" },\n    { "name": "Fortitude", "tier": "basic", "die_rank": "d6" },\n    { "name": "Willpower", "tier": "basic", "die_rank": "d6" },\n    { "name": "Speed", "tier": "mastery", "die_rank": "d6" }\n  ]\n}'
               }
               className="w-full h-64 border border-gray-300 rounded-md px-3 py-2 font-mono text-sm"
             />
@@ -179,12 +225,12 @@ export default function StatBlockParser() {
             <button
               onClick={analyzeText}
               disabled={!inputText.trim() || isAnalyzing}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded"
+              className={`${mode === 'revised' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-blue-600 hover:bg-blue-700'} disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded`}
             >
-              {isAnalyzing ? 'Analyzing...' : 'Analyze Text'}
+              {isAnalyzing ? 'Processing...' : mode === 'revised' ? 'Convert to 2nd Edition' : 'Analyze Text'}
             </button>
 
-            {autoCorrections.length > 0 && (
+            {autoCorrections.length > 0 && mode !== 'revised' && (
               <button
                 onClick={() => setShowCorrections(!showCorrections)}
                 className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
@@ -193,7 +239,7 @@ export default function StatBlockParser() {
               </button>
             )}
 
-            {analysis && (
+            {analysis && mode !== 'revised' && (
               <button
                 onClick={exportResults}
                 className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
@@ -204,6 +250,71 @@ export default function StatBlockParser() {
           </div>
         </div>
       </div>
+
+      {/* Revised Edition Conversion Result */}
+      {revisedConversion && (
+        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-indigo-800">Revised → 2nd Edition Conversion</h3>
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  const html = exporter.npcToHTML(revisedConversion as any);
+                  const wrapped = exporter.wrapForWord(html);
+                  try {
+                    if ((navigator as any).clipboard && (window as any).ClipboardItem) {
+                      const blob = new Blob([wrapped], { type: 'text/html' });
+                      const item = new (window as any).ClipboardItem({ 'text/html': blob });
+                      await (navigator as any).clipboard.write([item]);
+                      alert('HTML copied to clipboard');
+                    } else {
+                      await navigator.clipboard.writeText(JSON.stringify(revisedConversion, null, 2));
+                      alert('Copied as JSON (HTML clipboard not available)');
+                    }
+                  } catch (e) {
+                    console.error(e);
+                    alert('Failed to copy');
+                  }
+                }}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded text-sm"
+              >
+                Copy HTML
+              </button>
+              <button
+                onClick={async () => {
+                  await navigator.clipboard.writeText(JSON.stringify(revisedConversion, null, 2));
+                  alert('JSON copied to clipboard');
+                }}
+                className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm"
+              >
+                Copy JSON
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-indigo-600">{revisedConversion.active_defense_pool}</div>
+              <div className="text-sm text-gray-600">Active Defense Pool</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-indigo-600">{revisedConversion.passive_defense_pool}</div>
+              <div className="text-sm text-gray-600">Passive Defense Pool</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-indigo-600">{revisedConversion.spirit_points}</div>
+              <div className="text-sm text-gray-600">Spirit Points</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-indigo-600">{revisedConversion.initiative_phase}</div>
+              <div className="text-sm text-gray-600">Initiative Phase</div>
+            </div>
+          </div>
+          <details>
+            <summary className="cursor-pointer font-medium">Full Converted Data</summary>
+            <pre className="whitespace-pre-wrap mt-2 text-xs bg-white p-3 rounded border">{JSON.stringify(revisedConversion, null, 2)}</pre>
+          </details>
+        </div>
+      )}
 
       {/* Auto-Corrections Panel */}
       {showCorrections && autoCorrections.length > 0 && (

@@ -2,6 +2,9 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../Purity and Parity Suite"
 		}
 	],
 	"settings": {}

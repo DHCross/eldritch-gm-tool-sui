@@ -15,6 +15,7 @@ import {
   exportNPCToMarkdown,
   exportNPCGroupToMarkdown
 } from '../utils/npcUtils';
+import exporter from '../utils/exporters/htmlExporter';
 
 export default function NPCGenerator() {
   const [npcs, setNpcs] = useState<QuickNPC[]>([]);
@@ -76,6 +77,26 @@ export default function NPCGenerator() {
     const markdown = exportNPCToMarkdown(npc);
     navigator.clipboard.writeText(markdown);
     alert('NPC exported to clipboard!');
+  };
+
+  const handleExportSingleHTML = async (npc: QuickNPC) => {
+    try {
+      const html = exporter.npcToHTML(npc as any);
+      const wrapped = exporter.wrapForWord(html);
+      if ((navigator as any).clipboard && (window as any).ClipboardItem) {
+        const blob = new Blob([wrapped], { type: 'text/html' });
+        const item: any = new (window as any).ClipboardItem({ 'text/html': blob, 'text/plain': new Blob([exportNPCToMarkdown(npc)], { type: 'text/plain' }) });
+        await (navigator as any).clipboard.write([item]);
+        alert('NPC HTML copied to clipboard');
+      } else {
+        // fallback
+        await navigator.clipboard.writeText(exportNPCToMarkdown(npc));
+        alert('HTML clipboard not supported — copied Markdown instead');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Failed to copy HTML');
+    }
   };
 
   const handleExportGroup = () => {
@@ -372,6 +393,13 @@ export default function NPCGenerator() {
                     title="Export to Markdown"
                   >
                     Export
+                  </button>
+                  <button
+                    onClick={() => handleExportSingleHTML(npc)}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                    title="Copy as HTML"
+                  >
+                    Copy HTML
                   </button>
                   <button
                     onClick={() => handleRemoveNPC(npc.id)}

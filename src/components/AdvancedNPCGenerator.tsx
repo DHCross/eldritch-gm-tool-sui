@@ -13,6 +13,7 @@ import {
   createDetailedNPCForBattle
 } from '../utils/npcUtils';
 import { saveNPCToRoster, getFolderList, createCustomFolder } from '../utils/rosterUtils';
+import exporter from '../utils/exporters/htmlExporter';
 
 export default function AdvancedNPCGenerator() {
   const [npcs, setNpcs] = useState<DetailedNPC[]>([]);
@@ -47,6 +48,25 @@ export default function AdvancedNPCGenerator() {
     const markdown = exportDetailedNPCToMarkdown(npc);
     navigator.clipboard.writeText(markdown);
     alert('Detailed NPC exported to clipboard!');
+  };
+
+  const handleExportHTML = async (npc: DetailedNPC) => {
+    try {
+      const html = exporter.npcToHTML(npc as any);
+      const wrapped = exporter.wrapForWord(html);
+      if ((navigator as any).clipboard && (window as any).ClipboardItem) {
+        const blob = new Blob([wrapped], { type: 'text/html' });
+        const item: any = new (window as any).ClipboardItem({ 'text/html': blob, 'text/plain': new Blob([exportDetailedNPCToMarkdown(npc)], { type: 'text/plain' }) });
+        await (navigator as any).clipboard.write([item]);
+        alert('Detailed NPC HTML copied to clipboard');
+      } else {
+        await navigator.clipboard.writeText(exportDetailedNPCToMarkdown(npc));
+        alert('HTML clipboard not supported — copied Markdown instead');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Failed to copy HTML');
+    }
   };
 
   const handleAddToBattle = (npc: DetailedNPC) => {
@@ -233,6 +253,13 @@ export default function AdvancedNPCGenerator() {
                     title="Export to Markdown"
                   >
                     Export
+                  </button>
+                  <button
+                    onClick={() => handleExportHTML(npc)}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                    title="Copy as HTML"
+                  >
+                    Copy HTML
                   </button>
                   <button
                     onClick={() => handleSaveToRoster(npc)}

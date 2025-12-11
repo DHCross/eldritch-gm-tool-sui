@@ -31,6 +31,7 @@ import {
   savePartyMembership,
   getPartyMemberships
 } from '../utils/partyStorage';
+import exporter from '../utils/exporters/htmlExporter';
 import {
   generateRandomName,
   getNameSuggestionsForCharacter,
@@ -465,6 +466,31 @@ export default function CharacterGenerator() {
                 >
                   Export MD
                 </button>
+                        <button
+                          onClick={() => {
+                            const md = getFullMarkdown();
+                            if (!md) return showAlert('Generate a character first!');
+                            try {
+                              const html = exporter.pcToHTML({ raw: md, name: `${character?.race} ${character?.class}` });
+                              const wrapped = exporter.wrapForWord(html);
+                              if ((navigator as any).clipboard && (window as any).ClipboardItem) {
+                                const blob = new Blob([wrapped], { type: 'text/html' });
+                                const item: any = new (window as any).ClipboardItem({ 'text/html': blob, 'text/plain': new Blob([md], { type: 'text/plain' }) });
+                                (navigator as any).clipboard.write([item]);
+                                showAlert('Character HTML copied to clipboard');
+                              } else {
+                                navigator.clipboard.writeText(md);
+                                showAlert('HTML clipboard not supported — copied Markdown instead');
+                              }
+                            } catch (e) {
+                              console.error(e);
+                              showAlert('Failed to copy HTML');
+                            }
+                          }}
+                          className="rounded-full bg-white hover:bg-gray-100 text-blue-600 font-semibold py-2.5 px-4 border border-blue-600 shadow"
+                        >
+                          Copy HTML
+                        </button>
                 <button
                   onClick={copyMD}
                   className="rounded-full bg-white hover:bg-gray-100 text-blue-600 font-semibold py-2.5 px-4 border border-blue-600 shadow"
