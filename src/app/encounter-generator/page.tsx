@@ -12,6 +12,7 @@ import {
 } from '../../utils/partyStorage';
 import { PartyFolder, SavedCharacter, MonsterData, PartyDefenseProfile } from '../../types/party';
 import { resolveBackTargetFromParam } from '../../utils/backNavigation';
+import ContentBox from '@/components/ContentBox';
 
 const difficultyLevels = ['Easy', 'Moderate', 'Difficult', 'Demanding', 'Formidable', 'Deadly'] as const;
 const defenseLevels = ['Practitioner', 'Competent', 'Proficient', 'Advanced', 'Elite'] as const;
@@ -530,272 +531,274 @@ function EncounterGeneratorContent() {
 
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-10 sm:px-6 lg:px-8">
-        <header className="flex items-center gap-4">
-          <Link
-            href={backTarget.href}
-            className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
-          >
-            {backTarget.label}
-          </Link>
-        </header>
+    <div className="container mx-auto px-4 py-8">
+      <ContentBox>
+        <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-10 sm:px-6 lg:px-8">
+          <header className="flex items-center gap-4">
+            <Link
+              href={backTarget.href}
+              className="inline-flex items-center gap-2 rounded-md bg-btn-bg px-4 py-2 text-sm font-semibold text-off-white shadow hover:bg-btn-hover"
+            >
+              {backTarget.label}
+            </Link>
+          </header>
 
 
-        <h1 className="text-center text-3xl font-bold tracking-tight text-emerald-400 sm:text-4xl">
-          Eldritch RPG Encounter Generator
-        </h1>
+          <h1 className="text-center text-3xl font-bold tracking-tight text-soft-amethyst sm:text-4xl">
+            Eldritch RPG Encounter Generator
+          </h1>
 
-        {/* Party Selection Section */}
-        <section className="rounded-lg border border-slate-700 bg-slate-900/70 p-6 shadow">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-emerald-300">Party Selection</h2>
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={usePartyStats}
-                onChange={(e) => setUsePartyStats(e.target.checked)}
-                className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-              />
-              <span className="text-sm text-slate-200">Use saved party stats</span>
-            </label>
-          </div>
-
-          {usePartyStats && (
-            <div className="space-y-4">
-              {/* Party Folder Selection */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-emerald-300">
-                    Select Party Folders
-                  </label>
-                  <div className="flex space-x-2">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedPartyIds(partyFolders.map(f => f.id))}
-                      className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded"
-                    >
-                      Select All
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedPartyIds([])}
-                      className="text-xs bg-slate-600 hover:bg-slate-700 text-white px-2 py-1 rounded"
-                    >
-                      Clear All
-                    </button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {partyFolders.map(folder => {
-                    const folderChars = getPartyCharacters(folder.id);
-                    return (
-                      <label key={folder.id} className="flex items-center space-x-2 p-2 bg-slate-800 rounded">
-                        <input
-                          type="checkbox"
-                          checked={selectedPartyIds.includes(folder.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedPartyIds([...selectedPartyIds, folder.id]);
-                            } else {
-                              setSelectedPartyIds(selectedPartyIds.filter(id => id !== folder.id));
-                            }
-                          }}
-                          className="rounded border-gray-300 text-emerald-600"
-                        />
-                        <div className="flex-1">
-                          <span className="text-sm text-slate-200 font-medium">
-                            {folder.name}
-                          </span>
-                          <span className="text-xs text-slate-400 ml-1">
-                            ({folder.folder_type === 'PC_party' ? 'PC' : 'NPC'}) - {folderChars.length} characters
-                          </span>
-                          {folderChars.length > 0 && (
-                            <div className="text-xs text-slate-500 mt-1">
-                              {folderChars.slice(0, 3).map(char => char.name).join(', ')}
-                              {folderChars.length > 3 && ` +${folderChars.length - 3} more`}
-                            </div>
-                          )}
-                        </div>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Individual Character Selection */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-emerald-300">
-                    Additional Individual Characters
-                  </label>
-                  <div className="flex space-x-2">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedCharacterIds(availableCharacters.map(c => c.id))}
-                      className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded"
-                    >
-                      Select All
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedCharacterIds([])}
-                      className="text-xs bg-slate-600 hover:bg-slate-700 text-white px-2 py-1 rounded"
-                    >
-                      Clear All
-                    </button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                  {availableCharacters.map(character => (
-                    <label key={character.id} className="flex items-center space-x-2 p-2 bg-slate-800 rounded">
-                      <input
-                        type="checkbox"
-                        checked={selectedCharacterIds.includes(character.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedCharacterIds([...selectedCharacterIds, character.id]);
-                          } else {
-                            setSelectedCharacterIds(selectedCharacterIds.filter(id => id !== character.id));
-                          }
-                        }}
-                        className="rounded border-gray-300 text-emerald-600"
-                      />
-                      <div className="flex-1">
-                        <span className="text-xs text-slate-200 font-medium">
-                          {character.name}
-                        </span>
-                        <span className="text-xs text-slate-400 ml-1">
-                          ({character.type})
-                        </span>
-                        <div className="text-xs text-slate-500">
-                          Level {character.level} • {character.race} {character.class}
-                        </div>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Party Stats Display */}
-              {partyDefenseProfile && (
-                <div className="mt-4 p-4 bg-slate-800 rounded-lg">
-                  <h3 className="text-lg font-semibold text-emerald-300 mb-2">Calculated Party Stats</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <span className="text-slate-400">Party Size:</span>
-                      <div className="text-emerald-400 font-bold">{partyDefenseProfile.character_count}</div>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">Defense Tier:</span>
-                      <div className="text-emerald-400 font-bold">{partyDefenseProfile.defense_tier}</div>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">Active DP:</span>
-                      <div className="text-emerald-400 font-bold">{partyDefenseProfile.total_active_dp}</div>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">Passive DP:</span>
-                      <div className="text-emerald-400 font-bold">{partyDefenseProfile.total_passive_dp}</div>
-                    </div>
-                  </div>
-                  <div className="mt-2 text-xs text-slate-500">
-                    Auto-updating manual party size and defense level settings based on calculated values.
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </section>
-
-        <section className="space-y-6">
-          <Slider
-            label="Party Size"
-            value={partySize}
-            min={1}
-            max={4}
-            onChange={setPartySize}
-            displayValue={String(partySize)}
-          />
-          <Slider
-            label="Party Defense Level"
-            value={defenseLevelIndex}
-            min={0}
-            max={defenseLevels.length - 1}
-            onChange={setDefenseLevelIndex}
-            displayValue={activeDefenseLevel}
-          />
-          <Slider
-            label="Desired Difficulty"
-            value={difficultyIndex}
-            min={0}
-            max={difficultyLevels.length - 1}
-            onChange={setDifficultyIndex}
-            displayValue={activeDifficultyLabel}
-          />
-          <Slider
-            label="Non-Medium Size Percentage"
-            value={nonMediumPercentage}
-            min={0}
-            max={100}
-            onChange={setNonMediumPercentage}
-            displayValue={`${nonMediumPercentage}%`}
-          />
-          <Slider
-            label="Non-Mundane Nature Percentage"
-            value={nonMundanePercentage}
-            min={0}
-            max={100}
-            onChange={setNonMundanePercentage}
-            displayValue={`${nonMundanePercentage}%`}
-          />
-          <Slider
-            label="Fast/Tough Creature Percentage"
-            value={specialTypePercentage}
-            min={0}
-            max={100}
-            onChange={setSpecialTypePercentage}
-            displayValue={`${specialTypePercentage}%`}
-          />
-        </section>
-
-        <section className="rounded-lg border border-slate-700 bg-slate-900/70 p-4 shadow">
-          <h2 className="text-lg font-semibold text-emerald-300">Creature Pool</h2>
-          <p className="mt-1 text-sm text-slate-300">
-            Select the threat categories to include. Currently enabled: {selectedCount}.
-          </p>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            {(Object.keys(selectedTypes) as CreatureCategory[]).map(type => (
-              <label key={type} className="flex items-center gap-3 rounded-md border border-slate-700/70 bg-slate-800/70 px-4 py-3 text-sm shadow-sm">
+          {/* Party Selection Section */}
+          <ContentBox>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-soft-amethyst">Party Selection</h2>
+              <label className="flex items-center space-x-2">
                 <input
                   type="checkbox"
-                  checked={selectedTypes[type]}
-                  onChange={() => toggleCreatureType(type)}
-                  className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-emerald-500 focus:ring-emerald-500"
+                  checked={usePartyStats}
+                  onChange={(e) => setUsePartyStats(e.target.checked)}
+                  className="rounded border-gray-300 text-soft-amethyst focus:ring-soft-amethyst"
                 />
-                <span className="font-medium text-slate-200">{type}</span>
+                <span className="text-sm text-off-white/80">Use saved party stats</span>
               </label>
-            ))}
+            </div>
+
+            {usePartyStats && (
+              <div className="space-y-4">
+                {/* Party Folder Selection */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-medium text-soft-amethyst">
+                      Select Party Folders
+                    </label>
+                    <div className="flex space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPartyIds(partyFolders.map(f => f.id))}
+                        className="text-xs bg-btn-bg hover:bg-btn-hover text-off-white px-2 py-1 rounded"
+                      >
+                        Select All
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPartyIds([])}
+                        className="text-xs bg-gray-600 hover:bg-gray-700 text-off-white px-2 py-1 rounded"
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {partyFolders.map(folder => {
+                      const folderChars = getPartyCharacters(folder.id);
+                      return (
+                        <label key={folder.id} className="flex items-center space-x-2 p-2 bg-charcoal-violet/50 rounded">
+                          <input
+                            type="checkbox"
+                            checked={selectedPartyIds.includes(folder.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedPartyIds([...selectedPartyIds, folder.id]);
+                              } else {
+                                setSelectedPartyIds(selectedPartyIds.filter(id => id !== folder.id));
+                              }
+                            }}
+                            className="rounded border-gray-300 text-soft-amethyst"
+                          />
+                          <div className="flex-1">
+                            <span className="text-sm text-off-white/80 font-medium">
+                              {folder.name}
+                            </span>
+                            <span className="text-xs text-off-white/60 ml-1">
+                              ({folder.folder_type === 'PC_party' ? 'PC' : 'NPC'}) - {folderChars.length} characters
+                            </span>
+                            {folderChars.length > 0 && (
+                              <div className="text-xs text-off-white/50 mt-1">
+                                {folderChars.slice(0, 3).map(char => char.name).join(', ')}
+                                {folderChars.length > 3 && ` +${folderChars.length - 3} more`}
+                              </div>
+                            )}
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Individual Character Selection */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-medium text-soft-amethyst">
+                      Additional Individual Characters
+                    </label>
+                    <div className="flex space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCharacterIds(availableCharacters.map(c => c.id))}
+                        className="text-xs bg-btn-bg hover:bg-btn-hover text-off-white px-2 py-1 rounded"
+                      >
+                        Select All
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCharacterIds([])}
+                        className="text-xs bg-gray-600 hover:bg-gray-700 text-off-white px-2 py-1 rounded"
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {availableCharacters.map(character => (
+                      <label key={character.id} className="flex items-center space-x-2 p-2 bg-charcoal-violet/50 rounded">
+                        <input
+                          type="checkbox"
+                          checked={selectedCharacterIds.includes(character.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedCharacterIds([...selectedCharacterIds, character.id]);
+                            } else {
+                              setSelectedCharacterIds(selectedCharacterIds.filter(id => id !== character.id));
+                            }
+                          }}
+                          className="rounded border-gray-300 text-soft-amethyst"
+                        />
+                        <div className="flex-1">
+                          <span className="text-xs text-off-white/80 font-medium">
+                            {character.name}
+                          </span>
+                          <span className="text-xs text-off-white/60 ml-1">
+                            ({character.type})
+                          </span>
+                          <div className="text-xs text-off-white/50">
+                            Level {character.level} • {character.race} {character.class}
+                          </div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Party Stats Display */}
+                {partyDefenseProfile && (
+                  <div className="mt-4 p-4 bg-charcoal-violet/50 rounded-lg">
+                    <h3 className="text-lg font-semibold text-soft-amethyst mb-2">Calculated Party Stats</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <span className="text-off-white/60">Party Size:</span>
+                        <div className="text-muted-eldritch-green font-bold">{partyDefenseProfile.character_count}</div>
+                      </div>
+                      <div>
+                        <span className="text-off-white/60">Defense Tier:</span>
+                        <div className="text-muted-eldritch-green font-bold">{partyDefenseProfile.defense_tier}</div>
+                      </div>
+                      <div>
+                        <span className="text-off-white/60">Active DP:</span>
+                        <div className="text-muted-eldritch-green font-bold">{partyDefenseProfile.total_active_dp}</div>
+                      </div>
+                      <div>
+                        <span className="text-off-white/60">Passive DP:</span>
+                        <div className="text-muted-eldritch-green font-bold">{partyDefenseProfile.total_passive_dp}</div>
+                      </div>
+                    </div>
+                    <div className="mt-2 text-xs text-off-white/50">
+                      Auto-updating manual party size and defense level settings based on calculated values.
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </ContentBox>
+
+          <section className="space-y-6">
+            <Slider
+              label="Party Size"
+              value={partySize}
+              min={1}
+              max={4}
+              onChange={setPartySize}
+              displayValue={String(partySize)}
+            />
+            <Slider
+              label="Party Defense Level"
+              value={defenseLevelIndex}
+              min={0}
+              max={defenseLevels.length - 1}
+              onChange={setDefenseLevelIndex}
+              displayValue={activeDefenseLevel}
+            />
+            <Slider
+              label="Desired Difficulty"
+              value={difficultyIndex}
+              min={0}
+              max={difficultyLevels.length - 1}
+              onChange={setDifficultyIndex}
+              displayValue={activeDifficultyLabel}
+            />
+            <Slider
+              label="Non-Medium Size Percentage"
+              value={nonMediumPercentage}
+              min={0}
+              max={100}
+              onChange={setNonMediumPercentage}
+              displayValue={`${nonMediumPercentage}%`}
+            />
+            <Slider
+              label="Non-Mundane Nature Percentage"
+              value={nonMundanePercentage}
+              min={0}
+              max={100}
+              onChange={setNonMundanePercentage}
+              displayValue={`${nonMundanePercentage}%`}
+            />
+            <Slider
+              label="Fast/Tough Creature Percentage"
+              value={specialTypePercentage}
+              min={0}
+              max={100}
+              onChange={setSpecialTypePercentage}
+              displayValue={`${specialTypePercentage}%`}
+            />
+          </section>
+
+          <ContentBox>
+            <h2 className="text-lg font-semibold text-soft-amethyst">Creature Pool</h2>
+            <p className="mt-1 text-sm text-off-white/80">
+              Select the threat categories to include. Currently enabled: {selectedCount}.
+            </p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              {(Object.keys(selectedTypes) as CreatureCategory[]).map(type => (
+                <label key={type} className="flex items-center gap-3 rounded-md border border-muted-eldritch-green/40 bg-charcoal-violet/50 px-4 py-3 text-sm shadow-sm">
+                  <input
+                    type="checkbox"
+                    checked={selectedTypes[type]}
+                    onChange={() => toggleCreatureType(type)}
+                    className="h-4 w-4 rounded border-muted-eldritch-green/60 bg-charcoal-violet text-soft-amethyst focus:ring-soft-amethyst"
+                  />
+                  <span className="font-medium text-off-white/80">{type}</span>
+                </label>
+              ))}
+            </div>
+          </ContentBox>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <button
+              type="button"
+              onClick={handleGenerate}
+              className="inline-flex items-center justify-center rounded-md bg-btn-bg px-5 py-3 text-base font-semibold text-off-white shadow hover:bg-btn-hover"
+            >
+              Generate Encounter
+            </button>
+            <span className="text-sm text-off-white/60">
+              Tips: adjust sliders, then regenerate for new results.
+            </span>
           </div>
-        </section>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <button
-            type="button"
-            onClick={handleGenerate}
-            className="inline-flex items-center justify-center rounded-md bg-emerald-600 px-5 py-3 text-base font-semibold text-white shadow hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
-          >
-            Generate Encounter
-          </button>
-          <span className="text-sm text-slate-400">
-            Tips: adjust sliders, then regenerate for new results.
-          </span>
+          <pre className="min-h-[12rem] whitespace-pre-wrap rounded-lg border border-muted-eldritch-green/40 bg-charcoal-violet/50 p-6 text-sm text-off-white shadow-inner">
+            {encounterOutput || 'Encounter details will appear here. Adjust settings and generate to begin.'}
+          </pre>
         </div>
-
-        <pre className="min-h-[12rem] whitespace-pre-wrap rounded-lg border border-emerald-700/50 bg-slate-900/80 p-6 text-sm text-slate-100 shadow-inner">
-          {encounterOutput || 'Encounter details will appear here. Adjust settings and generate to begin.'}
-        </pre>
-      </div>
+      </ContentBox>
     </div>
   );
 }
@@ -811,10 +814,10 @@ interface SliderProps {
 
 function Slider({ label, value, displayValue, min, max, onChange }: SliderProps) {
   return (
-    <label className="block rounded-lg border border-slate-700 bg-slate-900/70 p-4 shadow">
-      <span className="flex items-center justify-between text-sm font-medium text-emerald-300">
+    <ContentBox>
+      <span className="flex items-center justify-between text-sm font-medium text-soft-amethyst">
         {label}
-        <span className="text-slate-100">{displayValue}</span>
+        <span className="text-off-white">{displayValue}</span>
       </span>
       <input
         type="range"
@@ -822,8 +825,8 @@ function Slider({ label, value, displayValue, min, max, onChange }: SliderProps)
         min={min}
         max={max}
         onChange={event => onChange(Number(event.target.value))}
-        className="mt-4 h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-700 accent-emerald-500"
+        className="mt-4 h-2 w-full cursor-pointer appearance-none rounded-full bg-charcoal-violet/50 accent-soft-amethyst"
       />
-    </label>
+    </ContentBox>
   );
 }

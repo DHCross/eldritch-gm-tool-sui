@@ -167,13 +167,14 @@ export const RACE_CULTURE_MAP: Record<string, NameCulture> = {
 // Generate a random name
 export function generateRandomName(
   gender: Gender,
-  culture: NameCulture,
+  culture?: NameCulture,
   includeFamily: boolean = true,
   customRace?: string
 ): { firstName: string; familyName?: string; culture: NameCulture } {
 
-  // Auto-select culture based on race if provided
-  const actualCulture = customRace && RACE_CULTURE_MAP[customRace] ? RACE_CULTURE_MAP[customRace] : culture;
+  // Prioritize explicit culture selection, otherwise fall back to race-based defaults
+  const mappedCulture = customRace ? RACE_CULTURE_MAP[customRace] : undefined;
+  const actualCulture: NameCulture = culture ?? mappedCulture ?? 'Fantasy';
   const nameSet = NAME_SETS[actualCulture];
 
   if (!nameSet) {
@@ -206,15 +207,26 @@ export function generateRandomName(
 // Generate multiple name suggestions
 export function generateNameSuggestions(
   gender: Gender,
-  culture: NameCulture,
+  culture?: NameCulture,
   count: number = 5,
   includeFamily: boolean = true,
   customRace?: string
 ): Array<{ firstName: string; familyName?: string; culture: NameCulture }> {
   const names: Array<{ firstName: string; familyName?: string; culture: NameCulture }> = [];
+  const seen = new Set<string>();
+  const maxAttempts = Math.max(count * 5, count);
 
-  for (let i = 0; i < count; i++) {
-    names.push(generateRandomName(gender, culture, includeFamily, customRace));
+  let attempts = 0;
+  while (names.length < count && attempts < maxAttempts) {
+    const suggestion = generateRandomName(gender, culture, includeFamily, customRace);
+    const key = `${suggestion.firstName}|${suggestion.familyName ?? ''}|${suggestion.culture}`;
+
+    if (!seen.has(key)) {
+      names.push(suggestion);
+      seen.add(key);
+    }
+
+    attempts++;
   }
 
   return names;
@@ -225,10 +237,11 @@ export function getNameSuggestionsForCharacter(
   race: string,
   characterClass: string,
   gender: Gender,
-  count: number = 3
+  count: number = 3,
+  cultureOverride?: NameCulture
 ): Array<{ firstName: string; familyName?: string; culture: NameCulture; suggestion: string }> {
 
-  const culture = RACE_CULTURE_MAP[race] || 'Fantasy';
+  const culture = cultureOverride || RACE_CULTURE_MAP[race] || 'Fantasy';
   const baseSuggestions = generateNameSuggestions(gender, culture, count, true, race);
 
   return baseSuggestions.map(name => ({

@@ -217,7 +217,7 @@ export default function StatBlockParser() {
                   ? 'Paste document text with multiple entries here...\n\nThe parser will automatically identify and analyze:\n• Stat blocks (NPCs & monsters)\n• Spells with paths and effects\n• Magic items with properties\n\nWhile filtering out headers, narrative text, and equipment lists.'
                   : '{\n  "name": "Cultist Acolyte",\n  "kind": "NPC",\n  "abilities": [\n    { "name": "Perception", "tier": "basic", "die_rank": "d6" },\n    { "name": "Melee Weapons", "tier": "basic", "die_rank": "d6" },\n    { "name": "Agility", "tier": "basic", "die_rank": "d6" },\n    { "name": "Fortitude", "tier": "basic", "die_rank": "d6" },\n    { "name": "Willpower", "tier": "basic", "die_rank": "d6" },\n    { "name": "Speed", "tier": "mastery", "die_rank": "d6" }\n  ]\n}'
               }
-              className="w-full h-64 border border-gray-300 rounded-md px-3 py-2 font-mono text-sm"
+              className="w-full h-64 border border-gray-300 rounded-md px-3 py-2 font-mono text-sm bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 

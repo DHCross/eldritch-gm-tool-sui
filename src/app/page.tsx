@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { exportCampaign, importCampaign } from '@/utils/campaignBackup';
+import ContentBox from '@/components/ContentBox';
 
 type HeroCard = {
   title: string;
@@ -144,42 +145,50 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="mb-12">
-        <div className="flex flex-col items-center gap-4 text-center md:flex-row md:justify-center md:gap-6 md:text-left">
-          <div className="flex items-center justify-center gap-4">
-            <Image
-              src="/eldritch-logo.png"
-              alt="Eldritch RPG logo"
-              width={600}
-              height={600}
-              sizes="(min-width: 768px) 220px, 160px"
-              priority
-              className="h-auto w-28 max-w-[220px] md:w-[220px]"
-            />
-            <Image
-              src="/hoskbrew-logo.png"
-              alt="Hoskbrew logo"
-              width={600}
-              height={600}
-              sizes="(min-width: 768px) 220px, 160px"
-              priority
-              className="h-auto w-24 max-w-[200px] md:w-[200px]"
-            />
+        <ContentBox>
+          <div className="flex flex-col items-center gap-4 text-center md:flex-row md:justify-center md:gap-8 md:text-left">
+            <div className="flex items-center justify-center gap-3 rounded-2xl bg-charcoal-violet/80 px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.35)] md:gap-5">
+              <Image
+                src="/eldritch-logo.png"
+                alt="Eldritch RPG logo"
+                width={600}
+                height={600}
+                sizes="(min-width: 768px) 220px, 160px"
+                priority
+                className="h-auto w-28 max-w-[220px] drop-shadow-[0_0_18px_rgba(184,132,243,0.45)] md:w-[220px]"
+              />
+              <div className="flex flex-col items-center justify-center gap-1">
+                <Image
+                  src="/hoskbrew-logo.png"
+                  alt="Hoskbrew logo"
+                  width={600}
+                  height={600}
+                  sizes="(min-width: 768px) 200px, 140px"
+                  priority
+                  className="h-auto w-24 max-w-[200px] drop-shadow-[0_0_16px_rgba(127,222,115,0.4)] md:w-[200px]"
+                />
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-eldritch-green/90 md:text-sm">
+                  Powered by Hoskbrew
+                </p>
+              </div>
+            </div>
+            <div className="max-w-xl space-y-2">
+              <p className="text-sm uppercase tracking-[0.32em] text-muted-eldritch-green/80">Eldritch Suite</p>
+              <h1 className="text-4xl font-bold text-off-white md:text-5xl">
+                Eldritch RPG GM Tools Suite
+              </h1>
+              <p className="text-lg text-off-white/85 md:text-xl">
+                Essential tools for Game Masters running Eldritch RPG campaigns
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2 md:mb-4">
-              Eldritch RPG GM Tools Suite
-            </h1>
-            <p className="text-xl text-gray-600">
-              Essential tools for Game Masters running Eldritch RPG campaigns
-            </p>
-          </div>
-        </div>
+        </ContentBox>
       </header>
 
       <main>
-        <section className="mb-12 rounded-2xl border border-blue-200 bg-blue-50 p-8 shadow-sm">
-          <h2 className="text-2xl font-bold text-blue-900">Campaign Backups</h2>
-          <p className="mt-2 text-sm text-blue-800">
+        <ContentBox className="mb-12">
+          <h2 className="text-2xl font-bold text-soft-amethyst">Campaign Backups</h2>
+          <p className="mt-2 text-sm text-off-white/80">
             Save a local JSON file with all PCs, NPCs, monsters, party folders, roster folders, and encounter templates, or
             restore a backup to sync your tools.
           </p>
@@ -187,12 +196,12 @@ export default function Home() {
             <button
               type="button"
               onClick={handleSaveCampaign}
-              className="inline-flex items-center justify-center rounded-md bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              className="inline-flex items-center justify-center rounded-md bg-btn-bg px-5 py-3 text-sm font-semibold text-off-white shadow hover:bg-btn-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-soft-amethyst"
             >
               Save Campaign
             </button>
-            <label className="inline-flex cursor-pointer flex-col items-start gap-2 text-sm font-medium text-blue-900 sm:flex-row sm:items-center">
-              <span className="rounded-md border border-dashed border-blue-400 bg-white px-5 py-3 text-center text-sm font-semibold text-blue-700 shadow-sm transition-colors hover:border-blue-500 hover:text-blue-800">
+            <label className="inline-flex cursor-pointer flex-col items-start gap-2 text-sm font-medium text-soft-amethyst sm:flex-row sm:items-center">
+              <span className="rounded-md border border-dashed border-soft-amethyst/50 bg-charcoal-violet/50 px-5 py-3 text-center text-sm font-semibold text-soft-amethyst shadow-sm transition-colors hover:border-soft-amethyst hover:text-soft-amethyst/80">
                 Load Campaign Backup
               </span>
               <input
@@ -207,23 +216,20 @@ export default function Home() {
           {feedback && (
             <p
               className={`mt-4 text-sm font-semibold ${
-                feedback.type === 'success' ? 'text-green-700' : 'text-red-700'
+                feedback.type === 'success' ? 'text-muted-eldritch-green' : 'text-red-500'
               }`}
             >
               {feedback.message}
             </p>
           )}
-        </section>
+        </ContentBox>
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           {HERO_CARDS.map(card => (
-            <div
-              key={card.title}
-              className="flex flex-col bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow"
-            >
-              <h2 className="text-3xl font-extrabold text-gray-900 mb-4">{card.title}</h2>
-              <p className="text-lg text-gray-600 mb-6">{card.description}</p>
-              <ul className="space-y-3 text-gray-600">
+            <ContentBox key={card.title}>
+              <h2 className="text-3xl font-extrabold text-soft-amethyst mb-4">{card.title}</h2>
+              <p className="text-lg text-off-white/80 mb-6">{card.description}</p>
+              <ul className="space-y-3 text-off-white/80">
                 {card.bullets.map(bullet => (
                   <li key={bullet}>• {bullet}</li>
                 ))}
@@ -231,7 +237,7 @@ export default function Home() {
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link
                   href={card.cta.href}
-                  className="inline-flex items-center justify-center rounded-md bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow hover:bg-blue-700 transition-colors"
+                  className="inline-flex items-center justify-center rounded-md bg-btn-bg px-5 py-3 text-sm font-semibold text-off-white shadow hover:bg-btn-hover transition-colors"
                 >
                   {card.cta.label}
                 </Link>
@@ -239,26 +245,26 @@ export default function Home() {
                   <Link
                     key={secondary.href}
                     href={secondary.href}
-                    className="inline-flex items-center justify-center rounded-md border border-blue-200 bg-white px-5 py-3 text-sm font-semibold text-blue-700 shadow-sm transition-colors hover:border-blue-300 hover:text-blue-900"
+                    className="inline-flex items-center justify-center rounded-md border border-soft-amethyst/50 bg-charcoal-violet/50 px-5 py-3 text-sm font-semibold text-soft-amethyst shadow-sm transition-colors hover:border-soft-amethyst hover:text-soft-amethyst/80"
                   >
                     {secondary.label}
                   </Link>
                 ))}
               </div>
-            </div>
+            </ContentBox>
           ))}
         </div>
       </main>
 
-      <footer className="text-center mt-12 pt-8 border-t border-gray-200">
-        <div className="text-gray-600">
+      <footer className="text-center mt-12 pt-8 border-t border-muted-eldritch-green/40">
+        <div className="text-off-white/80">
           <p>&copy; 2025 Hoskbrew</p>
           <p>Tools for the Eldritch RPG system</p>
           <div className="mt-4 space-x-4">
-            <Link href="/rules" className="text-blue-600 hover:text-blue-800">
+            <Link href="/rules" className="text-muted-eldritch-green hover:text-muted-eldritch-green/80">
               Game Rules
             </Link>
-            <Link href="/documentation" className="text-blue-600 hover:text-blue-800">
+            <Link href="/documentation" className="text-muted-eldritch-green hover:text-muted-eldritch-green/80">
               Documentation
             </Link>
           </div>

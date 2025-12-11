@@ -1,4 +1,4 @@
-// Battle Phase Calculator data for Eldritch RPG 2nd Edition
+// Battle Phase Tracker data for Eldritch RPG 2nd Edition
 
 export type CombatantCategory = 'pa' | 'npc' | 'qsb';
 export type CombatantRole = 'Ally' | 'Hostile' | 'Friendly' | 'Companion';
