@@ -23,7 +23,7 @@ export interface DetailedStatBlock extends Partial<DetailedNPC> {
   raw?: string;
 }
 
-export interface StatBlockParseResult<T = any> {
+export interface StatBlockParseResult<T = unknown> {
   type: StatBlockType;
   data: T | null;
   diagnostics: StatBlockDiagnostics;
@@ -40,4 +40,4 @@ export interface MonsterStatBlock {
 
 export const defaultDiagnostics = (): StatBlockDiagnostics => ({ issues: [], score: 0 });
 
-export { QuickNPC, DetailedNPC };
+export type { QuickNPC, DetailedNPC };

@@ -5,14 +5,13 @@
 
 import {
   RevisedEntity,
-  RevisedAbility,
   AbilityMapping,
   DieRank,
   ABILITY_TRANSLATION_TABLE,
   MASTERY_TO_FOCUS_BONUS,
   INITIATIVE_PHASE_BY_RANK,
 } from '../types/revisedEntity';
-import { DetailedNPC } from '../data/npcData';
+import type { DetailedNPC } from '../data/npcData';
 
 export interface ConvertedAbilityNode {
   root: string;

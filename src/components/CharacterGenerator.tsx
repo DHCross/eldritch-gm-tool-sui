@@ -474,17 +474,17 @@ export default function CharacterGenerator() {
                             try {
                               const html = exporter.pcToHTML({ raw: md, name: `${character?.race} ${character?.class}` });
                               const wrapped = exporter.wrapForWord(html);
-                              if ((navigator as any).clipboard && (window as any).ClipboardItem) {
+                              if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
                                 const blob = new Blob([wrapped], { type: 'text/html' });
-                                const item: any = new (window as any).ClipboardItem({ 'text/html': blob, 'text/plain': new Blob([md], { type: 'text/plain' }) });
-                                (navigator as any).clipboard.write([item]);
+                                const item = new ClipboardItem({ 'text/html': blob, 'text/plain': new Blob([md], { type: 'text/plain' }) });
+                                navigator.clipboard.write([item]);
                                 showAlert('Character HTML copied to clipboard');
                               } else {
                                 navigator.clipboard.writeText(md);
                                 showAlert('HTML clipboard not supported — copied Markdown instead');
                               }
-                            } catch (e) {
-                              console.error(e);
+                            } catch (err) {
+                              console.error(err);
                               showAlert('Failed to copy HTML');
                             }
                           }}

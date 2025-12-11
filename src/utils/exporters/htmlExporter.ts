@@ -1,6 +1,10 @@
-import { QuickStatBlock, DetailedStatBlock } from '../../types/statBlock';
+/**
+ * HTML exporter for NPC/PC stat blocks.
+ * Uses 'any' types intentionally to accept multiple NPC/PC shapes.
+ */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-function esc(s: any) {
+function esc(s: unknown) {
   if (s === undefined || s === null) return '';
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
@@ -52,4 +56,5 @@ export function wrapForWord(html: string) {
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"/></head><body style="font-family: -apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,\"Helvetica Neue\",Arial; color:#111;">${html}</body></html>`;
 }
 
-export default { npcToHTML, pcToHTML, wrapForWord };
+const exporterModule = { npcToHTML, pcToHTML, wrapForWord };
+export default exporterModule;

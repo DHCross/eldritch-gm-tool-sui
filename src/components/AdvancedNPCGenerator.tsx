@@ -52,19 +52,19 @@ export default function AdvancedNPCGenerator() {
 
   const handleExportHTML = async (npc: DetailedNPC) => {
     try {
-      const html = exporter.npcToHTML(npc as any);
+      const html = exporter.npcToHTML(npc);
       const wrapped = exporter.wrapForWord(html);
-      if ((navigator as any).clipboard && (window as any).ClipboardItem) {
+      if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
         const blob = new Blob([wrapped], { type: 'text/html' });
-        const item: any = new (window as any).ClipboardItem({ 'text/html': blob, 'text/plain': new Blob([exportDetailedNPCToMarkdown(npc)], { type: 'text/plain' }) });
-        await (navigator as any).clipboard.write([item]);
+        const item = new ClipboardItem({ 'text/html': blob, 'text/plain': new Blob([exportDetailedNPCToMarkdown(npc)], { type: 'text/plain' }) });
+        await navigator.clipboard.write([item]);
         alert('Detailed NPC HTML copied to clipboard');
       } else {
         await navigator.clipboard.writeText(exportDetailedNPCToMarkdown(npc));
         alert('HTML clipboard not supported — copied Markdown instead');
       }
-    } catch (e) {
-      console.error(e);
+    } catch (err) {
+      console.error(err);
       alert('Failed to copy HTML');
     }
   };

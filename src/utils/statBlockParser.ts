@@ -17,17 +17,17 @@ export function parseStatBlockText(text: string): StatBlockParseResult {
   // Use documentAnalyzer heuristics if available for detection
   let guess: StatBlockType = 'unknown';
   try {
-    const da = documentAnalyzer(t);
+    const da = documentAnalyzer.analyzeDocument(t);
     if (da && da.entries && da.entries.length) {
       // If many combat-like entries, probably a stat block
       const entry = da.entries[0];
-      if (entry.type === 'npc' || /npc|character|player/i.test(t)) {
+      if (entry.type === 'stat_block' || /npc|character|player/i.test(t)) {
         guess = 'detailed';
       } else if (/active defense|spirit points|battle phase|passive defense/i.test(t)) {
         guess = 'quick';
       }
     }
-  } catch (e) {
+  } catch {
     // ignore analyzer errors
   }
 
@@ -74,12 +74,17 @@ export function parseStatBlockText(text: string): StatBlockParseResult {
 
     // Use documentAnalyzer to collect issues
     try {
-      const da = documentAnalyzer(t);
+      const da = documentAnalyzer.analyzeDocument(t);
       if (da && da.entries && da.entries.length) {
-        diagnostics.score = da.score || diagnostics.score;
-        if (da.issues && da.issues.length) diagnostics.issues.push(...da.issues.map((s: any) => String(s)));
+        diagnostics.score = Math.round(da.averageCompliance * 100);
+        // Collect issues from all entries
+        for (const entry of da.entries) {
+          if (entry.issues && entry.issues.length) {
+            diagnostics.issues.push(...entry.issues.map((issue) => issue.message));
+          }
+        }
       }
-    } catch (e) {
+    } catch {
       // ignore
     }
 

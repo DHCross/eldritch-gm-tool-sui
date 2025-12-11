@@ -49,7 +49,7 @@ export default function StatBlockParser() {
             setIsAnalyzing(false);
             return;
           }
-        } catch (e) {
+        } catch {
           if (mode === 'revised') {
             alert('Invalid JSON format. Please check the syntax.');
             setIsAnalyzing(false);
@@ -259,20 +259,20 @@ export default function StatBlockParser() {
             <div className="flex gap-2">
               <button
                 onClick={async () => {
-                  const html = exporter.npcToHTML(revisedConversion as any);
+                  const html = exporter.npcToHTML(revisedConversion);
                   const wrapped = exporter.wrapForWord(html);
                   try {
-                    if ((navigator as any).clipboard && (window as any).ClipboardItem) {
+                    if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
                       const blob = new Blob([wrapped], { type: 'text/html' });
-                      const item = new (window as any).ClipboardItem({ 'text/html': blob });
-                      await (navigator as any).clipboard.write([item]);
+                      const item = new ClipboardItem({ 'text/html': blob });
+                      await navigator.clipboard.write([item]);
                       alert('HTML copied to clipboard');
                     } else {
                       await navigator.clipboard.writeText(JSON.stringify(revisedConversion, null, 2));
                       alert('Copied as JSON (HTML clipboard not available)');
                     }
-                  } catch (e) {
-                    console.error(e);
+                  } catch (err) {
+                    console.error(err);
                     alert('Failed to copy');
                   }
                 }}
