@@ -5,6 +5,8 @@ import { documentAnalyzer, generateAutoCorrections, AnalysisResult, DocumentAnal
 import convertRevisedTo2E, { ConvertedEntity } from '../utils/revisedConverter';
 import { RevisedEntity } from '../types/revisedEntity';
 import exporter from '../utils/exporters/htmlExporter';
+import { isRevisedStatBlockText, parseTextToRevisedEntity, parseRevisedStatBlock, ParsedStatBlock } from '../utils/revisedTextParser';
+import { convertToQSB, formatQSBMarkdown, QSBStatBlock } from '../utils/qsbConverter';
 
 type ParseMode = 'single' | 'batch' | 'revised';
 
@@ -23,40 +25,109 @@ export default function StatBlockParser() {
   const [autoCorrections, setAutoCorrections] = useState<CorrectionSuggestion[]>([]);
   const [showCorrections, setShowCorrections] = useState(false);
   const [revisedConversion, setRevisedConversion] = useState<ConvertedEntity | null>(null);
+  const [parsedStatBlock, setParsedStatBlock] = useState<ParsedStatBlock | null>(null);
+  const [customName, setCustomName] = useState('');
+  const [qsbResult, setQsbResult] = useState<QSBStatBlock | null>(null);
+  const [qsbMarkdown, setQsbMarkdown] = useState<string>('');
 
   const analyzeText = useCallback(async () => {
     if (!inputText.trim()) return;
 
     setIsAnalyzing(true);
     setRevisedConversion(null);
+    setParsedStatBlock(null);
+    setQsbResult(null);
+    setQsbMarkdown('');
     try {
-      // Detect if input is Revised Edition JSON (or force if in revised mode)
       const trimmed = inputText.trim();
       const looksLikeJSON = trimmed.startsWith('{') && trimmed.endsWith('}');
       
-      if (mode === 'revised' || looksLikeJSON) {
-        try {
-          const parsed = JSON.parse(trimmed) as RevisedEntity;
-          if (parsed.name && parsed.kind && Array.isArray(parsed.abilities)) {
-            const converted = convertRevisedTo2E(parsed);
-            setRevisedConversion(converted);
-            setAnalysis(null);
-            setAutoCorrections([]);
-            setIsAnalyzing(false);
-            return;
-          } else if (mode === 'revised') {
-            alert('Invalid Revised Edition JSON. Expected: { name, kind, abilities[] }');
-            setIsAnalyzing(false);
-            return;
+      // Check if we're in revised mode
+      if (mode === 'revised') {
+        // First, always try plain text stat block format (most common use case)
+        if (isRevisedStatBlockText(trimmed)) {
+          // Parse plain text stat block
+          const parsed = parseRevisedStatBlock(trimmed);
+          
+          // Apply custom name if provided
+          if (customName.trim()) {
+            parsed.name = customName.trim();
+          } else if (parsed.name === 'Unknown Entity') {
+            parsed.name = parsed.type;
           }
-        } catch {
-          if (mode === 'revised') {
-            alert('Invalid JSON format. Please check the syntax.');
-            setIsAnalyzing(false);
-            return;
+          
+          setParsedStatBlock(parsed);
+          
+          // Convert to QSB format
+          const qsb = convertToQSB(parsed);
+          setQsbResult(qsb);
+          setQsbMarkdown(formatQSBMarkdown(qsb));
+          
+          // Also do legacy conversion for compatibility
+          const revisedEntity = parseTextToRevisedEntity(trimmed);
+          const converted = convertRevisedTo2E(revisedEntity);
+          converted.name = parsed.name;
+          
+          // Use QSB-calculated values
+          converted.active_defense_pool = qsb.hp.active;
+          converted.passive_defense_pool = qsb.hp.passive;
+          converted.movement_per_phase = qsb.movement.base;
+          converted.initiative_phase = qsb.battlePhase.phase;
+          
+          // Add notes from parsed abilities
+          if (parsed.abilities.length > 0 || parsed.immunities?.length || parsed.damageReduction) {
+            const notesParts: string[] = [];
+            if (parsed.damageReduction) {
+              notesParts.push(`Damage Reduction: ${parsed.damageReduction}`);
+            }
+            if (parsed.extraAttacks && parsed.extraAttacks.length > 0) {
+              notesParts.push(`Extra Attacks: ${parsed.extraAttacks.join('; ')}`);
+            }
+            parsed.abilities.forEach(a => notesParts.push(a));
+            if (parsed.immunities && parsed.immunities.length > 0) {
+              notesParts.push(`Immunities: ${parsed.immunities.join(', ')}`);
+            }
+            converted.notes = notesParts.join('\n\n');
           }
-          // Not valid JSON, fall through to normal analysis
+          
+          setRevisedConversion(converted);
+          setAnalysis(null);
+          setAutoCorrections([]);
+          setIsAnalyzing(false);
+          return;
         }
+        
+        // If it looks like JSON, try JSON parsing
+        if (looksLikeJSON) {
+          try {
+            const parsed = JSON.parse(trimmed) as RevisedEntity;
+            if (parsed.name && parsed.kind && Array.isArray(parsed.abilities)) {
+              const converted = convertRevisedTo2E(parsed);
+              // Use custom name if provided
+              if (customName.trim()) {
+                converted.name = customName.trim();
+              }
+              setRevisedConversion(converted);
+              setAnalysis(null);
+              setAutoCorrections([]);
+              setIsAnalyzing(false);
+              return;
+            } else {
+              alert('Invalid Revised Edition JSON. Expected: { name, kind, abilities[] }');
+              setIsAnalyzing(false);
+              return;
+            }
+          } catch {
+            alert('Invalid JSON syntax. If you meant to paste a plain text stat block, make sure it includes fields like "Type (TY):", "Threat Dice (TD):", "Hit Points (HP):", etc.');
+            setIsAnalyzing(false);
+            return;
+          }
+        }
+        
+        // Neither valid text format nor JSON
+        alert('Could not parse input. Please provide a Revised Edition stat block with fields like:\n\nType (TY): ...\nThreat Dice (TD): ...\nHit Points (HP): ...\n\nOr valid JSON format.');
+        setIsAnalyzing(false);
+        return;
       }
 
       // Simulate async processing for large documents
@@ -83,7 +154,7 @@ export default function StatBlockParser() {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [inputText, mode]);
+  }, [inputText, mode, customName]);
 
   const applyAutoCorrection = (correction: CorrectionSuggestion) => {
     const newText = inputText.replace(correction.original, correction.corrected);
@@ -205,7 +276,7 @@ export default function StatBlockParser() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {mode === 'single' ? 'Enter game content:' : mode === 'batch' ? 'Enter document text (multiple entries):' : 'Paste Revised Edition JSON:'}
+              {mode === 'single' ? 'Enter game content:' : mode === 'batch' ? 'Enter document text (multiple entries):' : 'Paste Revised Edition stat block (text or JSON):'}
             </label>
             <textarea
               value={inputText}
@@ -215,11 +286,27 @@ export default function StatBlockParser() {
                   ? 'Paste game content here...\n\nExamples:\n• **Goblin Warrior** AC 15, HP 12, disposition neutral...\n• *Fireball* Path: Elementalism, Rank: d6, Tier: Common...\n• **Sword +1** A magical blade with enhanced sharpness...'
                   : mode === 'batch'
                   ? 'Paste document text with multiple entries here...\n\nThe parser will automatically identify and analyze:\n• Stat blocks (NPCs & monsters)\n• Spells with paths and effects\n• Magic items with properties\n\nWhile filtering out headers, narrative text, and equipment lists.'
-                  : '{\n  "name": "Cultist Acolyte",\n  "kind": "NPC",\n  "abilities": [\n    { "name": "Perception", "tier": "basic", "die_rank": "d6" },\n    { "name": "Melee Weapons", "tier": "basic", "die_rank": "d6" },\n    { "name": "Agility", "tier": "basic", "die_rank": "d6" },\n    { "name": "Fortitude", "tier": "basic", "die_rank": "d6" },\n    { "name": "Willpower", "tier": "basic", "die_rank": "d6" },\n    { "name": "Speed", "tier": "mastery", "die_rank": "d6" }\n  ]\n}'
+                  : `Paste a Revised Edition stat block in EITHER format:\n\n--- PLAIN TEXT FORMAT ---\nType (TY): Minor Undead\nThreat Dice (TD): Natural d6 ~ Melee d4 ~ Ranged d4\nHit Points (HP): Total 10 (Active Defense: 7 / Passive Defense: 3)\nSaving Throw (ST): d4\nBattle Phase (BP): d6 (Phase 4)\nMovement (MV): Walk 3 sq/phase\nAbilities and Powers:\nSome Ability: Description here...\n\n--- OR JSON FORMAT ---\n{\n  "name": "Cultist Acolyte",\n  "kind": "NPC",\n  "abilities": [\n    { "name": "Melee Weapons", "tier": "basic", "die_rank": "d6" }\n  ]\n}`
               }
               className="w-full h-64 border border-gray-300 rounded-md px-3 py-2 font-mono text-sm bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
+
+          {/* Custom name field for revised mode */}
+          {mode === 'revised' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Entity Name (optional - will use name from text if not provided):
+              </label>
+              <input
+                type="text"
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                placeholder="e.g., The Accursed, Skeletal Warrior, etc."
+                className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          )}
 
           <div className="flex gap-2">
             <button
@@ -255,7 +342,9 @@ export default function StatBlockParser() {
       {revisedConversion && (
         <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-indigo-800">Revised → 2nd Edition Conversion</h3>
+            <h3 className="text-lg font-bold text-indigo-800">
+              Revised → 2nd Edition Conversion: {revisedConversion.name}
+            </h3>
             <div className="flex gap-2">
               <button
                 onClick={async () => {
@@ -291,27 +380,97 @@ export default function StatBlockParser() {
               </button>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+          
+          {/* Show parsed stat block info if from text */}
+          {parsedStatBlock && (
+            <div className="mb-4 p-3 bg-white rounded border border-indigo-200">
+              <h4 className="font-semibold text-indigo-700 mb-2">Parsed from Text: {parsedStatBlock.name}</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                <div><span className="text-gray-600">Type:</span> {parsedStatBlock.type}</div>
+                <div><span className="text-gray-600">HP Total:</span> {parsedStatBlock.hitPoints.total}</div>
+                {parsedStatBlock.battlePhase && (
+                  <div><span className="text-gray-600">Phase:</span> {parsedStatBlock.battlePhase.phase}</div>
+                )}
+                {parsedStatBlock.movement && (
+                  <div><span className="text-gray-600">Move:</span> {parsedStatBlock.movement.squares} sq</div>
+                )}
+              </div>
+              {parsedStatBlock.threatDice && Object.keys(parsedStatBlock.threatDice).length > 0 && (
+                <div className="mt-2 text-sm">
+                  <span className="text-gray-600">Threat Dice:</span>{' '}
+                  {parsedStatBlock.threatDice.natural && `Natural ${parsedStatBlock.threatDice.natural}`}
+                  {parsedStatBlock.threatDice.melee && ` / Melee ${parsedStatBlock.threatDice.melee}`}
+                  {parsedStatBlock.threatDice.ranged && ` / Ranged ${parsedStatBlock.threatDice.ranged}`}
+                </div>
+              )}
+            </div>
+          )}
+          
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-indigo-600">{revisedConversion.active_defense_pool}</div>
-              <div className="text-sm text-gray-600">Active Defense Pool</div>
+              <div className="text-2xl font-bold text-indigo-600">{qsbResult ? qsbResult.hp.active : revisedConversion.active_defense_pool}</div>
+              <div className="text-sm text-gray-600">Active Defense</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-indigo-600">{revisedConversion.passive_defense_pool}</div>
-              <div className="text-sm text-gray-600">Passive Defense Pool</div>
+              <div className="text-2xl font-bold text-indigo-600">{qsbResult ? qsbResult.hp.passive : revisedConversion.passive_defense_pool}</div>
+              <div className="text-sm text-gray-600">Passive Defense</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-indigo-600">{revisedConversion.spirit_points}</div>
-              <div className="text-sm text-gray-600">Spirit Points</div>
+              <div className="text-2xl font-bold text-indigo-600">{qsbResult ? qsbResult.hp.total : (revisedConversion.active_defense_pool + revisedConversion.passive_defense_pool)}</div>
+              <div className="text-sm text-gray-600">Total HP</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-indigo-600">{revisedConversion.initiative_phase}</div>
-              <div className="text-sm text-gray-600">Initiative Phase</div>
+              <div className="text-2xl font-bold text-indigo-600">{qsbResult ? qsbResult.battlePhase.phase : revisedConversion.initiative_phase}</div>
+              <div className="text-sm text-gray-600">Phase</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-indigo-600">{qsbResult ? qsbResult.movement.base : revisedConversion.movement_per_phase}</div>
+              <div className="text-sm text-gray-600">Movement (sq)</div>
             </div>
           </div>
+          
+          {/* Show notes/abilities if present */}
+          {revisedConversion.notes && (
+            <div className="mb-4 p-4 bg-white rounded border border-indigo-200">
+              <h4 className="font-semibold text-indigo-700 mb-2">Abilities & Special Powers</h4>
+              <div className="text-sm whitespace-pre-wrap text-gray-800">{revisedConversion.notes}</div>
+            </div>
+          )}
+          
+          {/* QSB Markdown Output */}
+          {qsbMarkdown && (
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-semibold text-indigo-700">QSB-Compliant Markdown</h4>
+                <button
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(qsbMarkdown);
+                    alert('QSB Markdown copied to clipboard!');
+                  }}
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded text-sm"
+                >
+                  Copy Markdown
+                </button>
+              </div>
+              <pre className="whitespace-pre-wrap text-xs bg-white p-4 rounded border border-indigo-200 overflow-auto max-h-96 text-gray-800">{qsbMarkdown}</pre>
+            </div>
+          )}
+          
+          {/* Compliance Notes */}
+          {qsbResult && qsbResult.complianceNotes.length > 0 && (
+            <details className="mb-4">
+              <summary className="cursor-pointer font-medium text-indigo-700">Compliance Notes (Rules-Facing)</summary>
+              <div className="mt-2 p-3 bg-yellow-50 rounded border border-yellow-200 text-sm">
+                {qsbResult.complianceNotes.map((note, i) => (
+                  <div key={i} className="mb-2 last:mb-0">• {note}</div>
+                ))}
+              </div>
+            </details>
+          )}
+          
           <details>
-            <summary className="cursor-pointer font-medium">Full Converted Data</summary>
-            <pre className="whitespace-pre-wrap mt-2 text-xs bg-white p-3 rounded border">{JSON.stringify(revisedConversion, null, 2)}</pre>
+            <summary className="cursor-pointer font-medium">Full Converted Data (JSON)</summary>
+            <pre className="whitespace-pre-wrap mt-2 text-xs bg-white p-3 rounded border">{JSON.stringify(qsbResult || revisedConversion, null, 2)}</pre>
           </details>
         </div>
       )}
@@ -496,7 +655,8 @@ export default function StatBlockParser() {
         <div className="text-sm text-blue-700 space-y-2">
           <p><strong>Single Entry Mode:</strong> Paste a single game entry (stat block, spell, or magic item) to analyze its compliance and get specific suggestions.</p>
           <p><strong>Batch Processing Mode:</strong> Paste an entire document. The analyzer will automatically identify game content while filtering out headers, narrative text, and equipment lists.</p>
-          <p><strong>Content Types:</strong> Supports stat blocks (NPCs & monsters), spells (with paths and effects), and magic items (with properties and bonuses).</p>
+          <p><strong>Convert from Revised:</strong> Paste a Revised Edition stat block in <em>either</em> plain text format (with Type, Threat Dice, Hit Points, etc.) or JSON format. The parser will convert it to 2nd Edition stats.</p>
+          <p><strong>Plain Text Format:</strong> Use the standard stat block format with fields like &quot;Type (TY):&quot;, &quot;Threat Dice (TD):&quot;, &quot;Hit Points (HP):&quot;, &quot;Battle Phase (BP):&quot;, etc.</p>
           <p><strong>Auto-Corrections:</strong> The tool can automatically fix capitalization issues, formatting problems, and standardize field names.</p>
           <p><strong>Export:</strong> Save detailed analysis results as JSON for further processing or record keeping.</p>
         </div>
