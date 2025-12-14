@@ -3,7 +3,7 @@
  * Based on Purity and Parity Suite eldritch_converter/models.py
  */
 
-export type DieRank = 'd4' | 'd6' | 'd8' | 'd10' | 'd12';
+export type DieRank = 'd3' | 'd4' | 'd6' | 'd8' | 'd10' | 'd12';
 
 export type AbilityTier = 'basic' | 'specialty' | 'mastery';
 
@@ -61,6 +61,7 @@ export const ABILITY_TRANSLATION_TABLE: Record<string, AbilityMapping> = {
  * Mastery die rank → focus bonus mapping.
  */
 export const MASTERY_TO_FOCUS_BONUS: Record<DieRank, number> = {
+  d3: 0,
   d4: 1,
   d6: 2,
   d8: 3,
@@ -72,6 +73,7 @@ export const MASTERY_TO_FOCUS_BONUS: Record<DieRank, number> = {
  * Initiative phase by best Prowess die rank.
  */
 export const INITIATIVE_PHASE_BY_RANK: Record<DieRank, number> = {
+  d3: 6,
   d12: 1,
   d10: 2,
   d8: 3,

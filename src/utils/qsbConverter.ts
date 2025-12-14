@@ -12,7 +12,10 @@ import { ParsedStatBlock } from './revisedTextParser';
 
 export type CreatureSize = 'tiny' | 'small' | 'medium' | 'large' | 'huge' | 'gargantuan';
 
-export type CreatureTrait = 'fast' | 'especially-speedy' | 'agility' | 'magical' | 'undead' | 'construct' | 'elemental';
+export type CreatureTrait = 'fast' | 'especially-speedy' | 'agility' | 'magical' | 'undead' | 'construct' | 'elemental' | 'tough';
+
+/** Constitution type affects HP split */
+export type ConstitutionType = 'frail' | 'normal' | 'tough';
 
 export interface QSBStatBlock {
   name: string;
@@ -91,7 +94,16 @@ export const BP_DIE_TO_PHASE: Record<string, number> = {
   'd8': 3,
   'd6': 4,
   'd4': 5,
-  'd3': 5,  // d3 is treated as Phase 5
+  'd3': 5,  // d3 is the standard Phase 5 die in QSB
+};
+
+/** Phase number to standard QSB die */
+export const PHASE_TO_BP_DIE: Record<number, string> = {
+  1: 'd12',
+  2: 'd10',
+  3: 'd8',
+  4: 'd6',
+  5: 'd3',  // d3 is preferred over d4 for Phase 5 in QSB
 };
 
 /** Size modifiers for movement */
@@ -212,6 +224,11 @@ export interface HPCalculation {
  * Base HP = Highest Threat Die max × multiplier
  * Multiplier from: Size + Magical/Special traits
  * DR converts to static HP added to PDP
+ * 
+ * Constitution types for HP split:
+ * - Frail: 60/40 (more ADP, less PDP) 
+ * - Normal: ~45/55 (standard, slight PDP favor)
+ * - Tough: 25/75 (heavy PDP favor)
  */
 export function calculateHP(
   threatDice: { natural?: DieRank; melee?: DieRank; ranged?: DieRank },
@@ -220,7 +237,7 @@ export function calculateHP(
     isMagical?: boolean;
     isUndead?: boolean;
     drDie?: DieRank;
-    pdpBias?: boolean;  // If true, favor PDP over ADP (e.g., undead)
+    constitution?: ConstitutionType;  // Default is 'normal'
   } = {}
 ): HPCalculation {
   // Find highest threat die
@@ -247,19 +264,43 @@ export function calculateHP(
   
   const total = baseHP + drBonus;
   
-  // Split between Active and Passive
-  // Undead/constructs favor PDP, others split more evenly
+  // Split between Active and Passive based on constitution
+  // Normal constitution: approximately 45/55 split with standard rounding
+  // For odd totals, PDP gets the extra point
+  const constitution = options.constitution || 'normal';
   let active: number;
   let passive: number;
+  let constitutionLabel = 'Normal';
   
-  if (options.pdpBias || options.isUndead) {
-    // Favor PDP (roughly 45/55 or similar)
-    passive = Math.ceil(total * 0.55);
-    active = total - passive;
-  } else {
-    // Standard split (roughly 50/50 or slight ADP favor)
-    active = Math.ceil(total * 0.5);
-    passive = total - active;
+  switch (constitution) {
+    case 'frail':
+      // 60/40 - more active, less passive
+      active = Math.round(total * 0.6);
+      passive = total - active;
+      constitutionLabel = 'Frail';
+      break;
+    case 'tough':
+      // 25/75 - heavy passive bias
+      passive = Math.round(total * 0.75);
+      active = total - passive;
+      constitutionLabel = 'Tough';
+      break;
+    case 'normal':
+    default:
+      // ~45/55 - standard split, PDP gets the extra on odd totals
+      // For 11: active = floor(11 * 0.45) = 4? No, should be 5.
+      // Let's use: passive = ceil(total / 2) + adjustment for slight PDP bias
+      // Actually for "Normal", the split should be close to 50/50 with slight PDP favor
+      // 11 HP → 5 Active / 6 Passive (passive rounds up)
+      passive = Math.ceil(total / 2);
+      active = total - passive;
+      // If this results in equal split, give 1 more to passive for "Normal" creatures
+      if (active === passive && total > 1) {
+        passive += 1;
+        active -= 1;
+      }
+      constitutionLabel = 'Normal';
+      break;
   }
   
   const derivation = [
@@ -267,7 +308,7 @@ export function calculateHP(
     `Modifiers: ${options.size || 'Medium'} (${sizeMod >= 0 ? '+' : ''}${sizeMod})${options.isMagical ? ', Magical (+2)' : ''} → ×${multiplier}`,
     `Base HP: ${baseValue} × ${multiplier} = ${baseHP}`,
     drBonus > 0 ? `+${drBonus} HP from DR → ${total} Total HP` : `Total: ${total} HP`,
-    `Split: ${active} Active / ${passive} Passive${options.pdpBias || options.isUndead ? ' (PDP bias)' : ''}`,
+    `Split: ${active} Active / ${passive} Passive [${constitutionLabel}]`,
   ].join('\n');
   
   return { baseValue, multiplier, drBonus, total, active, passive, derivation };
@@ -298,8 +339,28 @@ export function detectTraits(text: string): CreatureTrait[] {
   if (lower.includes('especially speedy')) traits.push('especially-speedy');
   else if (lower.includes('fast')) traits.push('fast');
   if (lower.includes('agility')) traits.push('agility');
+  if (lower.includes('tough') && !lower.includes('toughness')) traits.push('tough');
   
   return traits;
+}
+
+/**
+ * Detect constitution type from text.
+ * Default is 'normal' unless explicitly stated.
+ */
+export function detectConstitution(text: string): ConstitutionType {
+  const lower = text.toLowerCase();
+  
+  // Look for explicit constitution markers
+  if (lower.includes('tough constitution') || lower.includes('tough creature')) {
+    return 'tough';
+  }
+  if (lower.includes('frail') || lower.includes('fragile')) {
+    return 'frail';
+  }
+  
+  // Default to normal
+  return 'normal';
 }
 
 // =============================================================================
@@ -316,22 +377,25 @@ export function convertToQSB(parsed: ParsedStatBlock): QSBStatBlock {
   const fullText = `${parsed.type} ${parsed.abilities.join(' ')} ${parsed.rawText}`;
   const size = detectSize(fullText);
   const traits = detectTraits(fullText);
+  const constitution = detectConstitution(fullText);
   
   const isMagical = traits.includes('magical');
-  const isUndead = traits.includes('undead');
   
   // Determine Battle Phase die
-  // If original has BP, use it; otherwise derive from threat dice
-  let bpDie: DieRank = 'd4';
+  // For QSB, we convert the original BP to the standard QSB die for that phase
+  let bpDie: DieRank = 'd3';  // Default to Phase 5
   let bpPhase = 5;
   
   if (parsed.battlePhase) {
-    bpDie = parsed.battlePhase.die;
+    // Use the phase from the source and get the standard QSB die for that phase
     bpPhase = parsed.battlePhase.phase;
+    // Convert to standard QSB die for this phase
+    bpDie = (PHASE_TO_BP_DIE[bpPhase] || 'd3') as DieRank;
   } else if (parsed.threatDice.natural) {
-    // Derive from natural threat die
-    bpDie = parsed.threatDice.natural;
-    bpPhase = BP_DIE_TO_PHASE[bpDie] || 5;
+    // Derive phase from natural threat die, then get standard QSB die
+    const derivedPhase = BP_DIE_TO_PHASE[parsed.threatDice.natural] || 5;
+    bpPhase = derivedPhase;
+    bpDie = (PHASE_TO_BP_DIE[derivedPhase] || 'd3') as DieRank;
   }
   
   // Calculate movement using Full Parity Formula
@@ -352,19 +416,18 @@ export function convertToQSB(parsed: ParsedStatBlock): QSBStatBlock {
   // Parse DR die if present
   let drDie: DieRank | undefined;
   if (parsed.damageReduction) {
-    const drMatch = parsed.damageReduction.match(/d(4|6|8|10|12)/i);
+    const drMatch = parsed.damageReduction.match(/d(3|4|6|8|10|12)/i);
     if (drMatch) {
       drDie = `d${drMatch[1]}` as DieRank;
     }
   }
   
-  // Calculate HP
+  // Calculate HP with proper constitution
   const hpCalc = calculateHP(parsed.threatDice, {
     size,
     isMagical,
-    isUndead,
     drDie,
-    pdpBias: isUndead,
+    constitution,
   });
   
   if (drDie) {
@@ -399,7 +462,7 @@ export function convertToQSB(parsed: ParsedStatBlock): QSBStatBlock {
     } : undefined,
     
     savingThrow: parsed.savingThrow,
-    savingThrowNote: isUndead ? 'Undead base' : undefined,
+    savingThrowNote: traits.includes('undead') ? 'Undead base' : undefined,
     
     battlePhase: {
       die: bpDie,

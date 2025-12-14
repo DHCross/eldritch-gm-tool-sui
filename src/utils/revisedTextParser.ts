@@ -39,10 +39,10 @@ export interface ParsedStatBlock {
 }
 
 /**
- * Parse a die notation string like "d6", "d8", etc.
+ * Parse a die notation string like "d3", "d6", "d8", etc.
  */
 function parseDieRank(text: string): DieRank | null {
-  const match = text.match(/d(4|6|8|10|12)/i);
+  const match = text.match(/d(3|4|6|8|10|12)/i);
   if (match) {
     return `d${match[1]}` as DieRank;
   }
