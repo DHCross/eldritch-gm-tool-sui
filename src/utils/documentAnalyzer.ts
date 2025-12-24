@@ -789,25 +789,64 @@ export function generateAutoCorrections(text: string): string {
 
   // Fix spell-specific formatting
   corrected = corrected.replace(/^([A-Z][a-z\s]+)(?=\s*:?\s*Path)/m, '*$1*'); // Italicize spell names
+
+  // Normalize common field names
   corrected = corrected.replace(/\bpath\s*:\s*/gi, 'Path: ');
   corrected = corrected.replace(/\brank\s*:\s*/gi, 'Rank: ');
   corrected = corrected.replace(/\btier\s*:\s*/gi, 'Tier: ');
   corrected = corrected.replace(/\brarity\s*:\s*/gi, 'Rarity: ');
+  corrected = corrected.replace(/\bcasting\s*time\s*:\s*/gi, 'Casting Time: ');
+  corrected = corrected.replace(/\bcomponents\s*:\s*/gi, 'Components: ');
+  corrected = corrected.replace(/\bduration\s*:\s*/gi, 'Duration: ');
+  corrected = corrected.replace(/\brange\s*:\s*/gi, 'Range: ');
+  corrected = corrected.replace(/\barea\s*:\s*/gi, 'Area: ');
+  corrected = corrected.replace(/\beffects?\s*:\s*/gi, 'Effect: ');
 
-  // Fix magic item formatting
-  corrected = corrected.replace(/^([A-Z][a-z\s]+(?:\s*\+\d+)?)(?=\s)/m, '**$1**'); // Bold item names
-  corrected = corrected.replace(/\+(\d+)/g, '+$1'); // Ensure proper enhancement format
-  corrected = corrected.replace(/-(\d+)/g, '-$1'); // Ensure proper penalty format
-
-  // Fix monster-specific formatting
-  corrected = corrected.replace(/\bthreat\s*dice\s*:\s*/gi, 'Threat Dice: ');
-  corrected = corrected.replace(/\bthreat\s*mv\s*:\s*/gi, 'Threat MV: ');
-  corrected = corrected.replace(/\bspecial\s*abilities\s*:\s*/gi, 'Special Abilities: ');
-
-  // Fix common field names
   corrected = corrected.replace(/\bdisposition\s*:\s*/gi, 'Disposition: ');
   corrected = corrected.replace(/\bbattle\s*phase\s*:\s*/gi, 'Battle Phase: ');
-  corrected = corrected.replace(/\bsaving\s*throw\s*:\s*/gi, 'Saving Throw: ');
+  corrected = corrected.replace(/\bsaving\s*throws?\s*:\s*/gi, 'Saving Throw: ');
+  corrected = corrected.replace(/\bhit\s*points\s*:\s*/gi, 'Hit Points: ');
+  corrected = corrected.replace(/\bhit\s*dice\s*:\s*/gi, 'Hit Dice: ');
+  corrected = corrected.replace(/\barmor\s*class\s*:\s*/gi, 'Armor Class: ');
+  corrected = corrected.replace(/\bdamage\s*reduction\s*:\s*/gi, 'Damage Reduction: ');
+  corrected = corrected.replace(/\bspecial\s*abilities\s*:\s*/gi, 'Special Abilities: ');
+  corrected = corrected.replace(/\b(?:extra|additional)\s*attacks?\s*:\s*/gi, 'Extra Attacks: ');
+  corrected = corrected.replace(/\bthreat\s*dice\s*:\s*/gi, 'Threat Dice: ');
+  corrected = corrected.replace(/\bthreat\s*mv\s*:\s*/gi, 'Threat MV: ');
+  corrected = corrected.replace(/\b(?:creature\s*)?type\s*:\s*/gi, 'Type: ');
+  corrected = corrected.replace(/\bsize\s*:\s*/gi, 'Size: ');
+  corrected = corrected.replace(/\bnature\s*:\s*/gi, 'Nature: ');
+
+  // Fix magic item formatting
+  corrected = corrected.replace(/^([A-Z][a-z\s]+(?:\s*\+\d+)?)(?=[\s:])/m, (match, p1, offset, string) => {
+    // Avoid bolding common field names that look like items
+    // Because regex matches partial words (e.g. "Battle" from "Battle Phase"), we must check context
+    const textAfter = string.slice(offset + match.length);
+
+    // Check for multi-word fields
+    if (p1 === 'Battle' && textAfter.startsWith(' Phase')) return match;
+    if (p1 === 'Saving' && textAfter.startsWith(' Throw')) return match;
+    if (p1 === 'Hit' && (textAfter.startsWith(' Dice') || textAfter.startsWith(' Points'))) return match;
+    if (p1 === 'Armor' && textAfter.startsWith(' Class')) return match;
+    if (p1 === 'Damage' && textAfter.startsWith(' Reduction')) return match;
+    if (p1 === 'Special' && textAfter.startsWith(' Abilities')) return match;
+    if (p1 === 'Threat' && (textAfter.startsWith(' Dice') || textAfter.startsWith(' MV'))) return match;
+    if (p1 === 'Extra' && textAfter.startsWith(' Attacks')) return match;
+    if (p1 === 'Additional' && textAfter.startsWith(' Attacks')) return match;
+    if (p1 === 'Creature' && textAfter.startsWith(' Type')) return match;
+    if (p1 === 'Casting' && textAfter.startsWith(' Time')) return match;
+
+    // Check for single-word fields
+    const ignoredWords = [
+      'Disposition', 'Type', 'Size', 'Nature', 'Path', 'Rank', 'Tier', 'Rarity',
+      'Components', 'Duration', 'Range', 'Area', 'Effect'
+    ];
+    if (ignoredWords.includes(p1)) return match;
+
+    return `**${p1}**`;
+  });
+  corrected = corrected.replace(/\+(\d+)/g, '+$1'); // Ensure proper enhancement format
+  corrected = corrected.replace(/-(\d+)/g, '-$1'); // Ensure proper penalty format
 
   return corrected;
 }
