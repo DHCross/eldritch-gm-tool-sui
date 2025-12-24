@@ -787,24 +787,24 @@ export function generateAutoCorrections(text: string): string {
   corrected = corrected.replace(/\bdr\b/gi, 'DR');
   corrected = corrected.replace(/\bmv\b/gi, 'MV');
 
-  // Fix spell-specific formatting
-  corrected = corrected.replace(/^([A-Z][a-z\s]+)(?=\s*:?\s*Path)/m, '*$1*'); // Italicize spell names
+  // Apply spell-specific formatting
+  corrected = corrected.replace(/^([A-Z][a-zA-Z'\-]+(?: [A-Z][a-zA-Z'\-]+)*)(?=\s*:?\s*[Pp]ath)/m, '*$1*'); // Italicize spell names
   corrected = corrected.replace(/\bpath\s*:\s*/gi, 'Path: ');
   corrected = corrected.replace(/\brank\s*:\s*/gi, 'Rank: ');
   corrected = corrected.replace(/\btier\s*:\s*/gi, 'Tier: ');
   corrected = corrected.replace(/\brarity\s*:\s*/gi, 'Rarity: ');
 
-  // Fix magic item formatting
+  // Apply magic item formatting
   corrected = corrected.replace(/^([A-Z][a-z\s]+(?:\s*\+\d+)?)(?=\s)/m, '**$1**'); // Bold item names
   corrected = corrected.replace(/\+(\d+)/g, '+$1'); // Ensure proper enhancement format
   corrected = corrected.replace(/-(\d+)/g, '-$1'); // Ensure proper penalty format
 
-  // Fix monster-specific formatting
+  // Apply monster-specific formatting
   corrected = corrected.replace(/\bthreat\s*dice\s*:\s*/gi, 'Threat Dice: ');
   corrected = corrected.replace(/\bthreat\s*mv\s*:\s*/gi, 'Threat MV: ');
   corrected = corrected.replace(/\bspecial\s*abilities\s*:\s*/gi, 'Special Abilities: ');
 
-  // Fix common field names
+  // Standardize common field names
   corrected = corrected.replace(/\bdisposition\s*:\s*/gi, 'Disposition: ');
   corrected = corrected.replace(/\bbattle\s*phase\s*:\s*/gi, 'Battle Phase: ');
   corrected = corrected.replace(/\bsaving\s*throw\s*:\s*/gi, 'Saving Throw: ');
