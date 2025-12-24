@@ -775,7 +775,7 @@ export function generateAutoCorrections(text: string): string {
     match.replace(letter, letter.toUpperCase())
   );
 
-  // Fix sentence start capitalization
+  // Capitalize the first letter of the sentence
   if (corrected.length > 0 && /[a-z]/.test(corrected[0])) {
     corrected = corrected[0].toUpperCase() + corrected.slice(1);
   }
