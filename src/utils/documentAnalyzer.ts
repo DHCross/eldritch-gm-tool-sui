@@ -780,17 +780,30 @@ export function generateAutoCorrections(text: string): string {
     corrected = corrected[0].toUpperCase() + corrected.slice(1);
   }
 
-  // Fix common abbreviations
+  // Standardize common abbreviations
   corrected = corrected.replace(/\bpa\b/gi, 'PA');
   corrected = corrected.replace(/\bhp\b/gi, 'HP');
   corrected = corrected.replace(/\bac\b/gi, 'AC');
   corrected = corrected.replace(/\bdr\b/gi, 'DR');
   corrected = corrected.replace(/\bmv\b/gi, 'MV');
 
+
   // Fix spell-specific formatting
   corrected = corrected.replace(/^([A-Z][a-z\s]+)(?=\s*:?\s*Path)/m, '*$1*'); // Italicize spell names
 
   // Normalize common field names
+
+  corrected = corrected.replace(/\bnpc\b/gi, 'NPC');
+  corrected = corrected.replace(/\bpc\b/gi, 'PC');
+  corrected = corrected.replace(/\bgm\b/gi, 'GM');
+  corrected = corrected.replace(/\bxp\b/gi, 'XP');
+  corrected = corrected.replace(/\bgp\b/gi, 'GP');
+  corrected = corrected.replace(/\bsp\b/gi, 'SP');
+  corrected = corrected.replace(/\bcp\b/gi, 'CP');
+
+  // Apply spell-specific formatting
+  corrected = corrected.replace(/^([A-Z][a-zA-Z'\-]+(?: [A-Z][a-zA-Z'\-]+)*)(?=\s*:?\s*[Pp]ath)/m, '*$1*'); // Italicize spell names
+
   corrected = corrected.replace(/\bpath\s*:\s*/gi, 'Path: ');
   corrected = corrected.replace(/\brank\s*:\s*/gi, 'Rank: ');
   corrected = corrected.replace(/\btier\s*:\s*/gi, 'Tier: ');
@@ -802,6 +815,7 @@ export function generateAutoCorrections(text: string): string {
   corrected = corrected.replace(/\barea\s*:\s*/gi, 'Area: ');
   corrected = corrected.replace(/\beffects?\s*:\s*/gi, 'Effect: ');
 
+
   corrected = corrected.replace(/\bdisposition\s*:\s*/gi, 'Disposition: ');
   corrected = corrected.replace(/\bbattle\s*phase\s*:\s*/gi, 'Battle Phase: ');
   corrected = corrected.replace(/\bsaving\s*throws?\s*:\s*/gi, 'Saving Throw: ');
@@ -811,11 +825,20 @@ export function generateAutoCorrections(text: string): string {
   corrected = corrected.replace(/\bdamage\s*reduction\s*:\s*/gi, 'Damage Reduction: ');
   corrected = corrected.replace(/\bspecial\s*abilities\s*:\s*/gi, 'Special Abilities: ');
   corrected = corrected.replace(/\b(?:extra|additional)\s*attacks?\s*:\s*/gi, 'Extra Attacks: ');
+
+  // Apply magic item formatting
+  corrected = corrected.replace(/^([A-Z][a-z\s]+(?:\s*\+\d+)?)(?=\s)/m, '**$1**'); // Bold item names
+  corrected = corrected.replace(/\+(\d+)/g, '+$1'); // Ensure proper enhancement format
+  corrected = corrected.replace(/-(\d+)/g, '-$1'); // Ensure proper penalty format
+
+  // Apply monster-specific formatting
+
   corrected = corrected.replace(/\bthreat\s*dice\s*:\s*/gi, 'Threat Dice: ');
   corrected = corrected.replace(/\bthreat\s*mv\s*:\s*/gi, 'Threat MV: ');
   corrected = corrected.replace(/\b(?:creature\s*)?type\s*:\s*/gi, 'Type: ');
   corrected = corrected.replace(/\bsize\s*:\s*/gi, 'Size: ');
   corrected = corrected.replace(/\bnature\s*:\s*/gi, 'Nature: ');
+
 
   // Fix magic item formatting
   corrected = corrected.replace(/^([A-Z][a-z\s]+(?:\s*\+\d+)?)(?=[\s:])/m, (match, p1, offset, string) => {
@@ -847,6 +870,12 @@ export function generateAutoCorrections(text: string): string {
   });
   corrected = corrected.replace(/\+(\d+)/g, '+$1'); // Ensure proper enhancement format
   corrected = corrected.replace(/-(\d+)/g, '-$1'); // Ensure proper penalty format
+
+  // Standardize common field names
+  corrected = corrected.replace(/\bdisposition\s*:\s*/gi, 'Disposition: ');
+  corrected = corrected.replace(/\bbattle\s*phase\s*:\s*/gi, 'Battle Phase: ');
+  corrected = corrected.replace(/\bsaving\s*throw\s*:\s*/gi, 'Saving Throw: ');
+
 
   return corrected;
 }
