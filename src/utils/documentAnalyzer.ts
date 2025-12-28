@@ -780,12 +780,19 @@ export function generateAutoCorrections(text: string): string {
     corrected = corrected[0].toUpperCase() + corrected.slice(1);
   }
 
-  // Fix common abbreviations
+  // Standardize common abbreviations
   corrected = corrected.replace(/\bpa\b/gi, 'PA');
   corrected = corrected.replace(/\bhp\b/gi, 'HP');
   corrected = corrected.replace(/\bac\b/gi, 'AC');
   corrected = corrected.replace(/\bdr\b/gi, 'DR');
   corrected = corrected.replace(/\bmv\b/gi, 'MV');
+  corrected = corrected.replace(/\bnpc\b/gi, 'NPC');
+  corrected = corrected.replace(/\bpc\b/gi, 'PC');
+  corrected = corrected.replace(/\bgm\b/gi, 'GM');
+  corrected = corrected.replace(/\bxp\b/gi, 'XP');
+  corrected = corrected.replace(/\bgp\b/gi, 'GP');
+  corrected = corrected.replace(/\bsp\b/gi, 'SP');
+  corrected = corrected.replace(/\bcp\b/gi, 'CP');
 
   // Apply spell-specific formatting
   corrected = corrected.replace(/^([A-Z][a-zA-Z'\-]+(?: [A-Z][a-zA-Z'\-]+)*)(?=\s*:?\s*[Pp]ath)/m, '*$1*'); // Italicize spell names
