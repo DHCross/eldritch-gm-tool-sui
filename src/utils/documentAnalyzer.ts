@@ -770,7 +770,7 @@ export function analyzeStatBlockText(text: string): AnalysisResult {
 export function generateAutoCorrections(text: string): string {
   let corrected = text;
 
-  // Fix capitalization after periods
+  // Capitalizes letters after periods
   corrected = corrected.replace(/\.\s+([a-z])/g, (match, letter) =>
     match.replace(letter, letter.toUpperCase())
   );
