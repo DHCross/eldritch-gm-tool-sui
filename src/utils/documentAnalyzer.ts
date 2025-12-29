@@ -770,34 +770,59 @@ export function analyzeStatBlockText(text: string): AnalysisResult {
 export function generateAutoCorrections(text: string): string {
   let corrected = text;
 
-  // Fix capitalization after periods
+  // Capitalizes letters after periods
   corrected = corrected.replace(/\.\s+([a-z])/g, (match, letter) =>
     match.replace(letter, letter.toUpperCase())
   );
 
-  // Fix sentence start capitalization
+  // Capitalize the first letter of the sentence
   if (corrected.length > 0 && /[a-z]/.test(corrected[0])) {
     corrected = corrected[0].toUpperCase() + corrected.slice(1);
   }
 
-  // Fix common abbreviations
+  // Standardize common abbreviations
   corrected = corrected.replace(/\bpa\b/gi, 'PA');
   corrected = corrected.replace(/\bhp\b/gi, 'HP');
   corrected = corrected.replace(/\bac\b/gi, 'AC');
   corrected = corrected.replace(/\bdr\b/gi, 'DR');
   corrected = corrected.replace(/\bmv\b/gi, 'MV');
 
+
   // Apply spell-specific formatting
   corrected = corrected.replace(/^([A-Z][a-z\s]+)(?=\s*:?\s*Path)/m, '*$1*'); // Italicize spell names
+
+  corrected = corrected.replace(/\bnpc\b/gi, 'NPC');
+  corrected = corrected.replace(/\bpc\b/gi, 'PC');
+  corrected = corrected.replace(/\bgm\b/gi, 'GM');
+  corrected = corrected.replace(/\bxp\b/gi, 'XP');
+  corrected = corrected.replace(/\bgp\b/gi, 'GP');
+  corrected = corrected.replace(/\bsp\b/gi, 'SP');
+  corrected = corrected.replace(/\bcp\b/gi, 'CP');
+
+  // Apply spell-specific formatting
+  corrected = corrected.replace(/^([A-Z][a-zA-Z'\-]+(?: [A-Z][a-zA-Z'\-]+)*)(?=\s*:?\s*[Pp]ath)/m, '*$1*'); // Italicize spell names
+
   corrected = corrected.replace(/\bpath\s*:\s*/gi, 'Path: ');
   corrected = corrected.replace(/\brank\s*:\s*/gi, 'Rank: ');
   corrected = corrected.replace(/\btier\s*:\s*/gi, 'Tier: ');
   corrected = corrected.replace(/\brarity\s*:\s*/gi, 'Rarity: ');
 
+
+
+
+  // Formats magic item names
+  corrected = corrected.replace(/^((?:[A-Z][a-z]+|[A-Z]+)(?:(?:[- ](?:of\s+)?[A-Z][a-z]+)+(?:\s*\+\d+)?|(?:\s*\+\d+)|(?=$|[.,:;]|\s+(?![a-z]))))/m, '**$1**'); // Bold item names
+  corrected = corrected.replace(/([+-])\s+(\d+)/g, '$1$2'); // Ensure proper enhancement format
+
+
   // Apply magic item formatting
   corrected = corrected.replace(/^([A-Z][a-z\s]+(?:\s*\+\d+)?)(?=\s)/m, '**$1**'); // Bold item names
   corrected = corrected.replace(/\+(\d+)/g, '+$1'); // Ensure proper enhancement format
   corrected = corrected.replace(/-(\d+)/g, '-$1'); // Ensure proper penalty format
+
+
+
+
 
   // Apply monster-specific formatting
   corrected = corrected.replace(/\bthreat\s*dice\s*:\s*/gi, 'Threat Dice: ');
