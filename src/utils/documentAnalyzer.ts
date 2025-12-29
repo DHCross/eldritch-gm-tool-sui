@@ -801,10 +801,16 @@ export function generateAutoCorrections(text: string): string {
   corrected = corrected.replace(/\btier\s*:\s*/gi, 'Tier: ');
   corrected = corrected.replace(/\brarity\s*:\s*/gi, 'Rarity: ');
 
+
+  // Formats magic item names
+  corrected = corrected.replace(/^((?:[A-Z][a-z]+|[A-Z]+)(?:(?:[- ](?:of\s+)?[A-Z][a-z]+)+(?:\s*\+\d+)?|(?:\s*\+\d+)|(?=$|[.,:;]|\s+(?![a-z]))))/m, '**$1**'); // Bold item names
+  corrected = corrected.replace(/([+-])\s+(\d+)/g, '$1$2'); // Ensure proper enhancement format
+
   // Apply magic item formatting
   corrected = corrected.replace(/^([A-Z][a-z\s]+(?:\s*\+\d+)?)(?=\s)/m, '**$1**'); // Bold item names
   corrected = corrected.replace(/\+(\d+)/g, '+$1'); // Ensure proper enhancement format
   corrected = corrected.replace(/-(\d+)/g, '-$1'); // Ensure proper penalty format
+
 
   // Apply monster-specific formatting
   corrected = corrected.replace(/\bthreat\s*dice\s*:\s*/gi, 'Threat Dice: ');
