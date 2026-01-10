@@ -5,6 +5,8 @@ describe('generateAutoCorrections', () => {
   it('should capitalize the first letter of the sentence', () => {
     const input = 'this is a test sentence.';
     // Note: generateAutoCorrections also bolds what it thinks is a magic item name at the start
+    // If we fix the bolding logic to not bold arbitrary sentences, we might need to update this expectation.
+    // For now, assuming the bolding logic stays aggressive for non-abbreviations:
     const expected = '**This is a test** sentence.';
     expect(generateAutoCorrections(input)).toBe(expected);
   });
@@ -36,6 +38,7 @@ describe('generateAutoCorrections', () => {
 
   it('should fix common abbreviations', () => {
     const input = 'hp: 10, ac: 15, pa: physical';
+    // We expect abbreviations NOT to be bolded.
     const expected = 'HP: 10, AC: 15, PA: physical';
     expect(generateAutoCorrections(input)).toBe(expected);
   });
