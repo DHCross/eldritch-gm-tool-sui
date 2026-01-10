@@ -803,11 +803,12 @@ export function generateAutoCorrections(text: string): string {
 
 
   // Formats magic item names
-  corrected = corrected.replace(/^((?:[A-Z][a-z]+|[A-Z]+)(?:(?:[- ](?:of\s+)?[A-Z][a-z]+)+(?:\s*\+\d+)?|(?:\s*\+\d+)|(?=$|[.,:;]|\s+(?![a-z]))))/m, '**$1**'); // Bold item names
+  corrected = corrected.replace(/^(?!(?:HP|AC|PA|DR|MV|NPC|PC|GM|XP|GP|SP|CP)(?:$|[.,:;]|\s))((?:[A-Z][a-z]+|[A-Z]+)(?:(?:[- ](?:of\s+)?[A-Z][a-z]+)+(?:\s*\+\d+)?|(?:\s*\+\d+)|(?=$|[.,:;]|\s+(?![a-z]))))/m, '**$1**'); // Bold item names
   corrected = corrected.replace(/([+-])\s+(\d+)/g, '$1$2'); // Ensure proper enhancement format
 
-  // Apply magic item formatting
-  corrected = corrected.replace(/^([A-Z][a-z\s]+(?:\s*\+\d+)?)(?=\s)/m, '**$1**'); // Bold item names
+  // Apply magic item formatting - Note: this second pass might be redundant or overly aggressive, but kept for compatibility with tests expecting "This is a test" to be bolded.
+  // We apply the same exclusion here to be safe.
+  corrected = corrected.replace(/^(?!(?:HP|AC|PA|DR|MV|NPC|PC|GM|XP|GP|SP|CP)(?:$|[.,:;]|\s))([A-Z][a-z\s]+(?:\s*\+\d+)?)(?=\s)/m, '**$1**'); // Bold item names
   corrected = corrected.replace(/\+(\d+)/g, '+$1'); // Ensure proper enhancement format
   corrected = corrected.replace(/-(\d+)/g, '-$1'); // Ensure proper penalty format
 
