@@ -1,18 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DetailedNPC,
   npcRaces,
   npcRoles,
-  npcLevels
+  npcLevels,
+  dieValues
 } from '../data/npcData';
 import {
   generateDetailedNPC,
   exportDetailedNPCToMarkdown,
   createDetailedNPCForBattle
 } from '../utils/npcUtils';
-import { saveNPCToRoster, getFolderList, createCustomFolder } from '../utils/rosterUtils';
+import { getAllPartyFolders, saveCharacter } from '../utils/partyStorage';
+import { SavedCharacter, PartyFolder } from '../types/party';
 import exporter from '../utils/exporters/htmlExporter';
 
 export default function AdvancedNPCGenerator() {
@@ -25,12 +27,15 @@ export default function AdvancedNPCGenerator() {
   const [selectedGender, setSelectedGender] = useState<'Male' | 'Female' | ''>('');
   const [includeMagic, setIncludeMagic] = useState(false);
 
-  // Roster functionality
-  const [rosterFolders, setRosterFolders] = useState<string[]>(getFolderList());
-  const [selectedRosterFolder, setSelectedRosterFolder] = useState('NPCs');
-  const [showRosterSaveDialog, setShowRosterSaveDialog] = useState(false);
-  const [customFolderName, setCustomFolderName] = useState('');
+  // Saving functionality
+  const [partyFolders, setPartyFolders] = useState<PartyFolder[]>([]);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [selectedPartyId, setSelectedPartyId] = useState('');
   const [npcToSave, setNpcToSave] = useState<DetailedNPC | null>(null);
+
+  useEffect(() => {
+    setPartyFolders(getAllPartyFolders());
+  }, []);
 
   const handleGenerate = () => {
     const npc = generateDetailedNPC(
@@ -76,37 +81,59 @@ export default function AdvancedNPCGenerator() {
     alert(`${npc.name} battle data copied to clipboard!`);
   };
 
-  const handleSaveToRoster = (npc: DetailedNPC) => {
+  const handleOpenSaveDialog = (npc: DetailedNPC) => {
     setNpcToSave(npc);
-    setShowRosterSaveDialog(true);
+    setShowSaveDialog(true);
   };
 
-  const saveNPCToRosterFunc = () => {
+  const saveNPC = () => {
     if (!npcToSave) return;
 
-    let folderName = selectedRosterFolder;
+    // Map DetailedNPC to SavedCharacter
+    const character: SavedCharacter = {
+      id: Date.now().toString(),
+      user_id: 'default_user',
+      name: npcToSave.name,
+      type: 'NPC',
+      level: npcToSave.level || 1,
+      race: npcToSave.race,
+      class: npcToSave.role,
+      abilities: {
+        prowess_mv: dieValues[npcToSave.abilities.prowess] || 4,
+        agility_mv: dieValues[npcToSave.abilities.prowess] || 4, // Approximate if not distinct
+        melee_mv: dieValues[npcToSave.abilities.prowess] || 4, // Approximate
+        fortitude_mv: dieValues[npcToSave.abilities.fortitude] || 4,
+        endurance_mv: dieValues[npcToSave.abilities.fortitude] || 4,
+        strength_mv: dieValues[npcToSave.abilities.fortitude] || 4,
+        competence_mv: dieValues[npcToSave.abilities.competence] || 4,
+        willpower_mv: dieValues[npcToSave.abilities.fortitude] || 4,
+        expertise_mv: dieValues[npcToSave.abilities.competence] || 4,
+        perception_mv: dieValues[npcToSave.abilities.competence] || 4,
+        adroitness_mv: dieValues[npcToSave.abilities.competence] || 4,
+        precision_mv: dieValues[npcToSave.abilities.prowess] || 4
+      },
+      computed: {
+        active_dp: npcToSave.activeDefense,
+        passive_dp: npcToSave.passiveDefense,
+        spirit_pts: npcToSave.spiritPoints
+      },
+      status: {
+        current_hp_active: npcToSave.activeDefense,
+        current_hp_passive: npcToSave.passiveDefense,
+        status_flags: [],
+        gear: npcToSave.iconicItem ? [npcToSave.iconicItem.type] : [],
+        notes: npcToSave.notes || ''
+      },
+      tags: [npcToSave.race.toLowerCase(), npcToSave.role.toLowerCase(), 'detailed'],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      full_data: npcToSave as unknown as Record<string, unknown>
+    };
 
-    // If custom folder name is provided, create it and use it
-    if (customFolderName.trim()) {
-      const success = createCustomFolder(customFolderName.trim());
-      if (success) {
-        folderName = customFolderName.trim();
-        setRosterFolders(getFolderList()); // Refresh folder list
-      } else {
-        folderName = customFolderName.trim(); // Use it anyway, might already exist
-      }
-    }
-
-    const success = saveNPCToRoster(npcToSave, folderName);
-
-    if (success) {
-      alert(`NPC "${npcToSave.name}" saved to roster folder "${folderName}" successfully!`);
-      setShowRosterSaveDialog(false);
-      setCustomFolderName('');
-      setNpcToSave(null);
-    } else {
-      alert('Failed to save NPC to roster. Please try again.');
-    }
+    saveCharacter(character);
+    alert(`NPC "${npcToSave.name}" saved successfully!`);
+    setShowSaveDialog(false);
+    setNpcToSave(null);
   };
 
   const handleRemoveNPC = (id: number) => {
@@ -262,11 +289,11 @@ export default function AdvancedNPCGenerator() {
                     Copy HTML
                   </button>
                   <button
-                    onClick={() => handleSaveToRoster(npc)}
+                    onClick={() => handleOpenSaveDialog(npc)}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                    title="Save to Roster"
+                    title="Save NPC"
                   >
-                    Roster
+                    Save NPC
                   </button>
                   <button
                     onClick={() => handleRemoveNPC(npc.id)}
@@ -393,64 +420,47 @@ export default function AdvancedNPCGenerator() {
         </div>
       )}
 
-      {/* Roster Save Dialog */}
-      {showRosterSaveDialog && npcToSave && (
+      {/* Save Dialog */}
+      {showSaveDialog && npcToSave && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-bold mb-4">Save NPC to Roster</h3>
+            <h3 className="text-lg font-bold mb-4">Save NPC</h3>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  NPC: {npcToSave.name}
-                </label>
+                <p className="text-sm text-gray-700">
+                  Saving <strong>{npcToSave.name}</strong> to your NPC collection.
+                </p>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Roster Folder:
+                  Add to Party Folder (Optional):
                 </label>
                 <select
-                  value={selectedRosterFolder}
-                  onChange={(e) => setSelectedRosterFolder(e.target.value)}
+                  value={selectedPartyId}
+                  onChange={(e) => setSelectedPartyId(e.target.value)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                 >
-                  {rosterFolders.map(folder => (
-                    <option key={folder} value={folder}>
-                      {folder}
+                  <option value="">No specific folder</option>
+                  {partyFolders.map(folder => (
+                    <option key={folder.id} value={folder.id}>
+                      {folder.name} ({folder.folder_type})
                     </option>
                   ))}
                 </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Or Create New Folder:
-                </label>
-                <input
-                  type="text"
-                  value={customFolderName}
-                  onChange={(e) => setCustomFolderName(e.target.value)}
-                  placeholder="Enter new folder name..."
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Leave empty to use selected folder above
-                </p>
               </div>
             </div>
 
             <div className="mt-6 flex space-x-3">
               <button
-                onClick={saveNPCToRosterFunc}
+                onClick={saveNPC}
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
               >
-                Save to Roster
+                Save NPC
               </button>
               <button
                 onClick={() => {
-                  setShowRosterSaveDialog(false);
-                  setCustomFolderName('');
+                  setShowSaveDialog(false);
                   setNpcToSave(null);
                 }}
                 className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
