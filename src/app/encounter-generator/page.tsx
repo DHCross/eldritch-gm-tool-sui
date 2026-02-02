@@ -393,7 +393,16 @@ function EncounterGeneratorContent() {
     let safety = 0;
     let remainingBudget = targetThreat;
 
-    while (remainingBudget > 0 && safety < 100) {
+    const minThreats: Record<CreatureCategory, number> = {
+      Minor: 4,
+      Standard: 8,
+      Exceptional: 12,
+      Legendary: 36,
+    };
+
+    const minPossibleThreat = Math.min(...enabledTypes.map(t => minThreats[t]));
+
+    while (remainingBudget >= minPossibleThreat && safety < 100) {
       const monster = generateMonster(
         enabledTypes,
         nonMediumPercentage,
@@ -411,9 +420,6 @@ function EncounterGeneratorContent() {
       }
 
       safety++;
-
-      // Stop if remaining budget is too small for any meaningful threat
-      if (remainingBudget < 4) break;
     }
 
     // Check if encounter exceeds budget (should not happen with new logic)

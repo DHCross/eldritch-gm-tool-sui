@@ -41,7 +41,6 @@ import {
   parseThreatDice
 } from '../utils/monsterUtils';
 import { getAllPartyFolders, saveCharacter } from '../utils/partyStorage';
-import { saveMonsterToRoster, getFolderList, createCustomFolder } from '../utils/rosterUtils';
 
 // Enhanced form interface
 interface EnhancedMonsterForm {
@@ -121,12 +120,6 @@ export default function EnhancedMonsterGenerator() {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-  // Roster functionality
-  const [rosterFolders, setRosterFolders] = useState<string[]>([]);
-  const [selectedRosterFolder, setSelectedRosterFolder] = useState('Monsters');
-  const [showRosterSaveDialog, setShowRosterSaveDialog] = useState(false);
-  const [customFolderName, setCustomFolderName] = useState('');
-
   // Refs for navigation
   const basicInfoRef = useRef<HTMLDivElement>(null);
   const threatDiceRef = useRef<HTMLDivElement>(null);
@@ -138,7 +131,6 @@ export default function EnhancedMonsterGenerator() {
 
   useEffect(() => {
     setPartyFolders(getAllPartyFolders());
-    setRosterFolders(getFolderList());
   }, []);
 
   // Auto-generate enhanced threat dice when category changes
@@ -322,57 +314,6 @@ export default function EnhancedMonsterGenerator() {
     saveCharacter(character);
     alert(`Enhanced Monster "${monsterForm.name}" saved successfully!`);
     setShowSaveDialog(false);
-  };
-
-  // Save monster to roster function
-  const saveMonsterToRosterFunc = () => {
-    if (!monsterForm.name.trim()) {
-      alert('Please enter a monster name');
-      return;
-    }
-
-    let folderName = selectedRosterFolder;
-
-    // If custom folder name is provided, create it and use it
-    if (customFolderName.trim()) {
-      const success = createCustomFolder(customFolderName.trim());
-      if (success) {
-        folderName = customFolderName.trim();
-        setRosterFolders(getFolderList()); // Refresh folder list
-      } else {
-        folderName = customFolderName.trim(); // Use it anyway, might already exist
-      }
-    }
-
-    // Create monster object for roster
-    const monsterForRoster = {
-      name: monsterForm.name,
-      category: monsterForm.category,
-      nature: monsterForm.nature,
-      size: monsterForm.size,
-      AD: hpCalc.active_hp,
-      PD: hpCalc.passive_hp,
-      summary: `${monsterForm.category} ${monsterForm.nature} ${monsterForm.size} creature`,
-      threatDice: monsterForm.threatDice,
-      armorDefense: monsterForm.armorDefense,
-      specialAbilities: monsterForm.specialAbilities,
-      movement: movement,
-      treasureCache: monsterForm.treasureCache,
-      notes: monsterForm.notes,
-      qsbString: generateQSBString(),
-      enhanced: true,
-      threatMV: highestThreatMV
-    };
-
-    const success = saveMonsterToRoster(monsterForRoster, folderName);
-
-    if (success) {
-      alert(`Monster "${monsterForm.name}" saved to roster folder "${folderName}" successfully!`);
-      setShowRosterSaveDialog(false);
-      setCustomFolderName('');
-    } else {
-      alert('Failed to save monster to roster. Please try again.');
-    }
   };
 
   return (
@@ -1090,15 +1031,9 @@ export default function EnhancedMonsterGenerator() {
             </button>
             <button
               onClick={() => setShowSaveDialog(true)}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-3"
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
             >
               Save Enhanced Monster
-            </button>
-            <button
-              onClick={() => setShowRosterSaveDialog(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            >
-              Save to Roster
             </button>
           </div>
         </div>
@@ -1151,68 +1086,6 @@ export default function EnhancedMonsterGenerator() {
               </button>
               <button
                 onClick={() => setShowSaveDialog(false)}
-                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Roster Save Dialog */}
-      {showRosterSaveDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-bold mb-4">Save Monster to Roster</h3>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Roster Folder:
-                </label>
-                <select
-                  value={selectedRosterFolder}
-                  onChange={(e) => setSelectedRosterFolder(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
-                >
-                  {rosterFolders.map(folder => (
-                    <option key={folder} value={folder}>
-                      {folder}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Or Create New Folder:
-                </label>
-                <input
-                  type="text"
-                  value={customFolderName}
-                  onChange={(e) => setCustomFolderName(e.target.value)}
-                  placeholder="Enter new folder name..."
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Leave empty to use selected folder above
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-6 flex space-x-3">
-              <button
-                onClick={saveMonsterToRosterFunc}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              >
-                Save to Roster
-              </button>
-              <button
-                onClick={() => {
-                  setShowRosterSaveDialog(false);
-                  setCustomFolderName('');
-                }}
                 className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
               >
                 Cancel
