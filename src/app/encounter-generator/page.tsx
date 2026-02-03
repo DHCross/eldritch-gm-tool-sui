@@ -791,7 +791,7 @@ function EncounterGeneratorContent() {
             <button
               type="button"
               onClick={handleGenerate}
-              className="inline-flex items-center justify-center rounded-md bg-btn-bg px-5 py-3 text-base font-semibold text-off-white shadow hover:bg-btn-hover"
+              className="inline-flex items-center justify-center rounded-md border border-soft-amethyst/40 bg-btn-bg px-5 py-3 text-base font-semibold text-off-white shadow-md transition-all hover:bg-btn-hover hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-soft-amethyst active:translate-y-px"
             >
               Generate Encounter
             </button>

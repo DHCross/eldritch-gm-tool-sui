@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { SavedCharacter, CreatureCategory, CreatureNature, CreatureSize } from '../types/party';
 import { getCharactersByType } from '../utils/partyStorage';
 import { resolveBackTargetFromParam } from '../utils/backNavigation';
+import ExportToEncounterPlus from './ExportToEncounterPlus';
 
 interface BestiaryCreature {
   id: string;
@@ -892,6 +893,7 @@ export default function Bestiary() {
   const backTarget = resolveBackTargetFromParam(searchParams.get('from'), 'gm-tools');
 
   const [customCreatures, setCustomCreatures] = useState<BestiaryCreature[]>([]);
+  const [rawMonsterData, setRawMonsterData] = useState<SavedCharacter[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CreatureCategory | 'All'>('All');
   const [selectedNature, setSelectedNature] = useState<CreatureNature | undefined>();
@@ -911,6 +913,7 @@ export default function Bestiary() {
     const loadCustomCreatures = () => {
       try {
         const storedMonsters = getCharactersByType('Monster');
+        setRawMonsterData(storedMonsters); // Store raw data for export
         const mapped = storedMonsters.map(mapSavedMonsterToBestiaryCreature)
           .sort((a, b) => a.name.localeCompare(b.name));
         setCustomCreatures(mapped);
@@ -1192,6 +1195,44 @@ export default function Bestiary() {
                       </button>
                     </div>
                   ))}
+                </div>
+                {/* Export to Encounter+ */}
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <ExportToEncounterPlus
+                    monsters={encounterCreatures.map(ec => {
+                      // Find raw SavedCharacter data by matching name
+                      const raw = rawMonsterData.find(m => m.name === ec.name);
+                      if (raw) return raw;
+                      // Fallback: create minimal SavedCharacter from BestiaryCreature
+                      return {
+                        id: ec.id,
+                        user_id: 'local',
+                        name: ec.name,
+                        type: 'Monster' as const,
+                        level: 1,
+                        race: ec.nature,
+                        class: ec.category,
+                        abilities: { prowess_mv: 6, agility_mv: 0, melee_mv: 0, fortitude_mv: 0, endurance_mv: 0, strength_mv: 0, competence_mv: 0, willpower_mv: 0 },
+                        computed: { active_dp: 0, passive_dp: 0, spirit_pts: 0 },
+                        status: { current_hp_active: 0, current_hp_passive: 0, status_flags: [], gear: [], notes: ec.description },
+                        tags: ec.tags,
+                        full_data: {
+                          battlePhase: ec.battlePhase,
+                          category: ec.category,
+                          nature: ec.nature,
+                          size: ec.size,
+                          hp: ec.hp,
+                          dr: ec.dr,
+                          threatDice: ec.threatDice,
+                          threatMV: ec.threatMV
+                        },
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                      };
+                    })}
+                    filename={`encounter-${encounterCreatures.length}-creatures`}
+                    variant="primary"
+                  />
                 </div>
               </div>
             )}

@@ -108,6 +108,20 @@ const TOOL_SECTIONS: ToolSection[] = [
         label: 'Rules Reference →'
       }
     ]
+  },
+  {
+    title: '📤 Encounter+ Export',
+    description: 'Export your characters and monsters for use in Encounter+ VTT.',
+    primaryCta: {
+      href: '/encounter-plus-export?from=gm-tools',
+      label: 'Open Export Center'
+    },
+    links: [
+      {
+        href: '/party-management?from=gm-tools',
+        label: 'Party Management →'
+      }
+    ]
   }
 ];
 

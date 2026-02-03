@@ -22,10 +22,12 @@ import {
   getPartyCharacters,
   initializeDefaultFolders
 } from '../utils/partyStorage';
+import ExportToEncounterPlus from './ExportToEncounterPlus';
 
 export default function PartyManagement() {
   const [folders, setFolders] = useState<PartyFolder[]>([]);
   const [characters, setCharacters] = useState<SavedCharacter[]>([]);
+  const [partyCharacters, setPartyCharacters] = useState<SavedCharacter[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<PartyFolder | null>(null);
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
@@ -42,9 +44,11 @@ export default function PartyManagement() {
   useEffect(() => {
     if (selectedFolder) {
       const partyChars = getPartyCharacters(selectedFolder.id);
+      setPartyCharacters(partyChars); // Store for export
       const profile = calculatePartyDefenseProfile(partyChars.map(c => c.id));
       setPartyDefense(profile);
     } else {
+      setPartyCharacters([]);
       setPartyDefense(null);
     }
   }, [selectedFolder, folders]);
@@ -418,6 +422,19 @@ export default function PartyManagement() {
                 ))}
               </div>
             </div>
+
+            {/* Export to Encounter+ */}
+            {partyCharacters.length > 0 && (
+              <div className="pt-4 border-t border-gray-200">
+                <ExportToEncounterPlus
+                  characters={selectedFolder?.folder_type === 'PC_party' ? partyCharacters : []}
+                  monsters={selectedFolder?.folder_type !== 'PC_party' ? partyCharacters : []}
+                  filename={`${selectedFolder?.name.toLowerCase().replace(/\s+/g, '-') || 'party'}-export`}
+                  variant="primary"
+                  size="md"
+                />
+              </div>
+            )}
 
             <div className="text-xs text-gray-500 mt-4 p-3 bg-gray-50 rounded">
               <strong>Defense Calculation:</strong><br/>
