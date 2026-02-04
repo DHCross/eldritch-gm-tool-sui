@@ -114,7 +114,7 @@ function getSizeMovementModifier(size: CreatureSize | undefined): number {
  */
 export function calculateMovement(prowessMV: number, agilityMV: number = 0, hasAgilitySpec: boolean = false, size: CreatureSize = 'Medium'): number {
   const rawScore = (12 + prowessMV + agilityMV) / 5;
-  let baseSquares = hasAgilitySpec ? Math.ceil(rawScore) : Math.floor(rawScore);
+  const baseSquares = hasAgilitySpec ? Math.ceil(rawScore) : Math.floor(rawScore);
   
   // Derived bonus (automatic for creatures)
   let tierBonus = 1;
@@ -181,7 +181,7 @@ export function convertMonster(monster: SavedCharacter): EncounterPlusEntity {
   // Calculate Battle Phase
   const reactionFocus = (details.reactionFocus as number) || 0;
   const finesseFocus = (details.finesseFocus as number) || 0;
-  const battlePhase = calculateBattlePhase(prowessMV, reactionFocus, finesseFocus);
+  // Note: Encounter+ schema expects the battle phase die string; we export `battlePhaseDie` below.
   
   // HP calculation - try multiple sources
   let hp = 0;
@@ -308,7 +308,7 @@ export function convertCharacter(character: SavedCharacter): EncounterPlusEntity
   
   // Movement (Player rules - Speed Focus is conditional)
   const hasAgilitySpec = agilityMV > 0;
-  let baseMovement = hasAgilitySpec ? Math.ceil((12 + prowessMV + agilityMV) / 5) : Math.floor((12 + prowessMV) / 5);
+  const baseMovement = hasAgilitySpec ? Math.ceil((12 + prowessMV + agilityMV) / 5) : Math.floor((12 + prowessMV) / 5);
   
   // Speed Focus bonus (conditional for players)
   let speedBonus = 0;
