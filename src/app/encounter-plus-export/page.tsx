@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect, useMemo } from 'react';
+import { Suspense, useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { SavedCharacter } from '@/types/party';
 import { getAllCharacters } from '@/utils/partyStorage';
@@ -9,7 +9,7 @@ import { resolveBackTargetFromParam } from '@/utils/backNavigation';
 import ExportToEncounterPlus from '@/components/ExportToEncounterPlus';
 import ContentBox from '@/components/ContentBox';
 
-export default function EncounterPlusExportPage() {
+function EncounterPlusExportContent() {
   const searchParams = useSearchParams();
   const backTarget = resolveBackTargetFromParam(searchParams.get('from'), 'gm-tools');
 
@@ -313,5 +313,13 @@ export default function EncounterPlusExportPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function EncounterPlusExportPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-4 py-10 text-center text-off-white">Loading export…</div>}>
+      <EncounterPlusExportContent />
+    </Suspense>
   );
 }
