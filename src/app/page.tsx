@@ -175,7 +175,7 @@ export default function Home() {
             </div>
             <div className="max-w-xl space-y-2">
               <p className="text-sm uppercase tracking-[0.32em] text-emerald-green/80 font-display font-semibold">Eldritch Suite</p>
-              <h1 className="text-4xl font-bold text-off-white md:text-5xl font-display text-transparent bg-clip-text bg-gradient-to-r from-royal-amethyst to-emerald-green via-soft-amethyst animate-pulse">
+              <h1 className="text-4xl font-bold md:text-5xl font-display text-transparent bg-clip-text bg-gradient-to-r from-royal-amethyst via-soft-amethyst to-emerald-green">
                 Eldritch RPG GM Tools Suite
               </h1>
               <p className="text-lg text-sharp-silver/85 md:text-xl font-serif">
