@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 import { exportCampaign, importCampaign } from '@/utils/campaignBackup';
 import ContentBox from '@/components/ContentBox';
+import InteractiveButton from '@/components/InteractiveButton';
 
 type HeroCard = {
   title: string;
@@ -17,7 +18,7 @@ type HeroCard = {
 
 const HERO_CARDS: HeroCard[] = [
   {
-    title: 'Player Tools',
+    title: 'The Hero’s Covenant',
     description:
       'Jump straight into character creation, spell references, and tools to keep your hero ready for every eldritch encounter.',
     bullets: [
@@ -31,7 +32,7 @@ const HERO_CARDS: HeroCard[] = [
     }
   },
   {
-    title: 'GM Tools',
+    title: 'The Master’s Will',
     description:
       'Orchestrate unforgettable sessions with encounter planning, monster management, and campaign organization at your fingertips.',
     bullets: [
@@ -46,7 +47,7 @@ const HERO_CARDS: HeroCard[] = [
     secondaryCtas: [
       {
         href: '/bestiary?from=home',
-        label: 'Browse Bestiary Catalog'
+        label: 'The Archive of Mythic Threats'
       }
     ]
   }
@@ -74,10 +75,10 @@ export default function Home() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      setFeedback({ type: 'success', message: 'Campaign backup saved to your device.' });
+      setFeedback({ type: 'success', message: 'The Eternal Record has been inscribed.' });
     } catch (error) {
       console.error('Error exporting campaign backup:', error);
-      setFeedback({ type: 'error', message: 'Unable to save campaign backup.' });
+      setFeedback({ type: 'error', message: 'Unable to inscribe The Eternal Record.' });
     }
   }, []);
 
@@ -95,7 +96,7 @@ export default function Home() {
     }
 
     if (!file.name.toLowerCase().endsWith('.json')) {
-      setFeedback({ type: 'error', message: 'Please select a JSON backup file.' });
+      setFeedback({ type: 'error', message: 'Please select a valid JSON scroll.' });
       clearFileInput();
       return;
     }
@@ -113,12 +114,12 @@ export default function Home() {
         if (!result.success) {
           setFeedback({
             type: 'error',
-            message: result.error || 'Failed to import campaign backup.'
+            message: result.error || 'Failed to consult The Eternal Record.'
           });
         } else {
           setFeedback({
             type: 'success',
-            message: 'Campaign backup imported successfully.'
+            message: 'The Eternal Record has been restored.'
           });
           setRefreshCounter(counter => counter + 1);
         }
@@ -126,7 +127,7 @@ export default function Home() {
         console.error('Error processing campaign backup:', error);
         setFeedback({
           type: 'error',
-          message: 'The selected file is not a valid campaign backup.'
+          message: 'The selected scroll is not a valid record.'
         });
       } finally {
         clearFileInput();
@@ -135,7 +136,7 @@ export default function Home() {
 
     reader.onerror = () => {
       console.error('Error reading campaign backup file:', reader.error);
-      setFeedback({ type: 'error', message: 'Unable to read the selected file.' });
+      setFeedback({ type: 'error', message: 'Unable to decipher the scroll.' });
       clearFileInput();
     };
 
@@ -147,7 +148,7 @@ export default function Home() {
       <header className="mb-12">
         <ContentBox>
           <div className="flex flex-col items-center gap-4 text-center md:flex-row md:justify-center md:gap-8 md:text-left">
-            <div className="flex items-center justify-center gap-3 rounded-2xl bg-charcoal-violet/80 px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.35)] md:gap-5">
+            <div className="flex items-center justify-center gap-3 rounded-2xl bg-charcoal-violet/80 px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.35)] md:gap-5 border border-royal-amethyst/30">
               <Image
                 src="/eldritch-logo.png"
                 alt="Eldritch RPG logo"
@@ -167,17 +168,17 @@ export default function Home() {
                   priority
                   className="h-auto w-24 max-w-[200px] drop-shadow-[0_0_16px_rgba(127,222,115,0.4)] md:w-[200px]"
                 />
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-eldritch-green/90 md:text-sm">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-green/90 md:text-sm font-display">
                   Powered by Hoskbrew
                 </p>
               </div>
             </div>
             <div className="max-w-xl space-y-2">
-              <p className="text-sm uppercase tracking-[0.32em] text-muted-eldritch-green/80">Eldritch Suite</p>
-              <h1 className="text-4xl font-bold text-off-white md:text-5xl">
+              <p className="text-sm uppercase tracking-[0.32em] text-emerald-green/80 font-display font-semibold">Eldritch Suite</p>
+              <h1 className="text-4xl font-bold md:text-5xl font-display text-transparent bg-clip-text bg-gradient-to-r from-royal-amethyst via-soft-amethyst to-emerald-green">
                 Eldritch RPG GM Tools Suite
               </h1>
-              <p className="text-lg text-off-white/85 md:text-xl">
+              <p className="text-lg text-sharp-silver/85 md:text-xl font-serif">
                 Essential tools for Game Masters running Eldritch RPG campaigns
               </p>
             </div>
@@ -187,22 +188,29 @@ export default function Home() {
 
       <main>
         <ContentBox className="mb-12">
-          <h2 className="text-2xl font-bold text-soft-amethyst">Campaign Backups</h2>
-          <p className="mt-2 text-sm text-off-white/80">
-            Save a local JSON file with all PCs, NPCs, monsters, party folders, roster folders, and encounter templates, or
-            restore a backup to sync your tools.
+          <h2 className="text-2xl font-bold text-royal-amethyst font-display">The Eternal Record</h2>
+          <p className="mt-2 text-sm text-sharp-silver/80">
+            &quot;What is written cannot be unmade.&quot; Save a local scroll with all PCs, NPCs, monsters, and records, or restore a backup to sync your tools.
           </p>
           <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center">
-            <button
-              type="button"
+            <InteractiveButton
               onClick={handleSaveCampaign}
-              className="inline-flex items-center justify-center rounded-md bg-btn-bg px-5 py-3 text-sm font-semibold text-off-white shadow hover:bg-btn-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-soft-amethyst"
+              className="px-6 py-3"
             >
-              Save Campaign
-            </button>
-            <label className="inline-flex cursor-pointer flex-col items-start gap-2 text-sm font-medium text-soft-amethyst sm:flex-row sm:items-center">
-              <span className="rounded-md border border-dashed border-soft-amethyst/50 bg-charcoal-violet/50 px-5 py-3 text-center text-sm font-semibold text-soft-amethyst shadow-sm transition-colors hover:border-soft-amethyst hover:text-soft-amethyst/80">
-                Load Campaign Backup
+              Inscribe Record
+            </InteractiveButton>
+
+            <label className="inline-flex cursor-pointer flex-col items-start gap-2 text-sm font-medium text-soft-amethyst sm:flex-row sm:items-center group">
+              <span className="
+                relative overflow-hidden inline-flex items-center justify-center
+                rounded-md px-5 py-3 text-sm font-display font-semibold transition-all duration-300
+                bg-charcoal-violet/50 text-royal-amethyst
+                border border-royal-amethyst/50
+                group-hover:border-royal-amethyst group-hover:text-royal-amethyst/80
+                group-hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]
+                backdrop-blur-sm
+              ">
+                Consult The Eternal Record
               </span>
               <input
                 ref={fileInputRef}
@@ -216,7 +224,7 @@ export default function Home() {
           {feedback && (
             <p
               className={`mt-4 text-sm font-semibold ${
-                feedback.type === 'success' ? 'text-muted-eldritch-green' : 'text-red-500'
+                feedback.type === 'success' ? 'text-emerald-green' : 'text-red-500'
               }`}
             >
               {feedback.message}
@@ -227,28 +235,28 @@ export default function Home() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           {HERO_CARDS.map(card => (
             <ContentBox key={card.title}>
-              <h2 className="text-3xl font-extrabold text-soft-amethyst mb-4">{card.title}</h2>
-              <p className="text-lg text-off-white/80 mb-6">{card.description}</p>
-              <ul className="space-y-3 text-off-white/80">
+              <h2 className="text-3xl font-extrabold text-royal-amethyst mb-4 font-display">{card.title}</h2>
+              <p className="text-lg text-sharp-silver/80 mb-6 font-serif">{card.description}</p>
+              <ul className="space-y-3 text-sharp-silver/80 font-serif">
                 {card.bullets.map(bullet => (
-                  <li key={bullet}>• {bullet}</li>
+                  <li key={bullet} className="flex items-start">
+                    <span className="mr-2 text-emerald-green/70">✦</span>
+                    {bullet}
+                  </li>
                 ))}
               </ul>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link
-                  href={card.cta.href}
-                  className="inline-flex items-center justify-center rounded-md bg-btn-bg px-5 py-3 text-sm font-semibold text-off-white shadow hover:bg-btn-hover transition-colors"
-                >
+                <InteractiveButton href={card.cta.href}>
                   {card.cta.label}
-                </Link>
+                </InteractiveButton>
                 {card.secondaryCtas?.map(secondary => (
-                  <Link
+                  <InteractiveButton
                     key={secondary.href}
                     href={secondary.href}
-                    className="inline-flex items-center justify-center rounded-md border border-soft-amethyst/50 bg-charcoal-violet/50 px-5 py-3 text-sm font-semibold text-soft-amethyst shadow-sm transition-colors hover:border-soft-amethyst hover:text-soft-amethyst/80"
+                    variant="secondary"
                   >
                     {secondary.label}
-                  </Link>
+                  </InteractiveButton>
                 ))}
               </div>
             </ContentBox>
@@ -256,15 +264,15 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="text-center mt-12 pt-8 border-t border-muted-eldritch-green/40">
-        <div className="text-off-white/80">
+      <footer className="text-center mt-12 pt-8 border-t border-emerald-green/20">
+        <div className="text-sharp-silver/60 text-sm font-serif">
           <p>&copy; 2025 Hoskbrew</p>
           <p>Tools for the Eldritch RPG system</p>
-          <div className="mt-4 space-x-4">
-            <Link href="/rules" className="text-muted-eldritch-green hover:text-muted-eldritch-green/80">
+          <div className="mt-4 space-x-4 font-display">
+            <Link href="/rules" className="text-emerald-green hover:text-emerald-green/80 transition-colors">
               Game Rules
             </Link>
-            <Link href="/documentation" className="text-muted-eldritch-green hover:text-muted-eldritch-green/80">
+            <Link href="/documentation" className="text-emerald-green hover:text-emerald-green/80 transition-colors">
               Documentation
             </Link>
           </div>

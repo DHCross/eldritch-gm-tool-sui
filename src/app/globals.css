@@ -1,22 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0d0a12;
-  --foreground: #f1f2f4;
-  --panel: rgba(20, 15, 29, 0.9);
+  --background: #050505;
+  --foreground: #e5e7eb;
+  --panel: rgba(10, 8, 16, 0.85);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-spectral);
+  --font-display: var(--font-cinzel);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0b0811;
-    --foreground: #f6f7fb;
+    --background: #050505;
+    --foreground: #e5e7eb;
   }
 }
 
@@ -26,32 +26,84 @@ html {
 
 @layer base {
   body {
-    background: radial-gradient(circle at 20% 20%, rgba(184, 132, 243, 0.12), transparent 35%),
-      radial-gradient(circle at 80% 0%, rgba(127, 222, 115, 0.12), transparent 30%),
-      linear-gradient(180deg, rgba(12, 9, 18, 0.9), rgba(9, 7, 14, 0.95)),
+    /* Updated gradient: Deep Indigo/Obsidian base with Royal Amethyst/Vibrant Moss hints */
+    background:
+      radial-gradient(circle at 20% 20%, rgba(107, 33, 168, 0.15), transparent 40%), /* Royal Amethyst hint */
+      radial-gradient(circle at 80% 10%, rgba(16, 185, 129, 0.1), transparent 35%), /* Emerald hint */
+      linear-gradient(180deg, rgba(5, 5, 5, 0.95), rgba(5, 5, 5, 0.98)),
       var(--background);
     color: var(--foreground);
-    font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    line-height: 1.7;
+    font-family: var(--font-spectral), serif; /* Default to Spectral for body text */
+    line-height: 1.6;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
   }
 
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-cinzel), serif; /* Cinzel for headings */
+    font-weight: 700; /* Bold headings */
+    letter-spacing: 0.05em; /* Slight letter spacing for readability */
+  }
+
   a {
-    color: #7fde73;
+    color: #10b981; /* Emerald Green for links */
     text-decoration: none;
     font-weight: 600;
     text-underline-offset: 4px;
+    transition: color 0.2s ease-in-out;
   }
 
   a:hover,
   a:focus-visible {
-    color: #b884f3;
-    text-decoration: underline;
+    color: #a855f7; /* Soft Amethyst hover */
+    text-shadow: 0 0 8px rgba(168, 85, 247, 0.5); /* Glowing hover effect */
+    text-decoration: none; /* Removed underline for cleaner look on hover */
   }
 
   ::selection {
-    background: rgba(184, 132, 243, 0.35);
+    background: rgba(107, 33, 168, 0.35); /* Royal Amethyst selection */
     color: #ffffff;
+  }
+}
+
+@layer components {
+  /* Helper for "Green Rune" effect later */
+  @keyframes rune-flash {
+    0% { opacity: 1; transform: scale(0.5); }
+    50% { opacity: 0.8; transform: scale(1.2); }
+    100% { opacity: 0; transform: scale(1.5); }
+  }
+
+  .animate-rune-flash {
+    animation: rune-flash 0.6s ease-out forwards;
+  }
+
+  /* Helper for "Purple Smoke" transition later */
+  @keyframes purple-smoke {
+    0% { opacity: 0; transform: scale(0.95); filter: blur(10px); }
+    100% { opacity: 1; transform: scale(1); filter: blur(0); }
+  }
+
+  .page-transition-enter {
+    animation: purple-smoke 0.8s ease-out forwards;
+  }
+
+  /* Smoke Overlay Animation */
+  @keyframes clear-smoke {
+    0% {
+      opacity: 1;
+      transform: scale(1);
+      filter: blur(8px);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.2);
+      filter: blur(0);
+      visibility: hidden;
+    }
+  }
+
+  .animate-smoke-clearing {
+    animation: clear-smoke 1.2s ease-out forwards;
   }
 }
