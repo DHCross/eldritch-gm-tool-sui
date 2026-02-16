@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import {
   abilities,
@@ -306,12 +307,20 @@ export default function ManualCharacterBuilder() {
           <h1 className="text-3xl font-bold">Manual Character Builder</h1>
           <p className="text-sm text-gray-600">Plan every CP by hand to create bespoke heroes. Choose race, class, and level, then allocate abilities, specialties, and focuses within your budget.</p>
         </div>
-        <button
-          onClick={resetBuilder}
-          className="rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
-        >
-          Reset
-        </button>
+        <div className="flex gap-2">
+          <Link
+            href="/player-tools"
+            className="rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
+          >
+            Back to Player Tools
+          </Link>
+          <button
+            onClick={resetBuilder}
+            className="rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
+          >
+            Reset
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-4">
