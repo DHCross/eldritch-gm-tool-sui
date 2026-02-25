@@ -150,8 +150,8 @@ export default function GrimoireIndex() {
     return (
       <div className="max-w-6xl mx-auto p-6">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading Grimoire Index...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-soft-amethyst mx-auto"></div>
+          <p className="mt-4 text-off-white/60">Loading Grimoire Index...</p>
         </div>
       </div>
     );
@@ -160,20 +160,20 @@ export default function GrimoireIndex() {
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-off-white mb-2">
           Grimoire Index
         </h1>
-        <p className="text-gray-600">
+        <p className="text-off-white/60">
           Complete spell database for Eldritch RPG 2nd Edition
         </p>
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white/5 rounded-lg shadow-lg p-6">
         <div className="flex flex-wrap gap-4 mb-4">
           <button
             onClick={exportToMarkdown}
-            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition-colors"
+            className="bg-soft-amethyst hover:bg-soft-amethyst/80 text-white font-bold py-2 px-4 rounded transition-colors"
           >
             Export to Markdown
           </button>
@@ -183,33 +183,33 @@ export default function GrimoireIndex() {
           >
             Clear Filters
           </button>
-          <div className="ml-auto text-sm text-gray-600 flex items-center">
+          <div className="ml-auto text-sm text-off-white/60 flex items-center">
             Showing {filteredAndSortedSpells.length} of {spells.length} spells
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="lg:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-off-white/80 mb-1">
               Search Spells
             </label>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soft-amethyst/50"
               placeholder="Search by name, effects, or notes..."
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-off-white/80 mb-1">
               Magic Path
             </label>
             <select
               value={selectedPath}
               onChange={(e) => setSelectedPath(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soft-amethyst/50"
             >
               <option value="">All Paths</option>
               {uniquePaths.map(path => (
@@ -219,13 +219,13 @@ export default function GrimoireIndex() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-off-white/80 mb-1">
               Rarity
             </label>
             <select
               value={selectedRarity}
               onChange={(e) => setSelectedRarity(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soft-amethyst/50"
             >
               <option value="">All Rarities</option>
               {uniqueRarities.map(rarity => (
@@ -235,13 +235,13 @@ export default function GrimoireIndex() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-off-white/80 mb-1">
               Effect Type
             </label>
             <select
               value={selectedEffect}
               onChange={(e) => setSelectedEffect(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soft-amethyst/50"
             >
               <option value="">All Effects</option>
               {uniqueEffects.map(effect => (
@@ -253,115 +253,115 @@ export default function GrimoireIndex() {
       </div>
 
       {/* Spell List */}
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div className="bg-white/5 rounded-lg shadow-lg overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-white/10">
+            <thead className="bg-white/5">
               <tr>
                 <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  className="px-6 py-3 text-left text-xs font-medium text-off-white/50 uppercase tracking-wider cursor-pointer hover:bg-white/10"
                   onClick={() => handleSort('name')}
                 >
                   <div className="flex items-center gap-1">
                     Spell Name
                     {sortBy === 'name' && (
-                      <span className="text-blue-600">
+                      <span className="text-soft-amethyst">
                         {sortOrder === 'asc' ? '▲' : '▼'}
                       </span>
                     )}
                   </div>
                 </th>
                 <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  className="px-6 py-3 text-left text-xs font-medium text-off-white/50 uppercase tracking-wider cursor-pointer hover:bg-white/10"
                   onClick={() => handleSort('path')}
                 >
                   <div className="flex items-center gap-1">
                     Path
                     {sortBy === 'path' && (
-                      <span className="text-blue-600">
+                      <span className="text-soft-amethyst">
                         {sortOrder === 'asc' ? '▲' : '▼'}
                       </span>
                     )}
                   </div>
                 </th>
                 <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  className="px-6 py-3 text-left text-xs font-medium text-off-white/50 uppercase tracking-wider cursor-pointer hover:bg-white/10"
                   onClick={() => handleSort('rarity')}
                 >
                   <div className="flex items-center gap-1">
                     Rarity
                     {sortBy === 'rarity' && (
-                      <span className="text-blue-600">
+                      <span className="text-soft-amethyst">
                         {sortOrder === 'asc' ? '▲' : '▼'}
                       </span>
                     )}
                   </div>
                 </th>
                 <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  className="px-6 py-3 text-left text-xs font-medium text-off-white/50 uppercase tracking-wider cursor-pointer hover:bg-white/10"
                   onClick={() => handleSort('rankDie')}
                 >
                   <div className="flex items-center gap-1">
                     Rank/Die
                     {sortBy === 'rankDie' && (
-                      <span className="text-blue-600">
+                      <span className="text-soft-amethyst">
                         {sortOrder === 'asc' ? '▲' : '▼'}
                       </span>
                     )}
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-off-white/50 uppercase tracking-wider">
                   Effects
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-off-white/50 uppercase tracking-wider">
                   Notes
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white/5 divide-y divide-white/10">
               {filteredAndSortedSpells.map((spell, index) => (
-                <tr key={index} className="hover:bg-gray-50">
+                <tr key={index} className="hover:bg-white/5">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-off-white">
                       {spell.spellName}
                     </div>
                     {spell.category && (
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-off-white/50">
                         {spell.category}
                       </div>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-off-white">
                     {spell.path || 'All Paths'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      spell.rarity === 'Common' ? 'bg-green-100 text-green-800' :
-                      spell.rarity === 'Uncommon' ? 'bg-blue-100 text-blue-800' :
+                      spell.rarity === 'Common' ? 'bg-green-900/20 text-muted-eldritch-green' :
+                      spell.rarity === 'Uncommon' ? 'bg-blue-100 text-soft-amethyst' :
                       spell.rarity === 'Esoteric' ? 'bg-purple-100 text-purple-800' :
-                      spell.rarity === 'Occult' ? 'bg-red-100 text-red-800' :
-                      spell.rarity === 'Legendary' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'
+                      spell.rarity === 'Occult' ? 'bg-red-900/20 text-red-400' :
+                      spell.rarity === 'Legendary' ? 'bg-yellow-900/20 text-yellow-300' :
+                      'bg-white/10 text-off-white'
                     }`}>
                       {spell.rarity}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-mono">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-off-white font-mono">
                     {spell.rankDie}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
+                  <td className="px-6 py-4 text-sm text-off-white">
                     <div className="flex flex-wrap gap-1">
                       {spell.effects.split(',').map((effect, idx) => (
                         <span
                           key={idx}
-                          className="inline-flex px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded"
+                          className="inline-flex px-2 py-1 text-xs bg-white/10 text-off-white/80 rounded"
                         >
                           {effect.trim()}
                         </span>
                       ))}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-off-white/60">
                     {spell.notes}
                   </td>
                 </tr>
@@ -372,10 +372,10 @@ export default function GrimoireIndex() {
 
         {filteredAndSortedSpells.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500">No spells found matching your criteria.</p>
+            <p className="text-off-white/50">No spells found matching your criteria.</p>
             <button
               onClick={clearFilters}
-              className="mt-4 text-blue-600 hover:text-blue-800"
+              className="mt-4 text-soft-amethyst hover:text-soft-amethyst"
             >
               Clear filters to see all spells
             </button>

@@ -588,63 +588,63 @@ export default function BattleCalculator() {
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       {/* Import Options UI */}
-      <div className="bg-white text-gray-900 rounded-lg shadow-lg p-6 mb-6">
+      <div className="bg-white/5 text-off-white rounded-lg shadow-lg p-6 mb-6">
         <h3 className="text-lg font-bold mb-4">Import Combatants</h3>
         <div className="flex flex-wrap gap-4">
           <button
             onClick={handleImportMainParty}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors"
+            className="bg-soft-amethyst hover:bg-soft-amethyst text-white font-bold py-2 px-4 rounded transition-colors"
           >
             Import Main Party
           </button>
           <button
             onClick={handleImportSelectedPartyMembers}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors"
+            className="bg-soft-amethyst hover:bg-soft-amethyst text-white font-bold py-2 px-4 rounded transition-colors"
           >
             Import Selected Party Members
           </button>
           <button
             onClick={handleImportNPCs}
-            className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition-colors"
+            className="bg-muted-eldritch-green/80 hover:bg-muted-eldritch-green text-white font-bold py-2 px-4 rounded transition-colors"
           >
             Import NPCs
           </button>
           <button
             onClick={handleImportMonsters}
-            className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded transition-colors"
+            className="bg-soft-amethyst hover:bg-soft-amethyst text-white font-bold py-2 px-4 rounded transition-colors"
           >
             Import Monsters
           </button>
         </div>
-        <p className="text-sm text-gray-500 mt-2">Select a group to import into the battle. (More group tools coming soon.)</p>
+        <p className="text-sm text-off-white/50 mt-2">Select a group to import into the battle. (More group tools coming soon.)</p>
       </div>
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-off-white mb-2">
           Battle Phase Tracker
         </h1>
-        <p className="text-gray-600">
+        <p className="text-off-white/60">
           Manage combat initiative and health tracking for Eldritch RPG 2nd Edition
         </p>
       </div>
 
       {/* Controls */}
-      <div className="bg-white text-gray-900 rounded-lg shadow-lg p-6">
+      <div className="bg-white/5 text-off-white rounded-lg shadow-lg p-6">
         <div className="flex flex-wrap gap-4 mb-6">
           <button
             onClick={handleRestoreAllADP}
-            className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition-colors"
+            className="bg-muted-eldritch-green hover:bg-muted-eldritch-green/80 text-white font-bold py-2 px-4 rounded transition-colors"
           >
             Restore All ADP
           </button>
           <button
             onClick={handleClearOpponents}
-            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors"
+            className="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded transition-colors"
           >
             Clear Opponents
           </button>
           <button
             onClick={handleExportBattle}
-            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition-colors"
+            className="bg-soft-amethyst hover:bg-soft-amethyst/80 text-white font-bold py-2 px-4 rounded transition-colors"
           >
             Export Battle
           </button>
@@ -672,7 +672,7 @@ export default function BattleCalculator() {
               type="number"
               value={battleState.round}
               onChange={(e) => setBattleState(prev => ({ ...prev, round: parseInt(e.target.value) || 1 }))}
-              className="w-16 border border-gray-300 rounded px-2 py-1 text-center"
+              className="w-16 border border-white/15 rounded px-2 py-1 text-center"
               min="1"
             />
           </div>
@@ -684,7 +684,7 @@ export default function BattleCalculator() {
             <h3 className="text-lg font-bold">Add Combatant</h3>
             <button
               onClick={() => setShowAddCombatant(prev => !prev)}
-              className="text-sm text-blue-600 hover:text-blue-800"
+              className="text-sm text-soft-amethyst hover:text-soft-amethyst"
             >
               {showAddCombatant ? 'Hide Form' : 'Show Form'}
             </button>
@@ -694,11 +694,11 @@ export default function BattleCalculator() {
             <>
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                  <label className="block text-sm font-medium text-off-white/80 mb-1">Type</label>
                   <select
                     value={newCombatant.category}
                     onChange={(e) => setNewCombatant(prev => ({ ...prev, category: e.target.value as CombatantCategory }))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    className="w-full border border-white/15 rounded-md px-3 py-2 text-sm"
                   >
                     <option value="pa">Player Adventurer</option>
                     <option value="npc">NPC</option>
@@ -707,22 +707,22 @@ export default function BattleCalculator() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                  <label className="block text-sm font-medium text-off-white/80 mb-1">Name</label>
                   <input
                     type="text"
                     value={newCombatant.name}
                     onChange={(e) => setNewCombatant(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    className="w-full border border-white/15 rounded-md px-3 py-2 text-sm"
                     placeholder="Enter combatant name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Prowess Die</label>
+                  <label className="block text-sm font-medium text-off-white/80 mb-1">Prowess Die</label>
                   <select
                     value={newCombatant.prowessDie}
                     onChange={(e) => setNewCombatant(prev => ({ ...prev, prowessDie: parseInt(e.target.value) }))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    className="w-full border border-white/15 rounded-md px-3 py-2 text-sm"
                   >
                     {prowessDieOptions.map(die => (
                       <option key={die} value={die}>d{die}</option>
@@ -731,11 +731,11 @@ export default function BattleCalculator() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Weapon Reach</label>
+                  <label className="block text-sm font-medium text-off-white/80 mb-1">Weapon Reach</label>
                   <select
                     value={newCombatant.weaponReach}
                     onChange={(e) => setNewCombatant(prev => ({ ...prev, weaponReach: e.target.value as WeaponReach }))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    className="w-full border border-white/15 rounded-md px-3 py-2 text-sm"
                   >
                     {weaponReachOptions.map(reach => (
                       <option key={reach} value={reach}>{reach}</option>
@@ -744,11 +744,11 @@ export default function BattleCalculator() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                  <label className="block text-sm font-medium text-off-white/80 mb-1">Role</label>
                   <select
                     value={newCombatant.role}
                     onChange={(e) => setNewCombatant(prev => ({ ...prev, role: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    className="w-full border border-white/15 rounded-md px-3 py-2 text-sm"
                   >
                     {combatantRoles.map(role => (
                       <option key={role} value={role}>{role}</option>
@@ -758,11 +758,11 @@ export default function BattleCalculator() {
 
                 {newCombatant.category === 'npc' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>
+                    <label className="block text-sm font-medium text-off-white/80 mb-1">Level</label>
                     <select
                       value={newCombatant.level}
                       onChange={(e) => setNewCombatant(prev => ({ ...prev, level: e.target.value as NPCLevel }))}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                      className="w-full border border-white/15 rounded-md px-3 py-2 text-sm"
                     >
                       {Object.keys(npcDefaults).map(level => (
                         <option key={level} value={level}>Level {level}</option>
@@ -773,11 +773,11 @@ export default function BattleCalculator() {
 
                 {newCombatant.category === 'qsb' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Classification</label>
+                    <label className="block text-sm font-medium text-off-white/80 mb-1">Classification</label>
                     <select
                       value={newCombatant.classification}
                       onChange={(e) => setNewCombatant(prev => ({ ...prev, classification: e.target.value as QSBClassification }))}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                      className="w-full border border-white/15 rounded-md px-3 py-2 text-sm"
                     >
                       {Object.keys(qsbDefaults).map(classification => (
                         <option key={classification} value={classification}>{classification}</option>
@@ -787,37 +787,37 @@ export default function BattleCalculator() {
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-off-white/80 mb-1">
                     ADP (Default: {defaults.adp})
                   </label>
                   <input
                     type="number"
                     value={newCombatant.customADP}
                     onChange={(e) => setNewCombatant(prev => ({ ...prev, customADP: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    className="w-full border border-white/15 rounded-md px-3 py-2 text-sm"
                     placeholder={defaults.adp.toString()}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-off-white/80 mb-1">
                     PDP (Default: {defaults.pdp})
                   </label>
                   <input
                     type="number"
                     value={newCombatant.customPDP}
                     onChange={(e) => setNewCombatant(prev => ({ ...prev, customPDP: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    className="w-full border border-white/15 rounded-md px-3 py-2 text-sm"
                     placeholder={defaults.pdp.toString()}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Armor</label>
+                  <label className="block text-sm font-medium text-off-white/80 mb-1">Armor</label>
                   <select
                     value={newCombatant.armor}
                     onChange={(e) => setNewCombatant(prev => ({ ...prev, armor: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    className="w-full border border-white/15 rounded-md px-3 py-2 text-sm"
                   >
                     {armorTypes.map(armor => (
                       <option key={armor} value={armor}>{armor === '0' ? 'None' : armor}</option>
@@ -828,23 +828,23 @@ export default function BattleCalculator() {
                 {newCombatant.category === 'pa' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Reaction Focus</label>
+                      <label className="block text-sm font-medium text-off-white/80 mb-1">Reaction Focus</label>
                       <input
                         type="number"
                         value={newCombatant.reactionFocus}
                         onChange={(e) => setNewCombatant(prev => ({ ...prev, reactionFocus: parseInt(e.target.value) || 0 }))}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                        className="w-full border border-white/15 rounded-md px-3 py-2 text-sm"
                         min="0"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Spirit Points</label>
+                      <label className="block text-sm font-medium text-off-white/80 mb-1">Spirit Points</label>
                       <input
                         type="number"
                         value={newCombatant.spiritPoints}
                         onChange={(e) => setNewCombatant(prev => ({ ...prev, spiritPoints: parseInt(e.target.value) || 0 }))}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                        className="w-full border border-white/15 rounded-md px-3 py-2 text-sm"
                         min="0"
                       />
                     </div>
@@ -854,7 +854,7 @@ export default function BattleCalculator() {
 
               <button
                 onClick={addCombatant}
-                className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors"
+                className="mt-4 bg-soft-amethyst hover:bg-soft-amethyst/80 text-white font-bold py-2 px-4 rounded transition-colors"
               >
                 Add Combatant
               </button>
@@ -865,17 +865,17 @@ export default function BattleCalculator() {
 
       {/* Active Combatants */}
       {sortedCombatants.length > 0 && (
-        <div className="bg-white text-gray-900 rounded-lg shadow-lg p-6">
+        <div className="bg-white/5 text-off-white rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold mb-4">Active Combatants (Initiative Order)</h2>
 
           <div className="space-y-4">
             {sortedCombatants.map((combatant, index) => (
-              <div key={combatant.id} className="border rounded-lg p-4 bg-gray-50">
+              <div key={combatant.id} className="border rounded-lg p-4 bg-white/5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-4">
-                    <span className="text-lg font-bold text-blue-600">#{index + 1}</span>
+                    <span className="text-lg font-bold text-soft-amethyst">#{index + 1}</span>
                     <span className="text-lg font-medium">{combatant.name}</span>
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-off-white/60">
                       ({combatant.classification} • BP: {combatant.battlePhase} • {combatant.weaponReach} reach)
                     </span>
                     {showTacticalMovement && (
@@ -891,16 +891,16 @@ export default function BattleCalculator() {
                       />
                     )}
                     <span className={`text-sm px-2 py-1 rounded ${
-                      combatant.role === 'Hostile' ? 'bg-red-100 text-red-800' :
-                      combatant.role === 'Ally' ? 'bg-green-100 text-green-800' :
-                      'bg-gray-100 text-gray-800'
+                      combatant.role === 'Hostile' ? 'bg-red-900/20 text-red-400' :
+                      combatant.role === 'Ally' ? 'bg-green-900/20 text-muted-eldritch-green' :
+                      'bg-white/10 text-off-white'
                     }`}>
                       {combatant.role}
                     </span>
                   </div>
                   <button
                     onClick={() => removeCombatant(combatant.id)}
-                    className="text-red-600 hover:text-red-800 text-sm"
+                    className="text-red-400 hover:text-red-400 text-sm"
                   >
                     Remove
                   </button>
@@ -909,7 +909,7 @@ export default function BattleCalculator() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {/* Health Pools */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-off-white/80">
                       Active Defense Pool
                     </label>
                     <div className="flex items-center gap-2">
@@ -917,30 +917,30 @@ export default function BattleCalculator() {
                         type="number"
                         value={combatant.adp}
                         onChange={(e) => updateCombatantHP(combatant.id, 'adp', e.target.value)}
-                        className="w-20 border border-gray-300 rounded px-2 py-1 text-center"
+                        className="w-20 border border-white/15 rounded px-2 py-1 text-center"
                         min="0"
                         max={combatant.maxAdp}
                       />
-                      <span className="text-sm text-gray-600">/ {combatant.maxAdp}</span>
+                      <span className="text-sm text-off-white/60">/ {combatant.maxAdp}</span>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-off-white/80">
                       Passive Defense Pool
                     </label>
                     <input
                       type="number"
                       value={combatant.pdp}
                       onChange={(e) => updateCombatantHP(combatant.id, 'pdp', e.target.value)}
-                      className="w-20 border border-gray-300 rounded px-2 py-1 text-center"
+                      className="w-20 border border-white/15 rounded px-2 py-1 text-center"
                       min="0"
                     />
                   </div>
 
                   {/* Threat Application */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-off-white/80">
                       Apply Threat
                     </label>
                     <div className="flex items-center gap-2">
@@ -948,7 +948,7 @@ export default function BattleCalculator() {
                         type="number"
                         value={threatInputs[combatant.id] || ''}
                         onChange={(e) => setThreatInputs(prev => ({ ...prev, [combatant.id]: e.target.value }))}
-                        className="w-20 border border-gray-300 rounded px-2 py-1 text-center"
+                        className="w-20 border border-white/15 rounded px-2 py-1 text-center"
                         placeholder="Threat"
                         min="0"
                       />
@@ -957,14 +957,14 @@ export default function BattleCalculator() {
                           type="number"
                           value={armorRolls[combatant.id] || ''}
                           onChange={(e) => setArmorRolls(prev => ({ ...prev, [combatant.id]: e.target.value }))}
-                          className="w-20 border border-gray-300 rounded px-2 py-1 text-center"
+                          className="w-20 border border-white/15 rounded px-2 py-1 text-center"
                           placeholder="Armor"
                           min="0"
                         />
                       )}
                       <button
                         onClick={() => handleApplyThreat(combatant.id)}
-                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                        className="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded text-sm"
                       >
                         Apply
                       </button>
@@ -974,13 +974,13 @@ export default function BattleCalculator() {
                   {/* Revitalize (PA only) */}
                   {combatant.category === 'pa' && (
                     <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-off-white/80">
                         Revitalize (SP: {combatant.spiritPoints})
                       </label>
                       {!showRevitalize[combatant.id] ? (
                         <button
                           onClick={() => setShowRevitalize(prev => ({ ...prev, [combatant.id]: true }))}
-                          className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm"
+                          className="bg-muted-eldritch-green/80 hover:bg-muted-eldritch-green text-white px-3 py-1 rounded text-sm"
                         >
                           Revitalize
                         </button>
@@ -994,14 +994,14 @@ export default function BattleCalculator() {
                                     type="number"
                                     value={spInputs[combatant.id] || ''}
                                     onChange={(e) => setSPInputs(prev => ({ ...prev, [combatant.id]: e.target.value }))}
-                                    className="w-12 border border-gray-300 rounded px-1 text-xs"
+                                    className="w-12 border border-white/15 rounded px-1 text-xs"
                                     placeholder="SP"
                                     min="0"
                                     max={combatant.spiritPoints}
                                   />
                                   <button
                                     onClick={() => handleRevitalize(combatant.id, key as RevitalizeOption)}
-                                    className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs"
+                                    className="bg-muted-eldritch-green/80 hover:bg-muted-eldritch-green text-white px-2 py-1 rounded text-xs"
                                     title={option.description}
                                   >
                                     {option.label}
@@ -1010,7 +1010,7 @@ export default function BattleCalculator() {
                               ) : (
                                 <button
                                   onClick={() => handleRevitalize(combatant.id, key as RevitalizeOption)}
-                                  className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs"
+                                  className="bg-muted-eldritch-green/80 hover:bg-muted-eldritch-green text-white px-2 py-1 rounded text-xs"
                                   title={option.description}
                                 >
                                   {option.label}
@@ -1020,7 +1020,7 @@ export default function BattleCalculator() {
                           ))}
                           <button
                             onClick={() => setShowRevitalize(prev => ({ ...prev, [combatant.id]: false }))}
-                            className="text-xs text-gray-500 hover:text-gray-700"
+                            className="text-xs text-off-white/50 hover:text-off-white/80"
                           >
                             Cancel
                           </button>
@@ -1031,7 +1031,7 @@ export default function BattleCalculator() {
                 </div>
 
                 {combatant.armor !== '0' && (
-                  <div className="mt-2 text-sm text-gray-600">
+                  <div className="mt-2 text-sm text-off-white/60">
                     Armor: {combatant.armor} | Shield: {combatant.shield > 0 ? `+${combatant.shield}` : 'None'}
                   </div>
                 )}
@@ -1043,17 +1043,17 @@ export default function BattleCalculator() {
 
       {/* Defeated Combatants */}
       {battleState.defeatedCombatants.length > 0 && (
-        <div className="bg-white text-gray-900 rounded-lg shadow-lg p-6">
+        <div className="bg-white/5 text-off-white rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold mb-4">Defeated Combatants</h2>
           <div className="space-y-2">
             {battleState.defeatedCombatants.map(combatant => (
-              <div key={combatant.id} className="flex items-center justify-between p-3 bg-red-50 rounded">
-                <span className="text-gray-700">
+              <div key={combatant.id} className="flex items-center justify-between p-3 bg-red-900/20 rounded">
+                <span className="text-off-white/80">
                   {combatant.name} ({combatant.classification})
                 </span>
                 <button
                   onClick={() => restoreCombatant(combatant.id)}
-                  className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm"
+                  className="bg-muted-eldritch-green/80 hover:bg-muted-eldritch-green text-white px-3 py-1 rounded text-sm"
                 >
                   Restore
                 </button>

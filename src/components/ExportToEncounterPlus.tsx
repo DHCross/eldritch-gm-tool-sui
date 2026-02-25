@@ -74,12 +74,12 @@ export default function ExportToEncounterPlus({
   };
   
   const variantClasses = {
-    primary: 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600',
-    secondary: 'bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100 dark:border-gray-600',
-    ghost: 'bg-transparent hover:bg-gray-100 text-gray-700 border-transparent dark:hover:bg-gray-700 dark:text-gray-300'
+    primary: 'bg-soft-amethyst hover:bg-soft-amethyst/80 text-white border-soft-amethyst',
+    secondary: 'bg-white/10 hover:bg-white/15 text-off-white border-white/15',
+    ghost: 'bg-transparent hover:bg-white/10 text-off-white/80 border-transparent'
   };
   
-  const baseClasses = 'inline-flex items-center gap-2 rounded-md border font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseClasses = 'inline-flex items-center gap-2 rounded-md border font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-soft-amethyst/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
   
   return (
     <div className={`inline-block ${className}`}>
@@ -143,27 +143,27 @@ export default function ExportToEncounterPlus({
       
       {/* Preview Panel */}
       {showPreview && totalItems > 0 && (
-        <div className="mt-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 max-h-96 overflow-auto">
+        <div className="mt-3 p-4 bg-white/5 rounded-lg border border-white/10 max-h-96 overflow-auto">
           <div className="flex justify-between items-center mb-2">
-            <h4 className="font-semibold text-sm text-gray-700 dark:text-gray-300">
+            <h4 className="font-semibold text-sm text-off-white/80">
               Export Preview
             </h4>
             <button 
               onClick={() => setShowPreview(false)}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              className="text-off-white/40 hover:text-off-white"
             >
               ✕
             </button>
           </div>
           
           {/* Summary */}
-          <div className="mb-3 text-sm text-gray-600 dark:text-gray-400">
+          <div className="mb-3 text-sm text-off-white/60">
             {monsters.length > 0 && <div>🐉 {monsters.length} Monster(s)</div>}
             {characters.length > 0 && <div>⚔️ {characters.length} Character(s)</div>}
           </div>
           
           {/* JSON Preview */}
-          <pre className="text-xs bg-gray-100 dark:bg-gray-900 p-3 rounded overflow-auto max-h-60 font-mono text-gray-800 dark:text-gray-200">
+          <pre className="text-xs bg-white/5 p-3 rounded overflow-auto max-h-60 font-mono text-off-white/80">
             {JSON.stringify(generateImportJson(monsters, characters, filename), null, 2)}
           </pre>
         </div>

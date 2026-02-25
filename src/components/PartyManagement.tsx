@@ -157,31 +157,31 @@ export default function PartyManagement() {
 
   const getThreatColor = (tier: string) => {
     switch (tier) {
-      case 'Elite': return 'text-red-600';
+      case 'Elite': return 'text-red-400';
       case 'Advanced': return 'text-orange-600';
       case 'Proficient': return 'text-yellow-600';
-      case 'Competent': return 'text-green-600';
-      case 'Practitioner': return 'text-blue-600';
-      default: return 'text-gray-600';
+      case 'Competent': return 'text-muted-eldritch-green';
+      case 'Practitioner': return 'text-soft-amethyst';
+      default: return 'text-off-white/60';
     }
   };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Folder List */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white/5 rounded-lg shadow-lg p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Party Folders</h2>
           <button
             onClick={() => setShowCreateFolder(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+            className="bg-soft-amethyst hover:bg-soft-amethyst/80 text-white px-3 py-1 rounded text-sm"
           >
             + New Folder
           </button>
         </div>
 
         {showCreateFolder && (
-          <div className="mb-4 p-4 border rounded-lg bg-gray-50">
+          <div className="mb-4 p-4 border rounded-lg bg-white/5">
             <h3 className="font-semibold mb-2">Create New Folder</h3>
             <input
               type="text"
@@ -209,13 +209,13 @@ export default function PartyManagement() {
             <div className="flex space-x-2">
               <button
                 onClick={handleCreateFolder}
-                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                className="bg-muted-eldritch-green hover:bg-muted-eldritch-green/80 text-white px-3 py-1 rounded text-sm"
               >
                 Create
               </button>
               <button
                 onClick={() => setShowCreateFolder(false)}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm"
+                className="bg-white/10 hover:bg-white/15 text-white px-3 py-1 rounded text-sm"
               >
                 Cancel
               </button>
@@ -230,7 +230,7 @@ export default function PartyManagement() {
               className={`p-3 rounded cursor-pointer border transition-colors ${
                 selectedFolder?.id === folder.id
                   ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:bg-gray-50'
+                  : 'border-white/10 hover:bg-white/5'
               }`}
               onClick={() => setSelectedFolder(folder)}
             >
@@ -241,9 +241,9 @@ export default function PartyManagement() {
                     <span className="font-medium">{folder.name}</span>
                   </div>
                   {folder.description && (
-                    <p className="text-sm text-gray-600 mt-1">{folder.description}</p>
+                    <p className="text-sm text-off-white/60 mt-1">{folder.description}</p>
                   )}
-                  <p className="text-xs text-gray-500 capitalize">
+                  <p className="text-xs text-off-white/50 capitalize">
                     {folder.folder_type.replace('_', ' ')}
                   </p>
                 </div>
@@ -252,7 +252,7 @@ export default function PartyManagement() {
                     e.stopPropagation();
                     handleDeleteFolder(folder.id);
                   }}
-                  className="text-red-500 hover:text-red-700 text-sm"
+                  className="text-red-500 hover:text-red-400 text-sm"
                 >
                   ×
                 </button>
@@ -263,7 +263,7 @@ export default function PartyManagement() {
       </div>
 
       {/* Party Members */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white/5 rounded-lg shadow-lg p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">
             {selectedFolder ? `${selectedFolder.name} Members` : 'Select a Folder'}
@@ -271,7 +271,7 @@ export default function PartyManagement() {
           {selectedFolder && (
             <button
               onClick={() => setShowAddMember(true)}
-              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+              className="bg-muted-eldritch-green hover:bg-muted-eldritch-green/80 text-white px-3 py-1 rounded text-sm"
             >
               + Add Member
             </button>
@@ -281,27 +281,27 @@ export default function PartyManagement() {
         {selectedFolder ? (
           <>
             {showAddMember && (
-              <div className="mb-4 p-4 border rounded-lg bg-gray-50">
+              <div className="mb-4 p-4 border rounded-lg bg-white/5">
                 <h3 className="font-semibold mb-2">Add Member</h3>
                 <div className="space-y-2">
                   {getAvailableCharacters().map(char => (
                     <div key={char.id} className="flex justify-between items-center p-2 border rounded">
                       <div>
                         <span className="font-medium">{char.name}</span>
-                        <span className="text-sm text-gray-600 ml-2">
+                        <span className="text-sm text-off-white/60 ml-2">
                           ({char.race} {char.class})
                         </span>
                       </div>
                       <button
                         onClick={() => handleAddMember(char.id)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm"
+                        className="bg-soft-amethyst hover:bg-soft-amethyst/80 text-white px-2 py-1 rounded text-sm"
                       >
                         Add
                       </button>
                     </div>
                   ))}
                   {getAvailableCharacters().length === 0 && (
-                    <p className="text-gray-500 text-sm">No available characters to add</p>
+                    <p className="text-off-white/50 text-sm">No available characters to add</p>
                   )}
                 </div>
                 <button
@@ -309,7 +309,7 @@ export default function PartyManagement() {
                     loadData();
                     setShowAddMember(false);
                   }}
-                  className="mt-2 bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm"
+                  className="mt-2 bg-white/10 hover:bg-white/15 text-white px-3 py-1 rounded text-sm"
                 >
                   Done
                 </button>
@@ -326,13 +326,13 @@ export default function PartyManagement() {
                           {character!.name}
                         </span>
                         {!membership.active && (
-                          <span className="text-xs bg-gray-200 px-2 py-1 rounded">Inactive</span>
+                          <span className="text-xs bg-white/15 px-2 py-1 rounded">Inactive</span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-off-white/60">
                         {character!.race} {character!.class} (Level {character!.level})
                       </p>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-off-white/50 mt-1">
                         Active DP: {character!.computed.active_dp} |
                         Passive DP: {character!.computed.passive_dp} |
                         Spirit: {character!.computed.spirit_pts}
@@ -343,15 +343,15 @@ export default function PartyManagement() {
                         onClick={() => toggleMemberActive(character!.id)}
                         className={`px-2 py-1 rounded text-xs ${
                           membership.active
-                            ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                            : 'bg-green-500 hover:bg-green-600 text-white'
+                            ? 'bg-yellow-600 hover:bg-yellow-600 text-white'
+                            : 'bg-muted-eldritch-green/80 hover:bg-muted-eldritch-green text-white'
                         }`}
                       >
                         {membership.active ? 'Deactivate' : 'Activate'}
                       </button>
                       <button
                         onClick={() => handleRemoveMember(character!.id)}
-                        className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs"
+                        className="bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded text-xs"
                       >
                         Remove
                       </button>
@@ -360,35 +360,35 @@ export default function PartyManagement() {
                 </div>
               ))}
               {getPartyMembers().length === 0 && (
-                <p className="text-gray-500 text-center py-4">No members in this folder</p>
+                <p className="text-off-white/50 text-center py-4">No members in this folder</p>
               )}
             </div>
           </>
         ) : (
-          <p className="text-gray-500 text-center py-8">
+          <p className="text-off-white/50 text-center py-8">
             Select a folder to view and manage its members
           </p>
         )}
       </div>
 
       {/* Party Stats */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white/5 rounded-lg shadow-lg p-6">
         <h2 className="text-xl font-bold mb-4">Party Defense Profile</h2>
 
         {partyDefense && selectedFolder ? (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center p-3 bg-blue-50 rounded">
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="text-2xl font-bold text-soft-amethyst">
                   {partyDefense.total_active_dp}
                 </div>
-                <div className="text-sm text-gray-600">Total Active DP</div>
+                <div className="text-sm text-off-white/60">Total Active DP</div>
               </div>
-              <div className="text-center p-3 bg-green-50 rounded">
-                <div className="text-2xl font-bold text-green-600">
+              <div className="text-center p-3 bg-green-900/20 rounded">
+                <div className="text-2xl font-bold text-muted-eldritch-green">
                   {partyDefense.total_passive_dp}
                 </div>
-                <div className="text-sm text-gray-600">Total Passive DP</div>
+                <div className="text-sm text-off-white/60">Total Passive DP</div>
               </div>
             </div>
 
@@ -396,15 +396,15 @@ export default function PartyManagement() {
               <div className="text-2xl font-bold text-purple-600">
                 {partyDefense.total_spirit_pts}
               </div>
-              <div className="text-sm text-gray-600">Total Spirit Points</div>
+              <div className="text-sm text-off-white/60">Total Spirit Points</div>
             </div>
 
-            <div className="text-center p-3 bg-gray-50 rounded">
+            <div className="text-center p-3 bg-white/5 rounded">
               <div className={`text-lg font-bold ${getThreatColor(partyDefense.defense_tier)}`}>
                 {partyDefense.defense_tier}
               </div>
-              <div className="text-sm text-gray-600">Defense Tier</div>
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-sm text-off-white/60">Defense Tier</div>
+              <div className="text-xs text-off-white/50 mt-1">
                 {partyDefense.character_count} active members
               </div>
             </div>
@@ -413,9 +413,9 @@ export default function PartyManagement() {
               <h3 className="font-semibold mb-2">Character Breakdown</h3>
               <div className="space-y-2">
                 {partyDefense.character_breakdown.map(char => (
-                  <div key={char.id} className="text-sm p-2 bg-gray-50 rounded">
+                  <div key={char.id} className="text-sm p-2 bg-white/5 rounded">
                     <div className="font-medium">{char.name}</div>
-                    <div className="text-xs text-gray-600">
+                    <div className="text-xs text-off-white/60">
                       A:{char.active_dp} | P:{char.passive_dp} | S:{char.spirit_pts}
                     </div>
                   </div>
@@ -425,7 +425,7 @@ export default function PartyManagement() {
 
             {/* Export to Encounter+ */}
             {partyCharacters.length > 0 && (
-              <div className="pt-4 border-t border-gray-200">
+              <div className="pt-4 border-t border-white/10">
                 <ExportToEncounterPlus
                   characters={selectedFolder?.folder_type === 'PC_party' ? partyCharacters : []}
                   monsters={selectedFolder?.folder_type !== 'PC_party' ? partyCharacters : []}
@@ -436,7 +436,7 @@ export default function PartyManagement() {
               </div>
             )}
 
-            <div className="text-xs text-gray-500 mt-4 p-3 bg-gray-50 rounded">
+            <div className="text-xs text-off-white/50 mt-4 p-3 bg-white/5 rounded">
               <strong>Defense Calculation:</strong><br/>
               Active DP = Prowess + Agility + Melee<br/>
               Passive DP = Fortitude + Endurance + Strength<br/>
@@ -444,7 +444,7 @@ export default function PartyManagement() {
             </div>
           </div>
         ) : (
-          <p className="text-gray-500 text-center py-8">
+          <p className="text-off-white/50 text-center py-8">
             Select a folder with members to view party stats
           </p>
         )}

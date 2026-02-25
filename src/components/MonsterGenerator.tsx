@@ -607,25 +607,25 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
     <div className="relative">
       {/* Sticky Navigation Sidebar */}
       <div className="fixed left-4 top-1/2 transform -translate-y-1/2 z-10 hidden lg:block">
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-3 space-y-2">
-          <h3 className="text-sm font-bold text-gray-800 mb-3 text-center">Quick Nav</h3>
+        <div className="bg-white/5 rounded-lg shadow-lg border border-white/10 p-3 space-y-2">
+          <h3 className="text-sm font-bold text-off-white mb-3 text-center">Quick Nav</h3>
           <button
             onClick={() => scrollToSection(basicInfoRef)}
-            className="w-full text-left text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded transition-colors"
+            className="w-full text-left text-xs bg-blue-50 hover:bg-blue-100 text-soft-amethyst px-3 py-2 rounded transition-colors"
             title="Basic Information"
           >
             Basic Info
           </button>
           <button
             onClick={() => scrollToSection(combatStatsRef)}
-            className="w-full text-left text-xs bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 rounded transition-colors"
+            className="w-full text-left text-xs bg-red-900/20 hover:bg-red-900/20 text-red-400 px-3 py-2 rounded transition-colors"
             title="Combat Statistics"
           >
             Combat Stats
           </button>
           <button
             onClick={() => scrollToSection(notesRef)}
-            className="w-full text-left text-xs bg-green-50 hover:bg-green-100 text-green-700 px-3 py-2 rounded transition-colors"
+            className="w-full text-left text-xs bg-green-900/20 hover:bg-green-900/20 text-muted-eldritch-green px-3 py-2 rounded transition-colors"
             title="Notes"
           >
             Notes
@@ -642,36 +642,36 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
 
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-off-white mb-2">
             Eldritch RPG Monster Builder
           </h1>
-          <p className="text-gray-600">
+          <p className="text-off-white/60">
             Create complete Quick Stat Block (QSB) monsters based on Eldritch Rules 8.17.2025
           </p>
         </div>
 
         {/* Basic Information */}
-        <div ref={basicInfoRef} className="bg-white rounded-lg shadow-lg p-6">
+        <div ref={basicInfoRef} className="bg-white/5 rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold mb-4">I. Basic Information</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Monster Name:</label>
+            <label className="block text-sm font-medium text-off-white/80 mb-2">Monster Name:</label>
             <input
               type="text"
               value={monsterForm.name}
               onChange={(e) => updateForm('name', e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-white/15 rounded-md px-3 py-2"
               placeholder="Enter monster name"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Creature Category:</label>
+            <label className="block text-sm font-medium text-off-white/80 mb-2">Creature Category:</label>
             <select
               value={monsterForm.category}
               onChange={(e) => updateThreatDiceForCategory(undefined, e.target.value as CreatureCategory)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-white/15 rounded-md px-3 py-2"
             >
               {CREATURE_CATEGORIES.map(cat => (
                 <option key={cat.name} value={cat.name}>
@@ -682,11 +682,11 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Size:</label>
+            <label className="block text-sm font-medium text-off-white/80 mb-2">Size:</label>
             <select
               value={monsterForm.size}
               onChange={(e) => updateForm('size', e.target.value as CreatureSize)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-white/15 rounded-md px-3 py-2"
             >
               {SIZE_CATEGORIES.map(size => (
                 <option key={size} value={size}>{size}</option>
@@ -695,11 +695,11 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Nature:</label>
+            <label className="block text-sm font-medium text-off-white/80 mb-2">Nature:</label>
             <select
               value={monsterForm.nature}
               onChange={(e) => updateForm('nature', e.target.value as CreatureNature)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-white/15 rounded-md px-3 py-2"
             >
               {NATURE_CATEGORIES.map(nature => (
                 <option key={nature.name} value={nature.name}>
@@ -707,17 +707,17 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
                 </option>
               ))}
             </select>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-off-white/50 mt-1">
               {NATURE_CATEGORIES.find(n => n.name === monsterForm.nature)?.description}
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Constitution:</label>
+            <label className="block text-sm font-medium text-off-white/80 mb-2">Constitution:</label>
             <select
               value={monsterForm.defenseSplit}
               onChange={(e) => updateForm('defenseSplit', e.target.value as DefenseSplit)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-white/15 rounded-md px-3 py-2"
             >
               {CONSTITUTION_TYPES.map(type => (
                 <option key={type.name} value={type.name}>
@@ -729,7 +729,7 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
         </div>
 
         {/* Eldritch Realms Toggle */}
-        <div className="mt-6 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+        <div className="mt-6 p-3 bg-white/5 border border-white/10 rounded-lg">
           <label className="flex items-center">
             <input
               type="checkbox"
@@ -737,11 +737,11 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
               onChange={(e) => updateForm('useEldritchRealms', e.target.checked)}
               className="mr-3"
             />
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-off-white/80">
               Use Eldritch Realms Setting Details
             </span>
           </label>
-          <p className="text-xs text-gray-600 mt-1">
+          <p className="text-xs text-off-white/60 mt-1">
             Enable for specific regional backgrounds and encounter tables from Ainerêve
           </p>
         </div>
@@ -749,31 +749,31 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
         {/* Three-Axis Design Section */}
         <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <h3 className="text-lg font-semibold text-blue-900 mb-3">Three-Axis Monster Design</h3>
-          <p className="text-sm text-blue-800 mb-4">
+          <p className="text-sm text-soft-amethyst mb-4">
             Monsters are defined by three independent axes: <strong>Category</strong> (power tier), <strong>Nature</strong> (metaphysical origin),
             and <strong>Story Trope</strong> (narrative lineage). Tropes span across categories and natures.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Creature Concept:</label>
+              <label className="block text-sm font-medium text-off-white/80 mb-2">Creature Concept:</label>
               <input
                 type="text"
                 value={monsterForm.concept}
                 onChange={(e) => updateForm('concept', e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                className="w-full border border-white/15 rounded-md px-3 py-2"
                 placeholder="e.g., Ancient forest guardian, Corrupted knight, Goblin chieftain of the Bloodfang clan"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-off-white/80 mb-2">
                 Story Trope (Cross-cutting lineage):
               </label>
               <select
                 value={monsterForm.storyTrope}
                 onChange={(e) => updateForm('storyTrope', e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 mb-3"
+                className="w-full border border-white/15 rounded-md px-3 py-2 mb-3"
               >
                 <option value="">Select a story trope...</option>
                 {Object.keys(STORY_TROPES).map(trope => (
@@ -784,13 +784,13 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
               {/* Human Regional Background */}
               {(monsterForm.storyTrope === 'Humans' && monsterForm.useEldritchRealms) && (
                 <div className="mb-3">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-off-white/80 mb-2">
                     Human Regional Background:
                   </label>
                   <select
                     value={monsterForm.humanRegion}
                     onChange={(e) => updateForm('humanRegion', e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    className="w-full border border-white/15 rounded-md px-3 py-2"
                   >
                     <option value="">Select regional background...</option>
                     {Object.keys(HUMAN_REGIONS).map(region => (
@@ -800,20 +800,20 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
                 </div>
               )}
 
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-off-white/80 mb-2">
                 Nature Examples ({NATURE_CATEGORIES.find(n => n.name === monsterForm.nature)?.title} - {monsterForm.category}):
               </label>
               <select
                 value={monsterForm.trope}
                 onChange={(e) => updateForm('trope', e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                className="w-full border border-white/15 rounded-md px-3 py-2"
               >
                 <option value="">Select from nature examples...</option>
                 {suggestedTropes.map(trope => (
                   <option key={trope} value={trope}>{trope}</option>
                 ))}
               </select>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-off-white/50 mt-1">
                 Examples from {NATURE_CATEGORIES.find(n => n.name === monsterForm.nature)?.title} classification
               </p>
             </div>
@@ -825,16 +825,16 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
 
           {/* Metaphysical Origin Classifications */}
           <div className="mt-4">
-            <h4 className="text-sm font-semibold text-indigo-700 mb-3">Metaphysical Nature Classifications</h4>
+            <h4 className="text-sm font-semibold text-soft-amethyst mb-3">Metaphysical Nature Classifications</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
               {NATURE_CATEGORIES.map(nature => (
                 <div key={nature.name} className={`p-3 rounded border ${
                   monsterForm.nature === nature.name
-                    ? 'bg-indigo-100 border-indigo-300'
-                    : 'bg-indigo-50 border-indigo-200'
+                    ? 'bg-soft-amethyst/20 border-indigo-300'
+                    : 'bg-indigo-50 border-indigo-500/30'
                 }`}>
-                  <span className="font-medium text-indigo-800">{nature.title} ({nature.name}):</span>
-                  <p className="text-indigo-600 mt-1">{nature.description}</p>
+                  <span className="font-medium text-soft-amethyst">{nature.title} ({nature.name}):</span>
+                  <p className="text-soft-amethyst mt-1">{nature.description}</p>
                 </div>
               ))}
             </div>
@@ -842,8 +842,8 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
 
           {/* Story Trope Details */}
           {monsterForm.storyTrope && STORY_TROPES[monsterForm.storyTrope as keyof typeof STORY_TROPES] && (
-            <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-              <h4 className="text-sm font-semibold text-amber-800 mb-2">
+            <div className="mt-4 p-4 bg-amber-50 border border-amber-500/30 rounded-lg">
+              <h4 className="text-sm font-semibold text-amber-300 mb-2">
                 {monsterForm.storyTrope} Lineage
               </h4>
               <p className="text-xs text-amber-700 mb-3">
@@ -851,8 +851,8 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
                 {Object.entries(STORY_TROPES[monsterForm.storyTrope as keyof typeof STORY_TROPES].examples).map(([tier, examples]) => (
-                  <div key={tier} className="bg-white p-2 rounded border border-amber-200">
-                    <span className="font-medium text-amber-800">{tier}:</span>
+                  <div key={tier} className="bg-white/5 p-2 rounded border border-amber-500/30">
+                    <span className="font-medium text-amber-300">{tier}:</span>
                     <p className="text-amber-600">{examples}</p>
                   </div>
 
@@ -863,28 +863,28 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
 
           {/* Human Regional Background Details */}
           {(monsterForm.storyTrope === 'Humans' && monsterForm.humanRegion && monsterForm.useEldritchRealms && HUMAN_REGIONS[monsterForm.humanRegion as keyof typeof HUMAN_REGIONS]) && (
-            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <h4 className="text-sm font-semibold text-green-800 mb-2">
+            <div className="mt-4 p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+              <h4 className="text-sm font-semibold text-muted-eldritch-green mb-2">
                 {monsterForm.humanRegion} Regional Background
               </h4>
               <div className="space-y-2 text-xs">
-                <div className="bg-white p-2 rounded border border-green-200">
-                  <span className="font-medium text-green-800">Culture:</span>
-                  <p className="text-green-700">{HUMAN_REGIONS[monsterForm.humanRegion as keyof typeof HUMAN_REGIONS].description}</p>
+                <div className="bg-white/5 p-2 rounded border border-green-500/30">
+                  <span className="font-medium text-muted-eldritch-green">Culture:</span>
+                  <p className="text-muted-eldritch-green">{HUMAN_REGIONS[monsterForm.humanRegion as keyof typeof HUMAN_REGIONS].description}</p>
                 </div>
-                <div className="bg-white p-2 rounded border border-green-200">
-                  <span className="font-medium text-green-800">Characteristics:</span>
-                  <p className="text-green-700">{HUMAN_REGIONS[monsterForm.humanRegion as keyof typeof HUMAN_REGIONS].characteristics}</p>
+                <div className="bg-white/5 p-2 rounded border border-green-500/30">
+                  <span className="font-medium text-muted-eldritch-green">Characteristics:</span>
+                  <p className="text-muted-eldritch-green">{HUMAN_REGIONS[monsterForm.humanRegion as keyof typeof HUMAN_REGIONS].characteristics}</p>
                 </div>
-                <div className="bg-white p-2 rounded border border-green-200">
-                  <span className="font-medium text-green-800">Common Encounters:</span>
-                  <p className="text-green-700">{HUMAN_REGIONS[monsterForm.humanRegion as keyof typeof HUMAN_REGIONS].encounters}</p>
+                <div className="bg-white/5 p-2 rounded border border-green-500/30">
+                  <span className="font-medium text-muted-eldritch-green">Common Encounters:</span>
+                  <p className="text-muted-eldritch-green">{HUMAN_REGIONS[monsterForm.humanRegion as keyof typeof HUMAN_REGIONS].encounters}</p>
                 </div>
               </div>
 
               {monsterForm.humanRegion === 'Outlander' && (
-                <div className="mt-3 p-2 bg-yellow-100 border border-yellow-300 rounded">
-                  <p className="text-xs text-yellow-800">
+                <div className="mt-3 p-2 bg-yellow-900/20 border border-yellow-500/30 rounded">
+                  <p className="text-xs text-yellow-300">
                     <strong>Special:</strong> Outlanders have Base Die Ranks: Competence d6; Prowess d6 (Melee d4, Threat +1); Fortitude d4 (Willpower d6). Advantages: Fortunate, Survival.
                   </p>
                 </div>
@@ -896,30 +896,30 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
       </div>
 
         {/* Combat Statistics */}
-        <div ref={combatStatsRef} className="bg-white rounded-lg shadow-lg p-6">
+        <div ref={combatStatsRef} className="bg-white/5 rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold mb-4">II. Combat Statistics</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Threat MV Range:</label>
+            <label className="block text-sm font-medium text-off-white/80 mb-2">Threat MV Range:</label>
             <select
               value={monsterForm.threatMvRange}
               onChange={(e) => updateThreatDiceForCategory(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 mb-4"
+              className="w-full border border-white/15 rounded-md px-3 py-2 mb-4"
             >
               {THREAT_MV_RANGES.map(range => (
                 <option key={range} value={range}>{range}</option>
               ))}
             </select>
 
-            <label className="block text-sm font-medium text-gray-700 mb-2">Threat Dice (TD):</label>
+            <label className="block text-sm font-medium text-off-white/80 mb-2">Threat Dice (TD):</label>
             <div className="space-y-2">
               <div>
-                <label className="block text-xs text-gray-600">Melee:</label>
+                <label className="block text-xs text-off-white/60">Melee:</label>
                 <select
                   value={monsterForm.threatDice.melee}
                   onChange={(e) => updateThreatDice('melee', e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-1"
+                  className="w-full border border-white/15 rounded-md px-3 py-1"
                 >
                   {getAvailableThreatDice(monsterForm.threatMvRange, monsterForm.category).map(option => (
                     <option key={option} value={option}>{option}</option>
@@ -927,11 +927,11 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-600">Natural:</label>
+                <label className="block text-xs text-off-white/60">Natural:</label>
                 <select
                   value={monsterForm.threatDice.natural}
                   onChange={(e) => updateThreatDice('natural', e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-1"
+                  className="w-full border border-white/15 rounded-md px-3 py-1"
                 >
                   {getAvailableThreatDice(monsterForm.threatMvRange, monsterForm.category).map(option => (
                     <option key={option} value={option}>{option}</option>
@@ -939,11 +939,11 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-600">Ranged:</label>
+                <label className="block text-xs text-off-white/60">Ranged:</label>
                 <select
                   value={monsterForm.threatDice.ranged}
                   onChange={(e) => updateThreatDice('ranged', e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-1"
+                  className="w-full border border-white/15 rounded-md px-3 py-1"
                 >
                   {getAvailableThreatDice(monsterForm.threatMvRange, monsterForm.category).map(option => (
                     <option key={option} value={option}>{option}</option>
@@ -951,11 +951,11 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-600">Arcane:</label>
+                <label className="block text-xs text-off-white/60">Arcane:</label>
                 <select
                   value={monsterForm.threatDice.arcane}
                   onChange={(e) => updateThreatDice('arcane', e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-1"
+                  className="w-full border border-white/15 rounded-md px-3 py-1"
                 >
                   {getAvailableThreatDice(monsterForm.threatMvRange, monsterForm.category).map(option => (
                     <option key={option} value={option}>{option}</option>
@@ -966,22 +966,22 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Extra Attacks (EA):</label>
+            <label className="block text-sm font-medium text-off-white/80 mb-2">Extra Attacks (EA):</label>
             <input
               type="text"
               value={monsterForm.extraAttacks}
               onChange={(e) => updateForm('extraAttacks', e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-white/15 rounded-md px-3 py-2"
               placeholder="e.g., Bite follow-up d4, Tail sweep"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Armor Type:</label>
+            <label className="block text-sm font-medium text-off-white/80 mb-2">Armor Type:</label>
             <select
               value={monsterForm.armor}
               onChange={(e) => updateForm('armor', e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-white/15 rounded-md px-3 py-2"
             >
               {ARMOR_TYPES.map(armor => (
                 <option key={armor.name} value={armor.name}>
@@ -992,11 +992,11 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Shield Type:</label>
+            <label className="block text-sm font-medium text-off-white/80 mb-2">Shield Type:</label>
             <select
               value={monsterForm.shield}
               onChange={(e) => updateForm('shield', e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-white/15 rounded-md px-3 py-2"
             >
               {SHIELD_TYPES.map(shield => (
                 <option key={shield.name} value={shield.name}>
@@ -1007,23 +1007,23 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Saving Throw (ST):</label>
+            <label className="block text-sm font-medium text-off-white/80 mb-2">Saving Throw (ST):</label>
             <input
               type="text"
               value={monsterForm.savingThrow}
               onChange={(e) => updateForm('savingThrow', e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-white/15 rounded-md px-3 py-2"
               placeholder="e.g., d6, d8"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Battle Phase (BP):</label>
+            <label className="block text-sm font-medium text-off-white/80 mb-2">Battle Phase (BP):</label>
             <input
               type="text"
               value={monsterForm.battlePhase}
               onChange={(e) => updateForm('battlePhase', e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-white/15 rounded-md px-3 py-2"
               placeholder="e.g., d6, d8"
             />
           </div>
@@ -1032,81 +1032,81 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
         <div className="mt-4">
           <button
             onClick={autoGenerateStats}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4"
+            className="bg-soft-amethyst hover:bg-soft-amethyst/80 text-white font-bold py-2 px-4 rounded mr-4"
           >
             Auto-Generate ST & BP
           </button>
         </div>
 
         {/* Threat Dice System Explanation */}
-        <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="mt-6 p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
           <h3 className="text-lg font-semibold text-red-900 mb-3">Eldritch Threat Dice System</h3>
-          <p className="text-sm text-red-800 mb-4">
+          <p className="text-sm text-red-400 mb-4">
             Threat Dice map metaphysical origin to mechanical power tier. Each MV Range provides specific dice combinations
             based on creature category, ensuring balanced progression from mundane threats to legendary entities.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs mb-4">
-            <div className="bg-white p-3 rounded border border-red-200">
-              <h4 className="font-semibold text-red-800 mb-2">Minor (1 die)</h4>
-              <p className="text-red-700">Single threat die, basic creatures</p>
-              <p className="text-red-600 text-xs mt-1">1d3-1d6 typical range</p>
+            <div className="bg-white/5 p-3 rounded border border-red-500/30">
+              <h4 className="font-semibold text-red-400 mb-2">Minor (1 die)</h4>
+              <p className="text-red-400">Single threat die, basic creatures</p>
+              <p className="text-red-400 text-xs mt-1">1d3-1d6 typical range</p>
             </div>
-            <div className="bg-white p-3 rounded border border-red-200">
-              <h4 className="font-semibold text-red-800 mb-2">Standard (2 dice)</h4>
-              <p className="text-red-700">Two dice combinations, seasoned threats</p>
-              <p className="text-red-600 text-xs mt-1">2d6-2d10 typical range</p>
+            <div className="bg-white/5 p-3 rounded border border-red-500/30">
+              <h4 className="font-semibold text-red-400 mb-2">Standard (2 dice)</h4>
+              <p className="text-red-400">Two dice combinations, seasoned threats</p>
+              <p className="text-red-400 text-xs mt-1">2d6-2d10 typical range</p>
             </div>
-            <div className="bg-white p-3 rounded border border-red-200">
-              <h4 className="font-semibold text-red-800 mb-2">Exceptional (3 dice)</h4>
-              <p className="text-red-700">Three dice combinations, elite creatures</p>
-              <p className="text-red-600 text-xs mt-1">3d8-3d12 typical range</p>
+            <div className="bg-white/5 p-3 rounded border border-red-500/30">
+              <h4 className="font-semibold text-red-400 mb-2">Exceptional (3 dice)</h4>
+              <p className="text-red-400">Three dice combinations, elite creatures</p>
+              <p className="text-red-400 text-xs mt-1">3d8-3d12 typical range</p>
             </div>
-            <div className="bg-white p-3 rounded border border-red-200">
-              <h4 className="font-semibold text-red-800 mb-2">Legendary (3+ dice)</h4>
-              <p className="text-red-700">Multiple dice, mythic entities</p>
-              <p className="text-red-600 text-xs mt-1">3d12+ and beyond</p>
+            <div className="bg-white/5 p-3 rounded border border-red-500/30">
+              <h4 className="font-semibold text-red-400 mb-2">Legendary (3+ dice)</h4>
+              <p className="text-red-400">Multiple dice, mythic entities</p>
+              <p className="text-red-400 text-xs mt-1">3d12+ and beyond</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             <div>
-              <h4 className="font-semibold text-red-800 mb-2">Metaphysical Origin Guidelines</h4>
+              <h4 className="font-semibold text-red-400 mb-2">Metaphysical Origin Guidelines</h4>
               <div className="space-y-2">
-                <div className="bg-white p-2 rounded border border-red-200">
-                  <span className="font-medium text-green-800">Mortal Kin (Mundane):</span>
-                  <p className="text-green-700">1d3-3d12+ range, terrestrial physics. Includes humans, most adaptable race in Ainerêve.</p>
+                <div className="bg-white/5 p-2 rounded border border-red-500/30">
+                  <span className="font-medium text-muted-eldritch-green">Mortal Kin (Mundane):</span>
+                  <p className="text-muted-eldritch-green">1d3-3d12+ range, terrestrial physics. Includes humans, most adaptable race in Ainerêve.</p>
                 </div>
-                <div className="bg-white p-2 rounded border border-red-200">
-                  <span className="font-medium text-blue-800">Enchanted Kin (Magical):</span>
-                  <p className="text-blue-700">1d4-3d12+ range, ambient Meterea</p>
+                <div className="bg-white/5 p-2 rounded border border-red-500/30">
+                  <span className="font-medium text-soft-amethyst">Enchanted Kin (Magical):</span>
+                  <p className="text-soft-amethyst">1d4-3d12+ range, ambient Meterea</p>
                 </div>
-                <div className="bg-white p-2 rounded border border-red-200">
+                <div className="bg-white/5 p-2 rounded border border-red-500/30">
                   <span className="font-medium text-purple-800">Unquiet Kin (Preternatural):</span>
                   <p className="text-purple-700">1d4-3d12+ range, nightmare-forged</p>
                 </div>
-                <div className="bg-white p-2 rounded border border-red-200">
-                  <span className="font-medium text-indigo-800">Reifiants (Supernatural):</span>
-                  <p className="text-indigo-700">1d6-3d12+ range, myth-born entities</p>
+                <div className="bg-white/5 p-2 rounded border border-red-500/30">
+                  <span className="font-medium text-soft-amethyst">Reifiants (Supernatural):</span>
+                  <p className="text-soft-amethyst">1d6-3d12+ range, myth-born entities</p>
                 </div>
               </div>
             </div>
             <div>
-              <h4 className="font-semibold text-red-800 mb-2">Threat Progression Examples</h4>
+              <h4 className="font-semibold text-red-400 mb-2">Threat Progression Examples</h4>
               <div className="space-y-2 text-xs">
-                <div className="bg-white p-2 rounded border border-red-200">
+                <div className="bg-white/5 p-2 rounded border border-red-500/30">
                   <span className="font-medium">Human (Mundane) progression:</span>
                   <p>Villager (1d4) → Guard (2d6) → Veteran (3d8) → Champion (3d12+)</p>
                 </div>
-                <div className="bg-white p-2 rounded border border-red-200">
+                <div className="bg-white/5 p-2 rounded border border-red-500/30">
                   <span className="font-medium">Magical progression:</span>
                   <p>Pixie (1d4) → Mage (2d8) → Griffin (3d8) → Dragon (3d12+)</p>
                 </div>
-                <div className="bg-white p-2 rounded border border-red-200">
+                <div className="bg-white/5 p-2 rounded border border-red-500/30">
                   <span className="font-medium">Regional Human examples:</span>
                   <p>Dalmavand Warrior (2d6) → Psarmorum Templar (2d8) → Maedoen Druid (3d8)</p>
                 </div>
-                <div className="bg-white p-2 rounded border border-red-200">
+                <div className="bg-white/5 p-2 rounded border border-red-500/30">
                   <span className="font-medium">Supernatural progression:</span>
                   <p>Guardian Spirit (1d6) → Angel (2d10) → Archangel (3d10) → Deity (3d12+)</p>
                 </div>
@@ -1116,29 +1116,29 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
         </div>
 
         {/* Tactical Movement Section */}
-        <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+        <div className="mt-6 p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
           <h3 className="text-lg font-semibold text-green-900 mb-3">Tactical Movement (5-foot squares)</h3>
-          <p className="text-sm text-green-800 mb-4">
+          <p className="text-sm text-muted-eldritch-green mb-4">
             Movement bonuses are derived from Battle Phase die rank, representing the creature&apos;s inherent celerity tier.
             This is distinct from purchasable Focus abilities (+1 to +5 static bonuses).
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-off-white/80 mb-2">
                 Movement Bonus (Derived from BP Die Rank):
               </label>
               <select
                 value={monsterForm.speedFocus}
                 onChange={(e) => updateForm('speedFocus', e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                className="w-full border border-white/15 rounded-md px-3 py-2"
               >
                 <option value="None">None (No additional movement bonus)</option>
                 <option value="d4">d4-d6 Tier (+1 sq/phase)</option>
                 <option value="d8">d8-d10 Tier (+2 sq/phase)</option>
                 <option value="d12">d12+ Tier (+3 sq/phase)</option>
               </select>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-off-white/50 mt-1">
                 This is an automatic derivation based on Battle Phase die size, not a purchasable Focus ability.
               </p>
             </div>
@@ -1151,41 +1151,41 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
                   onChange={(e) => updateForm('especiallySpeedy', e.target.checked)}
                   className="mr-2"
                 />
-                <span className="text-sm font-medium text-gray-700">Especially Speedy</span>
+                <span className="text-sm font-medium text-off-white/80">Especially Speedy</span>
               </label>
             </div>
 
-            <div className="bg-white p-3 rounded border">
-              <p className="text-sm font-semibold text-gray-700">Base Movement: {baseMovement} sq/phase</p>
-              <p className="text-xs text-gray-600">Formula: (12 + BP MV) ÷ 5 + modifiers</p>
+            <div className="bg-white/5 p-3 rounded border">
+              <p className="text-sm font-semibold text-off-white/80">Base Movement: {baseMovement} sq/phase</p>
+              <p className="text-xs text-off-white/60">Formula: (12 + BP MV) ÷ 5 + modifiers</p>
             </div>
           </div>
 
           {/* Movement Action Table */}
           <div className="mt-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">Movement Action Multipliers:</h4>
+            <h4 className="text-sm font-semibold text-off-white/80 mb-2">Movement Action Multipliers:</h4>
             <div className="overflow-x-auto">
-              <table className="w-full text-xs border border-gray-300">
-                <thead className="bg-gray-100">
+              <table className="w-full text-xs border border-white/15">
+                <thead className="bg-white/10">
                   <tr>
-                    <th className="border border-gray-300 px-2 py-1">Action</th>
-                    <th className="border border-gray-300 px-2 py-1">Normal</th>
-                    <th className="border border-gray-300 px-2 py-1">Especially Speedy</th>
-                    <th className="border border-gray-300 px-2 py-1">Squares</th>
-                    <th className="border border-gray-300 px-2 py-1">Penalty/Notes</th>
+                    <th className="border border-white/15 px-2 py-1">Action</th>
+                    <th className="border border-white/15 px-2 py-1">Normal</th>
+                    <th className="border border-white/15 px-2 py-1">Especially Speedy</th>
+                    <th className="border border-white/15 px-2 py-1">Squares</th>
+                    <th className="border border-white/15 px-2 py-1">Penalty/Notes</th>
                   </tr>
                 </thead>
                 <tbody>
                   {Object.entries(MOVEMENT_MULTIPLIERS).map(([action, data]) => (
                     <tr key={action}>
-                      <td className="border border-gray-300 px-2 py-1 font-medium">{action}</td>
-                      <td className="border border-gray-300 px-2 py-1 text-center">
+                      <td className="border border-white/15 px-2 py-1 font-medium">{action}</td>
+                      <td className="border border-white/15 px-2 py-1 text-center">
                         {data.normal > 0 ? `×${data.normal}` : 'N/A'}
                       </td>
-                      <td className="border border-gray-300 px-2 py-1 text-center">
+                      <td className="border border-white/15 px-2 py-1 text-center">
                         {data.speedy > 0 ? `×${data.speedy}` : 'N/A'}
                       </td>
-                      <td className="border border-gray-300 px-2 py-1 text-center">
+                      <td className="border border-white/15 px-2 py-1 text-center">
                         {data.normal > 0 ? (
                           monsterForm.especiallySpeedy ?
                             `${baseMovement * data.speedy}` :
@@ -1195,7 +1195,7 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
                             `${baseMovement * data.speedy}` : 'N/A'
                         )}
                       </td>
-                      <td className="border border-gray-300 px-2 py-1">{data.penalty}</td>
+                      <td className="border border-white/15 px-2 py-1">{data.penalty}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1206,26 +1206,26 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
       </div>
 
         {/* Notes */}
-        <div ref={notesRef} className="bg-white rounded-lg shadow-lg p-6">
+        <div ref={notesRef} className="bg-white/5 rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold mb-4">III. Notes</h2>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Special Abilities, Treasure, etc.:</label>
+          <label className="block text-sm font-medium text-off-white/80 mb-2">Special Abilities, Treasure, etc.:</label>
           <textarea
             value={monsterForm.notes}
             onChange={(e) => updateForm('notes', e.target.value)}
             rows={4}
-            className="w-full border border-gray-300 rounded-md px-3 py-2"
+            className="w-full border border-white/15 rounded-md px-3 py-2"
             placeholder="Describe special abilities, tactics, treasure, or other notes..."
           />
         </div>
       </div>
 
         {/* Generated QSB */}
-        <div ref={qsbRef} className="bg-white rounded-lg shadow-lg p-6">
+        <div ref={qsbRef} className="bg-white/5 rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold mb-4">Generated Quick Stat Block (QSB)</h2>
 
         {/* HP Calculation Display */}
-        <div className="mb-4 p-4 bg-gray-50 rounded">
+        <div className="mb-4 p-4 bg-white/5 rounded">
           <h3 className="font-semibold mb-2">HP Calculation:</h3>
           <div className="text-sm space-y-1">
             <p>Base HP: {hpCalc.base_hp} (highest threat MV: {highestThreatMV})</p>
@@ -1239,13 +1239,13 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
 
         {/* Semantic Validation */}
         {monsterForm.concept && (
-          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded">
-            <h3 className="font-semibold text-yellow-800 mb-2">Concept Validation:</h3>
-            <p className="text-sm text-yellow-700">
+          <div className="mb-4 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded">
+            <h3 className="font-semibold text-yellow-300 mb-2">Concept Validation:</h3>
+            <p className="text-sm text-yellow-300">
               <strong>Concept:</strong> {monsterForm.concept}
             </p>
             {monsterForm.trope && (
-              <p className="text-sm text-yellow-700">
+              <p className="text-sm text-yellow-300">
                 <strong>Trope:</strong> {monsterForm.trope}
               </p>
             )}
@@ -1261,9 +1261,9 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
         </div>
 
         {/* Movement Summary */}
-        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded">
-          <h4 className="font-semibold text-green-800 mb-2">Tactical Movement Summary</h4>
-          <div className="text-sm text-green-700 space-y-1">
+        <div className="mt-4 p-3 bg-green-900/20 border border-green-500/30 rounded">
+          <h4 className="font-semibold text-muted-eldritch-green mb-2">Tactical Movement Summary</h4>
+          <div className="text-sm text-muted-eldritch-green space-y-1">
             <p><strong>Base Movement:</strong> {baseMovement} squares per phase</p>
             <p><strong>Walk:</strong> {baseMovement} sq ({baseMovement * 5}ft)</p>
             <p><strong>Run:</strong> {baseMovement * (monsterForm.especiallySpeedy ? MOVEMENT_MULTIPLIERS.Run.speedy : MOVEMENT_MULTIPLIERS.Run.normal)} sq ({baseMovement * (monsterForm.especiallySpeedy ? MOVEMENT_MULTIPLIERS.Run.speedy : MOVEMENT_MULTIPLIERS.Run.normal) * 5}ft) - {MOVEMENT_MULTIPLIERS.Run.penalty}</p>
@@ -1276,24 +1276,24 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
       </div>
 
         {/* Mobile Navigation */}
-        <div className="lg:hidden bg-white rounded-lg shadow-lg p-4 mb-6">
-          <h3 className="text-sm font-bold text-gray-800 mb-3">Quick Navigation</h3>
+        <div className="lg:hidden bg-white/5 rounded-lg shadow-lg p-4 mb-6">
+          <h3 className="text-sm font-bold text-off-white mb-3">Quick Navigation</h3>
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => scrollToSection(basicInfoRef)}
-              className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded transition-colors"
+              className="text-xs bg-blue-50 hover:bg-blue-100 text-soft-amethyst px-3 py-2 rounded transition-colors"
             >
               Basic Info
             </button>
             <button
               onClick={() => scrollToSection(combatStatsRef)}
-              className="text-xs bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 rounded transition-colors"
+              className="text-xs bg-red-900/20 hover:bg-red-900/20 text-red-400 px-3 py-2 rounded transition-colors"
             >
               Combat Stats
             </button>
             <button
               onClick={() => scrollToSection(notesRef)}
-              className="text-xs bg-green-50 hover:bg-green-100 text-green-700 px-3 py-2 rounded transition-colors"
+              className="text-xs bg-green-900/20 hover:bg-green-900/20 text-muted-eldritch-green px-3 py-2 rounded transition-colors"
             >
               Notes
             </button>
@@ -1310,7 +1310,7 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
         <div className="text-center">
           <button
             onClick={() => setShowSaveDialog(true)}
-            className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg"
+            className="bg-muted-eldritch-green hover:bg-muted-eldritch-green/80 text-white font-bold py-3 px-6 rounded-lg"
           >
             Save to Monster Roster
           </button>
@@ -1320,18 +1320,18 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
       {/* Save Dialog */}
       {showSaveDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+          <div className="bg-white/5 rounded-lg p-6 max-w-md w-full">
             <h3 className="text-lg font-bold mb-4">Save Monster</h3>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-off-white/80 mb-2">
                   Assign to Party/Roster:
                 </label>
                 <select
                   value={selectedParty}
                   onChange={(e) => setSelectedParty(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-white/15 rounded-md px-3 py-2"
                 >
                   <option value="">Default Monster Roster</option>
                   {partyFolders.map(folder => (
@@ -1346,13 +1346,13 @@ TY: ${monsterForm.category} | TD: ${tdString} | EA: ${eaString} | HP: ${hpString
             <div className="mt-6 flex space-x-3">
               <button
                 onClick={saveMonster}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                className="flex-1 bg-muted-eldritch-green hover:bg-muted-eldritch-green/80 text-white font-bold py-2 px-4 rounded"
               >
                 Save Monster
               </button>
               <button
                 onClick={() => setShowSaveDialog(false)}
-                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
+                className="flex-1 bg-white/10 hover:bg-white/15 text-white font-bold py-2 px-4 rounded"
               >
                 Cancel
               </button>

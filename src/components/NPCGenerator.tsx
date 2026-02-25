@@ -118,16 +118,16 @@ export default function NPCGenerator() {
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-off-white mb-2">
           NPC Generator
         </h1>
-        <p className="text-gray-600">
+        <p className="text-off-white/60">
           Quickly generate NPCs for your Eldritch RPG sessions
         </p>
       </div>
 
       {/* Generation Mode Toggle */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white/5 rounded-lg shadow-lg p-6">
         <div className="flex items-center gap-4 mb-6">
           <label className="flex items-center">
             <input
@@ -157,13 +157,13 @@ export default function NPCGenerator() {
             <h3 className="text-lg font-bold">Generate Single NPC</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-off-white/80 mb-1">
                   Race (Optional)
                 </label>
                 <select
                   value={selectedRace}
                   onChange={(e) => setSelectedRace(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soft-amethyst/50"
                 >
                   <option value="">Random</option>
                   {npcRaces.map(race => (
@@ -173,13 +173,13 @@ export default function NPCGenerator() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-off-white/80 mb-1">
                   Role (Optional)
                 </label>
                 <select
                   value={selectedRole}
                   onChange={(e) => setSelectedRole(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soft-amethyst/50"
                 >
                   <option value="">Random</option>
                   {npcRoles.map(role => (
@@ -189,20 +189,20 @@ export default function NPCGenerator() {
                   ))}
                 </select>
                 {selectedRole && (
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-off-white/50 mt-1">
                     {getTemplateInfo(selectedRole)}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-off-white/80 mb-1">
                   Level (Optional)
                 </label>
                 <select
                   value={selectedLevel}
                   onChange={(e) => setSelectedLevel(e.target.value ? parseInt(e.target.value) : '')}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soft-amethyst/50"
                 >
                   <option value="">Random</option>
                   {npcLevels.map(level => (
@@ -212,13 +212,13 @@ export default function NPCGenerator() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-off-white/80 mb-1">
                   Gender (Optional)
                 </label>
                 <select
                   value={selectedGender}
                   onChange={(e) => setSelectedGender(e.target.value as 'Male' | 'Female' | '')}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soft-amethyst/50"
                 >
                   <option value="">Random</option>
                   <option value="Male">Male</option>
@@ -239,7 +239,7 @@ export default function NPCGenerator() {
               </label>
               <button
                 onClick={handleGenerateSingle}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors"
+                className="bg-soft-amethyst hover:bg-soft-amethyst/80 text-white font-bold py-2 px-4 rounded transition-colors"
               >
                 Generate NPC
               </button>
@@ -251,27 +251,27 @@ export default function NPCGenerator() {
             <h3 className="text-lg font-bold">Generate NPC Group</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-off-white/80 mb-1">
                   Group Size
                 </label>
                 <input
                   type="number"
                   value={groupSize}
                   onChange={(e) => setGroupSize(parseInt(e.target.value) || 1)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soft-amethyst/50"
                   min="1"
                   max="10"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-off-white/80 mb-1">
                   Primary Race
                 </label>
                 <select
                   value={groupRace}
                   onChange={(e) => setGroupRace(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soft-amethyst/50"
                 >
                   <option value="">Mixed/Random</option>
                   {npcRaces.map(race => (
@@ -281,13 +281,13 @@ export default function NPCGenerator() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-off-white/80 mb-1">
                   Primary Role
                 </label>
                 <select
                   value={groupRole}
                   onChange={(e) => setGroupRole(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soft-amethyst/50"
                 >
                   <option value="">Mixed/Random</option>
                   {npcRoles.map(role => (
@@ -297,13 +297,13 @@ export default function NPCGenerator() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-off-white/80 mb-1">
                   Primary Level
                 </label>
                 <select
                   value={groupLevel}
                   onChange={(e) => setGroupLevel(e.target.value ? parseInt(e.target.value) : '')}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soft-amethyst/50"
                 >
                   <option value="">Mixed/Random</option>
                   {npcLevels.map(level => (
@@ -334,7 +334,7 @@ export default function NPCGenerator() {
               </label>
               <button
                 onClick={handleGenerateGroup}
-                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition-colors"
+                className="bg-muted-eldritch-green hover:bg-muted-eldritch-green/80 text-white font-bold py-2 px-4 rounded transition-colors"
               >
                 Generate Group
               </button>
@@ -350,7 +350,7 @@ export default function NPCGenerator() {
                 {npcs.length > 1 && (
                   <button
                     onClick={handleExportGroup}
-                    className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition-colors"
+                    className="bg-soft-amethyst hover:bg-soft-amethyst/80 text-white font-bold py-2 px-4 rounded transition-colors"
                   >
                     Export Group
                   </button>
@@ -371,32 +371,32 @@ export default function NPCGenerator() {
       {npcs.length > 0 && (
         <div className="space-y-4">
           {npcs.map(npc => (
-            <div key={npc.id} className="bg-white rounded-lg shadow-lg p-6">
+            <div key={npc.id} className="bg-white/5 rounded-lg shadow-lg p-6">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">{npc.name}</h3>
-                  <p className="text-gray-600">
+                  <h3 className="text-xl font-bold text-off-white">{npc.name}</h3>
+                  <p className="text-off-white/60">
                     {npc.race} {npc.role} (Level {npc.level}) • {npc.gender}
                   </p>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleAddToBattle(npc)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                    className="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded text-sm transition-colors"
                     title="Add to Battle Calculator"
                   >
                     Battle
                   </button>
                   <button
                     onClick={() => handleExportSingle(npc)}
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                    className="bg-soft-amethyst hover:bg-soft-amethyst/80 text-white px-3 py-1 rounded text-sm transition-colors"
                     title="Export to Markdown"
                   >
                     Export
                   </button>
                   <button
                     onClick={() => handleExportSingleHTML(npc)}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                    className="bg-soft-amethyst hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm transition-colors"
                     title="Copy as HTML"
                   >
                     Copy HTML
@@ -413,8 +413,8 @@ export default function NPCGenerator() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Combat Stats */}
-                <div className="bg-red-50 rounded-lg p-4">
-                  <h4 className="font-bold text-red-800 mb-2">Combat Stats</h4>
+                <div className="bg-red-900/20 rounded-lg p-4">
+                  <h4 className="font-bold text-red-400 mb-2">Combat Stats</h4>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span>Active Defense:</span>
@@ -437,30 +437,30 @@ export default function NPCGenerator() {
 
                 {/* Abilities */}
                 <div className="bg-blue-50 rounded-lg p-4">
-                  <h4 className="font-bold text-blue-800 mb-2">Abilities</h4>
+                  <h4 className="font-bold text-soft-amethyst mb-2">Abilities</h4>
                   <div className="space-y-1 text-sm">
                     <div>
-                      <span className="text-gray-600">Primary:</span>
+                      <span className="text-off-white/60">Primary:</span>
                       <div className="font-medium">{npc.primaryAbility}</div>
                     </div>
                     <div>
-                      <span className="text-gray-600">Key Specialty:</span>
+                      <span className="text-off-white/60">Key Specialty:</span>
                       <div className="font-medium">{npc.keySpecialty}</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Equipment & Notes */}
-                <div className="bg-green-50 rounded-lg p-4">
-                  <h4 className="font-bold text-green-800 mb-2">Equipment</h4>
+                <div className="bg-green-900/20 rounded-lg p-4">
+                  <h4 className="font-bold text-muted-eldritch-green mb-2">Equipment</h4>
                   <div className="space-y-1 text-sm">
                     <div>
-                      <span className="text-gray-600">Iconic Item:</span>
+                      <span className="text-off-white/60">Iconic Item:</span>
                       <div className="font-medium">{npc.iconicItem}</div>
                     </div>
                     {npc.notes && (
                       <div>
-                        <span className="text-gray-600">Notes:</span>
+                        <span className="text-off-white/60">Notes:</span>
                         <div className="text-sm mt-1">{npc.notes}</div>
                       </div>
                     )}

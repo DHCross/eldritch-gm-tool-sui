@@ -999,7 +999,7 @@ export default function Bestiary() {
       <div className="flex justify-start">
         <Link
           href={backTarget.href}
-          className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
+          className="inline-flex items-center text-soft-amethyst hover:text-soft-amethyst font-medium"
         >
           {backTarget.label}
         </Link>
@@ -1007,20 +1007,20 @@ export default function Bestiary() {
 
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-off-white mb-2">
           Beings Diverse and Malign
         </h1>
-        <p className="text-gray-600 mb-4">
+        <p className="text-off-white/60 mb-4">
           The Eldritch RPG Bestiary - A comprehensive guide to creatures, monsters, and adversaries
         </p>
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-800">
+        <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4 text-sm text-red-400">
           <p className="font-semibold">🐉 Warning: Dangerous Knowledge</p>
           <p>This information is considered not safe to know and is normally kept locked and chained in the archives of the Octocirculi Academy.</p>
         </div>
       </div>
 
       {/* Controls */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white/5 rounded-lg shadow-lg p-6">
         <div className="flex flex-wrap gap-4 items-center justify-between mb-4">
           <div className="flex-1 min-w-64">
             <input
@@ -1028,7 +1028,7 @@ export default function Bestiary() {
               placeholder="Search creatures, abilities, or tags..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-white/15 rounded-md px-3 py-2"
             />
           </div>
 
@@ -1036,7 +1036,7 @@ export default function Bestiary() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value as CreatureCategory | 'All')}
-              className="border border-gray-300 rounded-md px-3 py-2"
+              className="border border-white/15 rounded-md px-3 py-2"
             >
               <option value="All">All Categories</option>
               <option value="Minor">Minor</option>
@@ -1052,7 +1052,7 @@ export default function Bestiary() {
                   const value = e.target.value as CreatureNature | '';
                   setSelectedNature(value === '' ? undefined : value);
                 }}
-                className="border border-gray-300 rounded-md px-3 py-2 pr-8"
+                className="border border-white/15 rounded-md px-3 py-2 pr-8"
                 aria-label="Nature filter"
               >
                 <option value="" disabled hidden>
@@ -1068,7 +1068,7 @@ export default function Bestiary() {
                 <button
                   type="button"
                   onClick={() => setSelectedNature(undefined)}
-                  className="absolute inset-y-0 right-1 flex items-center px-1 text-gray-500 hover:text-gray-700"
+                  className="absolute inset-y-0 right-1 flex items-center px-1 text-off-white/50 hover:text-off-white/80"
                   aria-label="Clear nature filter"
                 >
                   ×
@@ -1079,7 +1079,7 @@ export default function Bestiary() {
             <select
               value={selectedSource}
               onChange={(e) => setSelectedSource(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2"
+              className="border border-white/15 rounded-md px-3 py-2"
             >
               <option value="All">All Sources</option>
               <option value="QSB">QSB Examples</option>
@@ -1092,14 +1092,14 @@ export default function Bestiary() {
 
           <button
             onClick={() => setShowEncounterBuilder(!showEncounterBuilder)}
-            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
+            className="bg-soft-amethyst hover:bg-soft-amethyst/80 text-white font-bold py-2 px-4 rounded"
           >
             {showEncounterBuilder ? 'Hide' : 'Show'} Encounter Builder
             {encounterCreatures.length > 0 && ` (${encounterCreatures.length})`}
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600 mt-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-off-white/60 mt-4">
           <span>
             Showing {filteredCreatures.length} of {allCreatures.length} creatures
             {searchTerm || selectedCategory !== 'All' || Boolean(selectedNature) || selectedSource !== 'All' ? ' (filtered)' : ''}
@@ -1121,11 +1121,11 @@ export default function Bestiary() {
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Party Size:</label>
+                <label className="block text-sm font-medium text-off-white/80 mb-2">Party Size:</label>
                 <select
                   value={partySize}
                   onChange={(e) => setPartySize(Number(e.target.value))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-white/15 rounded-md px-3 py-2"
                 >
                   <option value={1}>1 PC</option>
                   <option value={2}>2 PCs</option>
@@ -1135,11 +1135,11 @@ export default function Bestiary() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Defense Level:</label>
+                <label className="block text-sm font-medium text-off-white/80 mb-2">Defense Level:</label>
                 <select
                   value={defenseLevel}
                   onChange={(e) => setDefenseLevel(e.target.value as DefenseLevel)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-white/15 rounded-md px-3 py-2"
                 >
                   <option value="Practitioner">Practitioner</option>
                   <option value="Competent">Competent</option>
@@ -1150,11 +1150,11 @@ export default function Bestiary() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty:</label>
+                <label className="block text-sm font-medium text-off-white/80 mb-2">Difficulty:</label>
                 <select
                   value={difficulty}
                   onChange={(e) => setDifficulty(e.target.value as Difficulty)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-white/15 rounded-md px-3 py-2"
                 >
                   <option value="easy">Easy</option>
                   <option value="moderate">Moderate</option>
@@ -1165,12 +1165,12 @@ export default function Bestiary() {
                 </select>
               </div>
 
-              <div className="bg-white p-3 rounded border">
-                <p className="text-sm font-semibold text-gray-700">Threat Budget: {threatBudget}</p>
-                <p className="text-sm text-gray-600">Current: {currentThreat}</p>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+              <div className="bg-white/5 p-3 rounded border">
+                <p className="text-sm font-semibold text-off-white/80">Threat Budget: {threatBudget}</p>
+                <p className="text-sm text-off-white/60">Current: {currentThreat}</p>
+                <div className="w-full bg-white/15 rounded-full h-2 mt-1">
                   <div
-                    className="bg-purple-600 h-2 rounded-full"
+                    className="bg-soft-amethyst h-2 rounded-full"
                     style={{ width: `${threatBudget ? Math.min(100, (currentThreat / threatBudget) * 100) : 0}%` }}
                   ></div>
                 </div>
@@ -1179,17 +1179,17 @@ export default function Bestiary() {
 
             {/* Current Encounter */}
             {encounterCreatures.length > 0 && (
-              <div className="bg-white p-4 rounded border mb-4">
+              <div className="bg-white/5 p-4 rounded border mb-4">
                 <h4 className="font-semibold mb-2">Current Encounter:</h4>
                 <div className="space-y-2">
                   {encounterCreatures.map((creature, index) => (
-                    <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                    <div key={index} className="flex items-center justify-between bg-white/5 p-2 rounded">
                       <span className="text-sm">
                         {creature.name} ({creature.category}) - Threat MV: {creature.threatMV}
                       </span>
                       <button
                         onClick={() => removeFromEncounter(index)}
-                        className="text-red-600 hover:text-red-800 text-sm"
+                        className="text-red-400 hover:text-red-400 text-sm"
                       >
                         Remove
                       </button>
@@ -1197,7 +1197,7 @@ export default function Bestiary() {
                   ))}
                 </div>
                 {/* Export to Encounter+ */}
-                <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="mt-4 pt-4 border-t border-white/10">
                   <ExportToEncounterPlus
                     monsters={encounterCreatures.map(ec => {
                       // Find raw SavedCharacter data by matching name
@@ -1260,32 +1260,32 @@ export default function Bestiary() {
       {/* Creature Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredCreatures.length === 0 && (
-          <div className="col-span-full bg-white rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-600">
-            <p className="font-semibold text-gray-700 mb-2">No creatures match your filters.</p>
+          <div className="col-span-full bg-white/5 rounded-lg border border-dashed border-white/15 p-8 text-center text-off-white/60">
+            <p className="font-semibold text-off-white/80 mb-2">No creatures match your filters.</p>
             <p className="text-sm">Try adjusting your search or clearing all filters to see the full bestiary.</p>
             <button
               onClick={resetFilters}
-              className="mt-4 inline-flex items-center justify-center rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700"
+              className="mt-4 inline-flex items-center justify-center rounded-md bg-soft-amethyst px-4 py-2 text-sm font-semibold text-white hover:bg-soft-amethyst/80"
             >
               Reset filters
             </button>
           </div>
         )}
         {filteredCreatures.map((creature) => (
-          <div key={creature.id} className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+          <div key={creature.id} className="bg-white/5 rounded-lg shadow-lg p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xl font-bold text-gray-900">{creature.name}</h3>
+              <h3 className="text-xl font-bold text-off-white">{creature.name}</h3>
               <span className={`px-2 py-1 rounded text-xs font-medium ${
-                creature.category === 'Minor' ? 'bg-green-100 text-green-800' :
-                creature.category === 'Standard' ? 'bg-blue-100 text-blue-800' :
-                creature.category === 'Exceptional' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-red-100 text-red-800'
+                creature.category === 'Minor' ? 'bg-green-900/20 text-muted-eldritch-green' :
+                creature.category === 'Standard' ? 'bg-blue-100 text-soft-amethyst' :
+                creature.category === 'Exceptional' ? 'bg-yellow-900/20 text-yellow-300' :
+                'bg-red-900/20 text-red-400'
               }`}>
                 {creature.category}
               </span>
             </div>
 
-            <div className="space-y-2 text-sm text-gray-600 mb-4">
+            <div className="space-y-2 text-sm text-off-white/60 mb-4">
               <p><strong>Nature:</strong> {creature.nature}</p>
               <p><strong>Size:</strong> {creature.size}</p>
               <p><strong>Threat MV:</strong> {creature.threatMV}</p>
@@ -1293,11 +1293,11 @@ export default function Bestiary() {
               <p><strong>Source:</strong> {creature.source}</p>
             </div>
 
-            <p className="text-sm text-gray-700 mb-4">{creature.description}</p>
+            <p className="text-sm text-off-white/80 mb-4">{creature.description}</p>
 
             <div className="flex flex-wrap gap-1 mb-4">
               {creature.tags.map((tag) => (
-                <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+                <span key={tag} className="px-2 py-1 bg-white/10 text-off-white/60 rounded text-xs">
                   {tag}
                 </span>
               ))}
@@ -1306,14 +1306,14 @@ export default function Bestiary() {
             <div className="flex gap-2">
               <button
                 onClick={() => setSelectedCreature(creature)}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded text-sm"
+                className="flex-1 bg-soft-amethyst hover:bg-soft-amethyst/80 text-white font-bold py-2 px-3 rounded text-sm"
               >
                 View Details
               </button>
               <button
                 onClick={() => addToEncounter(creature)}
                 disabled={threatBudget > 0 && currentThreat + creature.threatMV > threatBudget * 1.2}
-                className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-bold py-2 px-3 rounded text-sm"
+                className="bg-soft-amethyst hover:bg-soft-amethyst/80 disabled:bg-white/20 text-white font-bold py-2 px-3 rounded text-sm"
               >
                 {showEncounterBuilder ? 'Add' : 'Add to Encounter'}
               </button>
@@ -1325,12 +1325,12 @@ export default function Bestiary() {
       {/* Creature Detail Modal */}
       {selectedCreature && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-full overflow-y-auto">
+          <div className="bg-white/5 rounded-lg p-6 max-w-2xl w-full max-h-full overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-gray-900">{selectedCreature.name}</h2>
+              <h2 className="text-2xl font-bold text-off-white">{selectedCreature.name}</h2>
               <button
                 onClick={() => setSelectedCreature(null)}
-                className="text-gray-500 hover:text-gray-700 text-xl"
+                className="text-off-white/50 hover:text-off-white/80 text-xl"
               >
                 ×
               </button>
@@ -1352,14 +1352,14 @@ export default function Bestiary() {
 
             <div className="space-y-4">
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
-                <p className="text-gray-700">{selectedCreature.description}</p>
+                <h3 className="font-semibold text-off-white mb-2">Description</h3>
+                <p className="text-off-white/80">{selectedCreature.description}</p>
               </div>
 
               {selectedCreature.specialAbilities && (
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Special Abilities</h3>
-                  <ul className="list-disc pl-5 text-gray-700">
+                  <h3 className="font-semibold text-off-white mb-2">Special Abilities</h3>
+                  <ul className="list-disc pl-5 text-off-white/80">
                     {selectedCreature.specialAbilities.map((ability, index) => (
                       <li key={index}>{ability}</li>
                     ))}
@@ -1368,7 +1368,7 @@ export default function Bestiary() {
               )}
 
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Combat Statistics</h3>
+                <h3 className="font-semibold text-off-white mb-2">Combat Statistics</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p><strong>Category:</strong> {selectedCreature.category}</p>
@@ -1387,7 +1387,7 @@ export default function Bestiary() {
 
               <div className="flex flex-wrap gap-1">
                 {selectedCreature.tags.map((tag) => (
-                  <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+                  <span key={tag} className="px-2 py-1 bg-white/10 text-off-white/60 rounded text-xs">
                     {tag}
                   </span>
                 ))}
@@ -1398,34 +1398,34 @@ export default function Bestiary() {
       )}
 
       {/* Statistics */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white/5 rounded-lg shadow-lg p-6">
         <h3 className="text-lg font-bold mb-4">Bestiary Statistics</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 text-center">
           <div>
-            <p className="text-2xl font-bold text-blue-600">{allCreatures.length}</p>
-            <p className="text-sm text-gray-600">Total Creatures</p>
+            <p className="text-2xl font-bold text-soft-amethyst">{allCreatures.length}</p>
+            <p className="text-sm text-off-white/60">Total Creatures</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-green-600">
+            <p className="text-2xl font-bold text-muted-eldritch-green">
               {allCreatures.filter(c => c.source === 'Bestiary').length}
             </p>
-            <p className="text-sm text-gray-600">Bestiary Entries</p>
+            <p className="text-sm text-off-white/60">Bestiary Entries</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-yellow-600">
               {allCreatures.filter(c => c.category === 'Legendary').length}
             </p>
-            <p className="text-sm text-gray-600">Legendary Beings</p>
+            <p className="text-sm text-off-white/60">Legendary Beings</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-red-600">
+            <p className="text-2xl font-bold text-red-400">
               {allCreatures.filter(c => c.nature === 'Supernatural').length}
             </p>
-            <p className="text-sm text-gray-600">Supernatural Entities</p>
+            <p className="text-sm text-off-white/60">Supernatural Entities</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-purple-600">{customCreatures.length}</p>
-            <p className="text-sm text-gray-600">Custom Creations</p>
+            <p className="text-sm text-off-white/60">Custom Creations</p>
           </div>
         </div>
       </div>

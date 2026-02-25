@@ -307,21 +307,21 @@ export default function CharacterGenerator() {
   const warnings = character && showWeakness ? weaknessReport(character) : [];
 
   return (
-    <div className="bg-gray-100 text-gray-800 min-h-screen">
+    <div className="text-off-white min-h-screen">
       <div className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
         <header className="mb-6 sm:mb-8 text-center">
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Eldritch RPG 2nd Edition</h1>
-          <p className="text-gray-600">Character Generator — <span className="font-semibold">Balanced · Specialist · Rookie</span></p>
+          <p className="text-off-white/60">Character Generator — <span className="font-semibold">Balanced · Specialist · Rookie</span></p>
         </header>
 
         {/* Controls */}
-        <section className="bg-white rounded-2xl shadow p-6 mb-6">
+        <section className="bg-white/5 rounded-2xl shadow p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="race">Race</label>
               <select
                 id="race"
-                className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5"
+                className="w-full rounded-lg border border-white/15 bg-white/5 p-2.5"
                 value={race}
                 onChange={(e) => setRace(e.target.value)}
               >
@@ -333,7 +333,7 @@ export default function CharacterGenerator() {
               <label className="block text-sm font-medium mb-1" htmlFor="class">Class</label>
               <select
                 id="class"
-                className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5"
+                className="w-full rounded-lg border border-white/15 bg-white/5 p-2.5"
                 value={characterClass}
                 onChange={(e) => {
                   setCharacterClass(e.target.value);
@@ -353,7 +353,7 @@ export default function CharacterGenerator() {
               <label className="block text-sm font-medium mb-1" htmlFor="level">Level</label>
               <select
                 id="level"
-                className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5"
+                className="w-full rounded-lg border border-white/15 bg-white/5 p-2.5"
                 value={level}
                 onChange={(e) => setLevel(parseInt(e.target.value))}
               >
@@ -365,7 +365,7 @@ export default function CharacterGenerator() {
                 <label className="block text-sm font-medium mb-1" htmlFor="magic-path">Chosen Magic Path</label>
                 <select
                   id="magic-path"
-                  className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5"
+                  className="w-full rounded-lg border border-white/15 bg-white/5 p-2.5"
                   value={magicPath}
                   onChange={(e) => setMagicPath(e.target.value)}
                 >
@@ -377,11 +377,11 @@ export default function CharacterGenerator() {
 
           <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Build Philosophy */}
-            <div className="bg-gray-50 rounded-xl p-4">
+            <div className="bg-white/5 rounded-xl p-4">
               <h3 className="font-semibold mb-2">Build Philosophy</h3>
               <div className="flex flex-wrap gap-2">
                 {['balanced', 'hybrid', 'specialist'].map(style => (
-                  <label key={style} className="flex items-center gap-2 rounded-full px-3 py-2 bg-white border cursor-pointer">
+                  <label key={style} className="flex items-center gap-2 rounded-full px-3 py-2 bg-white/5 border cursor-pointer">
                     <input
                       type="radio"
                       name="style"
@@ -403,15 +403,15 @@ export default function CharacterGenerator() {
                 />
                 <label htmlFor="enforce-softcaps">Enforce Soft Caps by Level</label>
               </div>
-              <p className="mt-2 text-xs text-gray-500">Balanced spreads CP before spiking; Specialist prioritizes class axis; Hybrid blends both.</p>
+              <p className="mt-2 text-xs text-off-white/50">Balanced spreads CP before spiking; Specialist prioritizes class axis; Hybrid blends both.</p>
             </div>
 
             {/* Rookie Profiles */}
-            <div className="bg-gray-50 rounded-xl p-4">
+            <div className="bg-white/5 rounded-xl p-4">
               <h3 className="font-semibold mb-2">Rookie Profile (Level 1 Only)</h3>
               <select
                 id="rookie-profile"
-                className="w-full rounded-lg border border-gray-300 bg-white p-2.5"
+                className="w-full rounded-lg border border-white/15 bg-white/5 p-2.5"
                 disabled={level !== 1}
                 value={rookieProfile}
                 onChange={(e) => setRookieProfile(e.target.value)}
@@ -421,7 +421,7 @@ export default function CharacterGenerator() {
                 <option value="balanced">Balanced Rookie (breadth-first)</option>
                 <option value="specialist">Specialist Rookie (focused)</option>
               </select>
-              <p className="mt-2 text-xs text-gray-500">Generate a true starting character with only the 10 bonus CPs.</p>
+              <p className="mt-2 text-xs text-off-white/50">Generate a true starting character with only the 10 bonus CPs.</p>
             </div>
 
             {/* Options & Actions */}
@@ -434,7 +434,7 @@ export default function CharacterGenerator() {
                   checked={iconicArcane}
                   onChange={(e) => setIconicArcane(e.target.checked)}
                 />
-                <label htmlFor="iconic-arcane" className="text-sm">Iconic Arcane Inheritance <span className="text-xs text-gray-500">(Costs 4 CP)</span></label>
+                <label htmlFor="iconic-arcane" className="text-sm">Iconic Arcane Inheritance <span className="text-xs text-off-white/50">(Costs 4 CP)</span></label>
               </div>
               <div className="flex items-center gap-2">
                 <input
@@ -449,21 +449,21 @@ export default function CharacterGenerator() {
               <div className="flex flex-wrap gap-2 pt-2">
                 <button
                   onClick={generate}
-                  className="rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 shadow"
+                  className="rounded-full bg-soft-amethyst hover:bg-soft-amethyst/80 text-white font-bold py-2.5 px-4 shadow"
                 >
                   Generate
                 </button>
                 {character && (
                   <button
                     onClick={saveCharacterToRoster}
-                    className="rounded-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-4 shadow"
+                    className="rounded-full bg-muted-eldritch-green hover:bg-muted-eldritch-green/80 text-white font-semibold py-2.5 px-4 shadow"
                   >
                     Save to Roster
                   </button>
                 )}
                 <button
                   onClick={exportMD}
-                  className="rounded-full bg-white hover:bg-gray-100 text-blue-600 font-semibold py-2.5 px-4 border border-blue-600 shadow"
+                  className="rounded-full bg-white/5 hover:bg-white/10 text-soft-amethyst font-semibold py-2.5 px-4 border border-soft-amethyst shadow"
                 >
                   Export MD
                 </button>
@@ -488,13 +488,13 @@ export default function CharacterGenerator() {
                               showAlert('Failed to copy HTML');
                             }
                           }}
-                          className="rounded-full bg-white hover:bg-gray-100 text-blue-600 font-semibold py-2.5 px-4 border border-blue-600 shadow"
+                          className="rounded-full bg-white/5 hover:bg-white/10 text-soft-amethyst font-semibold py-2.5 px-4 border border-soft-amethyst shadow"
                         >
                           Copy HTML
                         </button>
                 <button
                   onClick={copyMD}
-                  className="rounded-full bg-white hover:bg-gray-100 text-blue-600 font-semibold py-2.5 px-4 border border-blue-600 shadow"
+                  className="rounded-full bg-white/5 hover:bg-white/10 text-soft-amethyst font-semibold py-2.5 px-4 border border-soft-amethyst shadow"
                 >
                   Copy MD
                 </button>
@@ -505,31 +505,31 @@ export default function CharacterGenerator() {
 
         {/* Output */}
         {character && (
-          <div className="bg-white rounded-2xl shadow p-6">
+          <div className="bg-white/5 rounded-2xl shadow p-6">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
               <h2 className="text-2xl font-bold">{character.race} {character.class} — Level {character.level}</h2>
               <div className="flex items-center gap-2">
-                <span className="rounded-full bg-gray-100 text-gray-700 text-xs px-3 py-1">Style: {buildStyle}</span>
+                <span className="rounded-full bg-white/10 text-off-white/80 text-xs px-3 py-1">Style: {buildStyle}</span>
                 {(level === 1 && rookieProfile !== 'off') && (
-                  <span className="rounded-full bg-indigo-100 text-indigo-700 text-xs px-3 py-1">Rookie: {rookieProfile}</span>
+                  <span className="rounded-full bg-soft-amethyst/20 text-soft-amethyst text-xs px-3 py-1">Rookie: {rookieProfile}</span>
                 )}
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center mb-4">
-              <div className="bg-gray-50 rounded-xl p-3">
-                <div className="text-xs text-gray-500">Spirit Points</div>
+              <div className="bg-white/5 rounded-xl p-3">
+                <div className="text-xs text-off-white/50">Spirit Points</div>
                 <div className="text-xl font-bold">{character.pools.spirit}</div>
               </div>
-              <div className="bg-gray-50 rounded-xl p-3">
-                <div className="text-xs text-gray-500">Active DP</div>
+              <div className="bg-white/5 rounded-xl p-3">
+                <div className="text-xs text-off-white/50">Active DP</div>
                 <div className="text-xl font-bold">{character.pools.active}</div>
               </div>
-              <div className="bg-gray-50 rounded-xl p-3">
-                <div className="text-xs text-gray-500">Passive DP</div>
+              <div className="bg-white/5 rounded-xl p-3">
+                <div className="text-xs text-off-white/50">Passive DP</div>
                 <div className="text-xl font-bold">{character.pools.passive}</div>
               </div>
-              <div className="bg-gray-50 rounded-xl p-3">
-                <div className="text-xs text-gray-500">Mastery Die</div>
+              <div className="bg-white/5 rounded-xl p-3">
+                <div className="text-xs text-off-white/50">Mastery Die</div>
                 <div className="text-xl font-bold">{character.masteryDie}</div>
               </div>
             </div>
@@ -589,7 +589,7 @@ export default function CharacterGenerator() {
               </div>
               {warnings.length > 0 && (
                 <div className="lg:col-span-2">
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                  <div className="bg-amber-50 border border-amber-500/30 rounded-xl p-4">
                     <h3 className="font-semibold text-amber-900 mb-2">Weakness Report</h3>
                     <ul className="text-sm text-amber-900 list-disc list-inside">
                       {warnings.map(w => <li key={w}>{w}</li>)}
@@ -607,27 +607,27 @@ export default function CharacterGenerator() {
                     <li><strong>Spent on Advantages:</strong> {lastCharacter.spent.advantages}</li>
                     <li><strong>Total CP Spent from Budget:</strong> {lastCharacter.spent.total}</li>
                   </ul>
-                  <p className="text-xs text-gray-500 mt-2 italic">
+                  <p className="text-xs text-off-white/50 mt-2 italic">
                     This shows CPs spent from the customization budget (10 CP + Level Bonus). Free racial/class minimums cost 0 CP.
                     Focus bonuses also draw from the CP budget unless granted by your starting race/class combination.
                   </p>
                 </div>
               )}
               <div className="lg:col-span-2">
-                <h3 className="text-lg font-semibold mb-2 text-gray-800">Level Advancement (Earned CP)</h3>
+                <h3 className="text-lg font-semibold mb-2 text-off-white">Level Advancement (Earned CP)</h3>
                 <div className="overflow-x-auto relative rounded-lg">
-                  <table className="w-full text-sm text-left text-gray-500">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                  <table className="w-full text-sm text-left text-off-white/50">
+                    <thead className="text-xs text-off-white/80 uppercase bg-white/5">
                       <tr>
                         <th scope="col" className="px-4 py-2">To Reach Level</th>
                         <th scope="col" className="px-4 py-2">Total Earned CP Required</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="bg-white border-b"><td className="px-4 py-2 font-medium">Level 2</td><td className="px-4 py-2">100</td></tr>
-                      <tr className="bg-gray-50 border-b"><td className="px-4 py-2 font-medium">Level 3</td><td className="px-4 py-2">200</td></tr>
-                      <tr className="bg-white border-b"><td className="px-4 py-2 font-medium">Level 4</td><td className="px-4 py-2">300</td></tr>
-                      <tr className="bg-gray-50"><td className="px-4 py-2 font-medium">Level 5</td><td className="px-4 py-2">500</td></tr>
+                      <tr className="bg-white/5 border-b"><td className="px-4 py-2 font-medium">Level 2</td><td className="px-4 py-2">100</td></tr>
+                      <tr className="bg-white/5 border-b"><td className="px-4 py-2 font-medium">Level 3</td><td className="px-4 py-2">200</td></tr>
+                      <tr className="bg-white/5 border-b"><td className="px-4 py-2 font-medium">Level 4</td><td className="px-4 py-2">300</td></tr>
+                      <tr className="bg-white/5"><td className="px-4 py-2 font-medium">Level 5</td><td className="px-4 py-2">500</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -639,11 +639,11 @@ export default function CharacterGenerator() {
         {/* Party Assignment Modal */}
         {showPartyAssignment && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="bg-white/5 rounded-lg p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
               <h3 className="text-lg font-bold mb-4">Save Character to Roster</h3>
 
               {/* Character Details */}
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <div className="mb-6 p-4 bg-white/5 rounded-lg">
                 <h4 className="font-semibold mb-3">Character Details</h4>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -654,7 +654,7 @@ export default function CharacterGenerator() {
                       value={pcName}
                       onChange={(e) => setPcName(e.target.value)}
                       placeholder="Enter character name"
-                      className="w-full border border-gray-300 rounded p-2 text-sm"
+                      className="w-full border border-white/15 rounded p-2 text-sm"
                     />
                   </div>
                   <div>
@@ -664,7 +664,7 @@ export default function CharacterGenerator() {
                       value={playerName}
                       onChange={(e) => setPlayerName(e.target.value)}
                       placeholder="Enter player name"
-                      className="w-full border border-gray-300 rounded p-2 text-sm"
+                      className="w-full border border-white/15 rounded p-2 text-sm"
                     />
                   </div>
                 </div>
@@ -675,7 +675,7 @@ export default function CharacterGenerator() {
                     <select
                       value={characterGender}
                       onChange={(e) => setCharacterGender(e.target.value as Gender)}
-                      className="w-full border border-gray-300 rounded p-2 text-sm"
+                      className="w-full border border-white/15 rounded p-2 text-sm"
                     >
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
@@ -687,7 +687,7 @@ export default function CharacterGenerator() {
                     <select
                       value={nameCulture}
                       onChange={(e) => setNameCulture(e.target.value as NameCulture)}
-                      className="w-full border border-gray-300 rounded p-2 text-sm"
+                      className="w-full border border-white/15 rounded p-2 text-sm"
                     >
                       <option value="English">English</option>
                       <option value="Scottish">Scottish</option>
@@ -706,7 +706,7 @@ export default function CharacterGenerator() {
                     <label className="block text-sm font-medium">Name Suggestions</label>
                     <button
                       onClick={generateRandomCharacterName}
-                      className="text-xs bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
+                      className="text-xs bg-soft-amethyst hover:bg-soft-amethyst text-white px-2 py-1 rounded"
                     >
                       Random Name
                     </button>
@@ -716,10 +716,10 @@ export default function CharacterGenerator() {
                       <button
                         key={index}
                         onClick={() => applySuggestedName(suggestion)}
-                        className="text-left text-xs p-2 bg-white border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-300"
+                        className="text-left text-xs p-2 bg-white/5 border border-white/10 rounded hover:bg-soft-amethyst/10 hover:border-soft-amethyst/30"
                       >
                         {suggestion.firstName} {suggestion.familyName}
-                        <span className="text-gray-500 ml-2">({suggestion.culture})</span>
+                        <span className="text-off-white/50 ml-2">({suggestion.culture})</span>
                       </button>
                     ))}
                   </div>
@@ -733,7 +733,7 @@ export default function CharacterGenerator() {
                 <select
                   value={selectedParty}
                   onChange={(e) => setSelectedParty(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg p-2"
+                  className="w-full border border-white/15 rounded-lg p-2"
                 >
                   <option value="">No party assignment</option>
                   {partyFolders.map(folder => (
@@ -743,7 +743,7 @@ export default function CharacterGenerator() {
                   ))}
                 </select>
                 {partyFolders.length === 0 && (
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-off-white/50 mt-1">
                     No PC party folders available. Create one in the Party Management page.
                   </p>
                 )}
@@ -752,7 +752,7 @@ export default function CharacterGenerator() {
               <div className="flex space-x-3">
                 <button
                   onClick={confirmSaveCharacter}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded"
+                  className="flex-1 bg-muted-eldritch-green hover:bg-muted-eldritch-green/80 text-white font-semibold py-2 px-4 rounded"
                 >
                   Save Character
                 </button>
@@ -761,7 +761,7 @@ export default function CharacterGenerator() {
                     setShowPartyAssignment(false);
                     setSelectedParty('');
                   }}
-                  className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded"
+                  className="flex-1 bg-white/10 hover:bg-white/15 text-white font-semibold py-2 px-4 rounded"
                 >
                   Cancel
                 </button>

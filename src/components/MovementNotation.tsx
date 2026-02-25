@@ -46,7 +46,7 @@ export default function MovementNotation({
   const notation = formatMovementNotation(tacticalNotes.total);
 
   const renderTooltip = () => (
-    <div className="absolute z-10 w-48 p-2 -mt-1 text-sm text-white bg-gray-800 rounded-lg shadow-lg">
+    <div className="absolute z-10 w-48 p-2 -mt-1 text-sm text-white bg-charcoal-violet rounded-lg shadow-lg border border-white/10">
       <p>Base: {tacticalNotes.raw.toFixed(1)} sq</p>
       <p>Rounded: {tacticalNotes.rounded} sq</p>
       {tacticalNotes.sizeModifier !== 0 && (
@@ -70,7 +70,7 @@ export default function MovementNotation({
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
-      <span className="text-sm font-semibold text-gray-700 cursor-pointer">
+      <span className="text-sm font-semibold text-off-white/80 cursor-pointer">
         {notation}
       </span>
       {showTooltip && renderTooltip()}

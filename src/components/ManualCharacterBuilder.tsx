@@ -303,24 +303,24 @@ export default function ManualCharacterBuilder() {
     <div className="max-w-6xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Manual Character Builder</h1>
-          <p className="text-sm text-gray-600">Plan every CP by hand to create bespoke heroes. Choose race, class, and level, then allocate abilities, specialties, and focuses within your budget.</p>
+          <h1 className="text-3xl font-bold text-off-white">Manual Character Builder</h1>
+          <p className="text-sm text-off-white/60">Plan every CP by hand to create bespoke heroes. Choose race, class, and level, then allocate abilities, specialties, and focuses within your budget.</p>
         </div>
         <button
           onClick={resetBuilder}
-          className="rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
+          className="rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-off-white/70 hover:bg-white/10"
         >
           Reset
         </button>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-4">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-4">
+        <div className="bg-white/5 rounded-xl border border-white/10 p-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="race">Race</label>
+            <label className="block text-sm font-medium mb-1 text-off-white/80" htmlFor="race">Race</label>
             <select
               id="race"
-              className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5"
+              className="w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5"
               value={selectedRace}
               onChange={(e) => setSelectedRace(e.target.value)}
             >
@@ -329,10 +329,10 @@ export default function ManualCharacterBuilder() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="class">Class</label>
+            <label className="block text-sm font-medium mb-1 text-off-white/80" htmlFor="class">Class</label>
             <select
               id="class"
-              className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5"
+              className="w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5"
               value={selectedClass}
               onChange={(e) => {
                 const nextClass = e.target.value as ClassName | '';
@@ -345,10 +345,10 @@ export default function ManualCharacterBuilder() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="level">Level</label>
+            <label className="block text-sm font-medium mb-1 text-off-white/80" htmlFor="level">Level</label>
             <select
               id="level"
-              className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5"
+              className="w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5"
               value={selectedLevel}
               onChange={(e) => setSelectedLevel(parseInt(e.target.value))}
             >
@@ -357,10 +357,10 @@ export default function ManualCharacterBuilder() {
           </div>
           {selectedClassMagicPaths && selectedClass !== 'Adept' && selectedClass !== 'Mystic' && (
             <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="magic-path">Magic Path</label>
+              <label className="block text-sm font-medium mb-1 text-off-white/80" htmlFor="magic-path">Magic Path</label>
               <select
                 id="magic-path"
-                className="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5"
+                className="w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5"
                 value={selectedMagicPath}
                 onChange={(e) => setSelectedMagicPath(e.target.value)}
               >
@@ -373,37 +373,37 @@ export default function ManualCharacterBuilder() {
 
         <div className="lg:col-span-3 space-y-6">
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="bg-white border border-gray-200 rounded-xl p-4">
-              <div className="text-sm text-gray-500">CP Budget</div>
-              <div className="text-2xl font-bold">{cpBudget}</div>
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+              <div className="text-sm text-off-white/50">CP Budget</div>
+              <div className="text-2xl font-bold text-off-white">{cpBudget}</div>
             </div>
-            <div className="bg-white border border-gray-200 rounded-xl p-4">
-              <div className="text-sm text-gray-500">CP Spent</div>
-              <div className="text-2xl font-bold">{cpSpentFromBudget}</div>
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+              <div className="text-sm text-off-white/50">CP Spent</div>
+              <div className="text-2xl font-bold text-off-white">{cpSpentFromBudget}</div>
             </div>
-            <div className={`border rounded-xl p-4 ${cpRemaining < 0 ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white'}`}>
-              <div className="text-sm text-gray-500">CP Remaining</div>
-              <div className={`text-2xl font-bold ${cpRemaining < 0 ? 'text-red-600' : ''}`}>{cpRemaining}</div>
+            <div className={`border rounded-xl p-4 ${cpRemaining < 0 ? 'border-red-500/30 bg-red-900/20' : 'border-white/10 bg-white/5'}`}>
+              <div className="text-sm text-off-white/50">CP Remaining</div>
+              <div className={`text-2xl font-bold ${cpRemaining < 0 ? 'text-red-400' : 'text-off-white'}`}>{cpRemaining}</div>
             </div>
           </div>
 
           {cpSpent && (
-            <div className="bg-white border border-gray-200 rounded-xl p-4 text-sm text-gray-700">
-              <h3 className="font-semibold text-base mb-2">CP Breakdown</h3>
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-off-white/70">
+              <h3 className="font-semibold text-base mb-2 text-off-white">CP Breakdown</h3>
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                <div>Abilities: <span className="font-semibold">{cpSpent.abilities}</span></div>
-                <div>Specialties: <span className="font-semibold">{cpSpent.specialties}</span></div>
-                <div>Focuses: <span className="font-semibold">{cpSpent.focuses}</span></div>
-                <div>Advantages: <span className="font-semibold">{cpSpent.advantages}</span></div>
+                <div>Abilities: <span className="font-semibold text-off-white">{cpSpent.abilities}</span></div>
+                <div>Specialties: <span className="font-semibold text-off-white">{cpSpent.specialties}</span></div>
+                <div>Focuses: <span className="font-semibold text-off-white">{cpSpent.focuses}</span></div>
+                <div>Advantages: <span className="font-semibold text-off-white">{cpSpent.advantages}</span></div>
               </div>
-              <p className="text-xs text-gray-500 mt-2 italic">
+              <p className="text-xs text-off-white/40 mt-2 italic">
                 Focus bonuses also spend CP unless they are part of the starting race/class package.
               </p>
             </div>
           )}
 
           {combinedWarnings.length > 0 && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-sm text-yellow-800 space-y-1">
+            <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-4 text-sm text-yellow-300 space-y-1">
               {combinedWarnings.map((warning, index) => (
                 <div key={`${warning}-${index}`}>{warning}</div>
               ))}
@@ -412,26 +412,26 @@ export default function ManualCharacterBuilder() {
 
           {character ? (
             <div className="space-y-4">
-              <div className="bg-white border border-gray-200 rounded-xl p-4">
-                <h2 className="text-lg font-semibold mb-3">Abilities & Specialties</h2>
+              <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                <h2 className="text-lg font-semibold mb-3 text-off-white">Abilities & Specialties</h2>
                 <div className="space-y-4">
                   {abilities.map(ability => (
-                    <div key={ability} className="border border-gray-200 rounded-lg">
-                      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-t-lg">
+                    <div key={ability} className="border border-white/10 rounded-lg">
+                      <div className="flex items-center justify-between px-3 py-2 bg-white/5 rounded-t-lg">
                         <div>
-                          <div className="text-sm font-semibold">{ability}</div>
-                          <div className="text-xs text-gray-500">Minimum: {baseCharacter?.abilities[ability]}</div>
+                          <div className="text-sm font-semibold text-muted-eldritch-green">{ability}</div>
+                          <div className="text-xs text-off-white/40">Minimum: {baseCharacter?.abilities[ability]}</div>
                         </div>
                         <div className="flex items-center gap-2">
                           <button
-                            className="w-8 h-8 rounded-full border border-gray-300 bg-white text-gray-700"
+                            className="w-8 h-8 rounded-full border border-white/20 bg-white/10 text-off-white"
                             onClick={() => adjustAbility(ability, -1)}
                           >
                             −
                           </button>
-                          <span className="font-mono text-lg">{character.abilities[ability]}</span>
+                          <span className="font-mono text-lg text-off-white">{character.abilities[ability]}</span>
                           <button
-                            className="w-8 h-8 rounded-full border border-gray-300 bg-white text-gray-700"
+                            className="w-8 h-8 rounded-full border border-white/20 bg-white/10 text-off-white"
                             onClick={() => adjustAbility(ability, 1)}
                           >
                             +
@@ -440,22 +440,22 @@ export default function ManualCharacterBuilder() {
                       </div>
                       <div className="px-4 py-3 space-y-3">
                         {specs[ability as keyof typeof specs].map(spec => (
-                          <div key={spec} className="border border-gray-100 rounded-lg p-3">
+                          <div key={spec} className="border border-white/10 rounded-lg p-3">
                             <div className="flex items-center justify-between">
                               <div>
-                                <div className="text-sm font-medium">{spec}</div>
-                                <div className="text-xs text-gray-500">Minimum: {baseCharacter?.specialties[ability][spec]}</div>
+                                <div className="text-sm font-medium text-off-white/90">{spec}</div>
+                                <div className="text-xs text-off-white/40">Minimum: {baseCharacter?.specialties[ability][spec]}</div>
                               </div>
                               <div className="flex items-center gap-2">
                                 <button
-                                  className="w-7 h-7 rounded-full border border-gray-300 bg-white text-gray-700"
+                                  className="w-7 h-7 rounded-full border border-white/20 bg-white/10 text-off-white"
                                   onClick={() => adjustSpecialty(ability, spec, -1)}
                                 >
                                   −
                                 </button>
-                                <span className="font-mono">{character.specialties[ability][spec]}</span>
+                                <span className="font-mono text-off-white">{character.specialties[ability][spec]}</span>
                                 <button
-                                  className="w-7 h-7 rounded-full border border-gray-300 bg-white text-gray-700"
+                                  className="w-7 h-7 rounded-full border border-white/20 bg-white/10 text-off-white"
                                   onClick={() => adjustSpecialty(ability, spec, 1)}
                                 >
                                   +
@@ -464,21 +464,21 @@ export default function ManualCharacterBuilder() {
                             </div>
                             <div className="grid gap-2 mt-3 md:grid-cols-2">
                               {foci[spec as keyof typeof foci].map(focusKey => (
-                                <div key={focusKey} className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
+                                <div key={focusKey} className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2">
                                   <div>
-                                    <div className="text-sm font-medium">{focusKey}</div>
-                                    <div className="text-xs text-gray-500">Minimum: +{fnum(baseCharacter?.focuses[ability][focusKey] ?? '+0')}</div>
+                                    <div className="text-sm font-medium text-off-white/80">{focusKey}</div>
+                                    <div className="text-xs text-off-white/40">Minimum: +{fnum(baseCharacter?.focuses[ability][focusKey] ?? '+0')}</div>
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <button
-                                      className="w-6 h-6 rounded-full border border-gray-300 bg-white text-gray-700"
+                                      className="w-6 h-6 rounded-full border border-white/20 bg-white/10 text-off-white"
                                       onClick={() => adjustFocus(ability, spec, focusKey, -1)}
                                     >
                                       −
                                     </button>
-                                    <span className="font-mono">{character.focuses[ability][focusKey]}</span>
+                                    <span className="font-mono text-off-white">{character.focuses[ability][focusKey]}</span>
                                     <button
-                                      className="w-6 h-6 rounded-full border border-gray-300 bg-white text-gray-700"
+                                      className="w-6 h-6 rounded-full border border-white/20 bg-white/10 text-off-white"
                                       onClick={() => adjustFocus(ability, spec, focusKey, 1)}
                                     >
                                       +
@@ -496,47 +496,47 @@ export default function ManualCharacterBuilder() {
               </div>
 
               <div className="grid gap-4 md:grid-cols-3">
-                <div className="bg-white border border-gray-200 rounded-xl p-4">
-                  <div className="text-sm text-gray-500">Mastery Die</div>
-                  <div className="text-xl font-semibold">{character.masteryDie}</div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                  <div className="text-sm text-off-white/50">Mastery Die</div>
+                  <div className="text-xl font-semibold text-off-white">{character.masteryDie}</div>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-xl p-4">
-                  <div className="text-sm text-gray-500">Advantages</div>
-                  <ul className="text-sm list-disc pl-5 mt-1 space-y-1">
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                  <div className="text-sm text-off-white/50">Advantages</div>
+                  <ul className="text-sm list-disc pl-5 mt-1 space-y-1 text-off-white/80">
                     {character.advantages.map(adv => <li key={adv}>{adv}</li>)}
                   </ul>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-xl p-4">
-                  <div className="text-sm text-gray-500">Equipment</div>
-                  <ul className="text-sm list-disc pl-5 mt-1 space-y-1">
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                  <div className="text-sm text-off-white/50">Equipment</div>
+                  <ul className="text-sm list-disc pl-5 mt-1 space-y-1 text-off-white/80">
                     {character.equipment.map(item => <li key={item}>{item}</li>)}
                   </ul>
                 </div>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-xl p-4">
-                <h3 className="font-semibold mb-3">Name & Player Info</h3>
+              <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                <h3 className="font-semibold mb-3 text-off-white">Name & Player Info</h3>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium mb-1" htmlFor="pc-name">Character Name</label>
+                    <label className="block text-sm font-medium mb-1 text-off-white/80" htmlFor="pc-name">Character Name</label>
                     <input
                       id="pc-name"
                       value={pcName}
                       onChange={(e) => setPcName(e.target.value)}
-                      className="w-full rounded-lg border border-gray-300 p-2.5"
+                      className="w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5 placeholder-off-white/30"
                       placeholder="Enter name"
                     />
                     <div className="flex gap-2 mt-2">
                       <button
                         onClick={handleRandomName}
-                        className="text-xs px-3 py-1.5 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100"
+                        className="text-xs px-3 py-1.5 rounded-full border border-white/20 text-off-white/70 hover:bg-white/10"
                       >
                         Random Name
                       </button>
                       <select
                         value={nameCulture}
                         onChange={(e) => setNameCulture(e.target.value as NameCulture)}
-                        className="text-xs rounded-full border border-gray-300 px-3 py-1.5"
+                        className="text-xs rounded-full border border-white/20 bg-white/5 text-off-white px-3 py-1.5"
                       >
                         {NAME_CULTURE_OPTIONS.map(culture => (
                           <option key={culture} value={culture}>{culture}</option>
@@ -545,15 +545,15 @@ export default function ManualCharacterBuilder() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1" htmlFor="player-name">Player Name</label>
+                    <label className="block text-sm font-medium mb-1 text-off-white/80" htmlFor="player-name">Player Name</label>
                     <input
                       id="player-name"
                       value={playerName}
                       onChange={(e) => setPlayerName(e.target.value)}
-                      className="w-full rounded-lg border border-gray-300 p-2.5"
+                      className="w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5 placeholder-off-white/30"
                       placeholder="Optional"
                     />
-                    <div className="flex gap-3 mt-3 text-sm">
+                    <div className="flex gap-3 mt-3 text-sm text-off-white/70">
                       {(['Male', 'Female'] as Gender[]).map(g => (
                         <label key={g} className="flex items-center gap-1">
                           <input
@@ -570,7 +570,7 @@ export default function ManualCharacterBuilder() {
                 </div>
                 {suggestedNames.length > 0 && (
                   <div className="mt-3">
-                    <div className="text-xs font-semibold text-gray-500 uppercase">Suggestions</div>
+                    <div className="text-xs font-semibold text-off-white/50 uppercase">Suggestions</div>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {suggestedNames.map(name => {
                         const fullName = `${name.firstName}${name.familyName ? ` ${name.familyName}` : ''}`;
@@ -578,10 +578,10 @@ export default function ManualCharacterBuilder() {
                           <button
                             key={name.suggestion}
                             onClick={() => setPcName(fullName)}
-                            className="text-xs rounded-full border border-gray-300 px-3 py-1 hover:bg-gray-100"
+                            className="text-xs rounded-full border border-white/20 px-3 py-1 text-off-white/70 hover:bg-white/10"
                           >
                             {fullName}
-                            <span className="text-gray-500 ml-1">({name.culture})</span>
+                            <span className="text-off-white/40 ml-1">({name.culture})</span>
                           </button>
                         );
                       })}
@@ -592,14 +592,14 @@ export default function ManualCharacterBuilder() {
 
               <div className="flex flex-wrap gap-3">
                 <button
-                  className="rounded-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-6 shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-full bg-muted-eldritch-green hover:bg-muted-eldritch-green/80 text-charcoal-violet font-semibold py-2.5 px-6 shadow disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={saveCharacterToRoster}
                   disabled={!canFinalize}
                 >
                   Save to Roster
                 </button>
                 <button
-                  className="rounded-full border border-gray-300 px-6 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
+                  className="rounded-full border border-white/20 px-6 py-2.5 text-sm font-medium text-off-white/70 hover:bg-white/10"
                   onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                 >
                   Back to Top
@@ -607,7 +607,7 @@ export default function ManualCharacterBuilder() {
               </div>
             </div>
           ) : (
-            <div className="bg-white border border-dashed border-gray-300 rounded-xl p-6 text-center text-gray-500">
+            <div className="bg-white/5 border border-dashed border-white/20 rounded-xl p-6 text-center text-off-white/50">
               Choose a race, class, and level to start allocating CP.
             </div>
           )}
@@ -615,12 +615,12 @@ export default function ManualCharacterBuilder() {
       </div>
 
       {showPartyAssignment && character && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-lg space-y-4">
-            <h3 className="text-lg font-semibold">Assign to Party</h3>
-            <p className="text-sm text-gray-600">Optionally choose a party folder for this character.</p>
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="bg-charcoal-violet rounded-xl shadow-lg border border-white/10 p-6 w-full max-w-lg space-y-4">
+            <h3 className="text-lg font-semibold text-off-white">Assign to Party</h3>
+            <p className="text-sm text-off-white/60">Optionally choose a party folder for this character.</p>
             <select
-              className="w-full rounded-lg border border-gray-300 p-2.5"
+              className="w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5"
               value={selectedParty}
               onChange={(e) => setSelectedParty(e.target.value)}
             >
@@ -631,13 +631,13 @@ export default function ManualCharacterBuilder() {
             </select>
             <div className="flex justify-end gap-3">
               <button
-                className="px-4 py-2 text-sm rounded-full border border-gray-300"
+                className="px-4 py-2 text-sm rounded-full border border-white/20 text-off-white/70 hover:bg-white/10"
                 onClick={() => setShowPartyAssignment(false)}
               >
                 Cancel
               </button>
               <button
-                className="px-4 py-2 text-sm rounded-full bg-blue-600 text-white font-medium hover:bg-blue-700"
+                className="px-4 py-2 text-sm rounded-full bg-soft-amethyst text-white font-medium hover:bg-soft-amethyst/80"
                 onClick={confirmSaveCharacter}
                 disabled={!canFinalize}
               >
