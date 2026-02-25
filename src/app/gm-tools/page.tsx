@@ -97,7 +97,7 @@ const TOOL_SECTIONS: ToolSection[] = [
   },
   {
     title: '📚 References',
-    description: 'Quick access to rules and spell references.',
+    description: 'Quick access to rules, spell references, and the setting of Ainerêve.',
     links: [
       {
         href: '/grimoire?from=gm-tools',
@@ -106,6 +106,10 @@ const TOOL_SECTIONS: ToolSection[] = [
       {
         href: '/rules?from=gm-tools',
         label: 'Rules Reference →'
+      },
+      {
+        href: '/setting?from=gm-tools',
+        label: 'Setting of Ainerêve →'
       }
     ]
   },

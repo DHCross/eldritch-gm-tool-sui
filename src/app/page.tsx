@@ -245,8 +245,8 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <InteractiveButton href={card.cta.href}>
+              <div className="mt-8 flex flex-col gap-3">
+                <InteractiveButton href={card.cta.href} className="w-full py-4 text-base justify-center">
                   {card.cta.label}
                 </InteractiveButton>
                 {card.secondaryCtas?.map(secondary => (
@@ -254,6 +254,7 @@ export default function Home() {
                     key={secondary.href}
                     href={secondary.href}
                     variant="secondary"
+                    className="w-full py-3 justify-center"
                   >
                     {secondary.label}
                   </InteractiveButton>
@@ -271,6 +272,9 @@ export default function Home() {
           <div className="mt-4 space-x-4 font-display">
             <Link href="/rules" className="text-emerald-green hover:text-emerald-green/80 transition-colors">
               Game Rules
+            </Link>
+            <Link href="/setting" className="text-emerald-green hover:text-emerald-green/80 transition-colors">
+              Setting of Ainerêve
             </Link>
             <Link href="/documentation" className="text-emerald-green hover:text-emerald-green/80 transition-colors">
               Documentation

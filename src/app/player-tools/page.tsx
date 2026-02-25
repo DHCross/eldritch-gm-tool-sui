@@ -15,10 +15,11 @@ const playerResources = [
   {
     title: 'Spell & Lore Reference',
     description:
-      'Keep your spellbooks, equipment options, and rules clarifications close at hand during every session.',
+      'Keep your spellbooks, equipment options, rules clarifications, and world lore close at hand during every session.',
     links: [
       { href: '/grimoire?from=player-tools', label: 'Grimoire →' },
-      { href: '/rules?from=player-tools', label: 'Rules Reference →' }
+      { href: '/rules?from=player-tools', label: 'Rules Reference →' },
+      { href: '/setting?from=player-tools', label: 'Setting of Ainerêve →' }
     ]
   },
   {
