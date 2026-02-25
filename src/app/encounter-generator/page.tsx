@@ -13,6 +13,13 @@ import {
 import { PartyFolder, SavedCharacter, MonsterData, PartyDefenseProfile } from '../../types/party';
 import { resolveBackTargetFromParam } from '../../utils/backNavigation';
 import ContentBox from '@/components/ContentBox';
+import {
+  getVaultCreatures,
+  removeFromVaultByIndex,
+  clearVault,
+  onVaultChange,
+  type VaultCreature,
+} from '../../utils/encounterVaultStorage';
 
 const difficultyLevels = ['Easy', 'Moderate', 'Difficult', 'Demanding', 'Formidable', 'Deadly'] as const;
 const defenseLevels = ['Practitioner', 'Competent', 'Proficient', 'Advanced', 'Elite'] as const;
@@ -317,6 +324,14 @@ function EncounterGeneratorContent() {
   const [partyDefenseProfile, setPartyDefenseProfile] = useState<PartyDefenseProfile | null>(null);
   const [availableMonsters, setAvailableMonsters] = useState<MonsterData[]>([]);
 
+  // Encounter Vault — persisted bestiary picks
+  const [vaultCreatures, setVaultCreatures] = useState<VaultCreature[]>([]);
+
+  const vaultThreatTotal = useMemo(
+    () => vaultCreatures.reduce((sum, c) => sum + c.threatMV, 0),
+    [vaultCreatures],
+  );
+
   const activeDefenseLevel = defenseLevels[defenseLevelIndex];
   const activeDifficultyLabel = difficultyLevels[difficultyIndex];
 
@@ -332,6 +347,11 @@ function EncounterGeneratorContent() {
 
     const monsters = getCharactersByType('Monster') as MonsterData[];
     setAvailableMonsters(monsters);
+
+    // Vault sync
+    setVaultCreatures(getVaultCreatures());
+    const unsub = onVaultChange(() => setVaultCreatures(getVaultCreatures()));
+    return unsub;
   }, []);
 
   useEffect(() => {
@@ -513,6 +533,28 @@ function EncounterGeneratorContent() {
       }
     }
 
+    // ── Bestiary Picks from Vault
+    if (vaultCreatures.length > 0) {
+      lines.push('');
+      lines.push('Bestiary Roster (Pinned from Bestiary):');
+      lines.push('=========================');
+      vaultCreatures.forEach(c => {
+        lines.push(`${c.category} — ${c.name}`);
+        lines.push(
+          `TD: ${c.threatDice} | EA: ${c.extraAttacks} | DR: ${c.dr === 0 ? 'None' : c.dr} | ST: ${c.savingThrow} | BP: ${c.battlePhase}`
+        );
+        lines.push(
+          `HP: ${c.hp} [${c.size}, ${c.nature}] \u2013 Threat MV: ${c.threatMV}`
+        );
+        if (c.specialAbilities.length > 0) {
+          lines.push(`Special: ${c.specialAbilities.join('; ')}`);
+        }
+        lines.push('');
+      });
+      lines.push(`Pinned Threat Total: ${vaultThreatTotal}`);
+      lines.push('');
+    }
+
     setEncounterOutput(lines.join('\n'));
   }, [
     selectedTypes,
@@ -528,6 +570,8 @@ function EncounterGeneratorContent() {
     selectedPartyIds,
     partyFolders,
     availableMonsters,
+    vaultCreatures,
+    vaultThreatTotal,
   ]);
 
   const selectedCount = useMemo(
@@ -712,6 +756,89 @@ function EncounterGeneratorContent() {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+          </ContentBox>
+
+          {/* Bestiary Roster Vault */}
+          <ContentBox>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-soft-amethyst">
+                Bestiary Roster
+                {vaultCreatures.length > 0 && (
+                  <span className="ml-2 text-sm font-normal text-muted-eldritch-green">
+                    ({vaultCreatures.length} creature{vaultCreatures.length !== 1 ? 's' : ''} · Threat {vaultThreatTotal})
+                  </span>
+                )}
+              </h2>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/bestiary?from=encounter-generator"
+                  className="text-xs bg-btn-bg hover:bg-btn-hover text-off-white px-3 py-1.5 rounded font-semibold"
+                >
+                  ← Browse Bestiary
+                </Link>
+                {vaultCreatures.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => clearVault()}
+                    className="text-xs text-red-400 hover:text-red-300 border border-red-400/40 px-2 py-1.5 rounded"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {vaultCreatures.length === 0 ? (
+              <p className="text-sm text-off-white/50 text-center py-4">
+                No creatures pinned yet. Visit the{' '}
+                <Link href="/bestiary?from=encounter-generator" className="text-soft-amethyst hover:underline">
+                  Bestiary
+                </Link>{' '}
+                and use <strong className="text-off-white/80">&ldquo;Add to Encounter&rdquo;</strong> to build your roster here.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {vaultCreatures.map((creature, index) => (
+                  <div
+                    key={`${creature.id}-${index}`}
+                    className="flex items-start justify-between gap-3 rounded-md bg-charcoal-violet/60 border border-muted-eldritch-green/30 px-4 py-3"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-off-white/90 text-sm">{creature.name}</span>
+                        <span className="text-xs text-soft-amethyst/80 border border-soft-amethyst/30 px-1.5 rounded">
+                          {creature.category}
+                        </span>
+                        <span className="text-xs text-muted-eldritch-green/80">
+                          Threat {creature.threatMV}
+                        </span>
+                      </div>
+                      <div className="text-xs text-off-white/50 mt-0.5">
+                        TD: {creature.threatDice} · HP: {creature.hp} · DR: {creature.dr === 0 ? 'None' : creature.dr} · ST: {creature.savingThrow} · BP: {creature.battlePhase}
+                        {creature.extraAttacks > 0 && ` · EA: ${creature.extraAttacks}`}
+                      </div>
+                      <div className="text-xs text-off-white/40">
+                        {creature.size} {creature.nature} [{creature.source}]
+                      </div>
+                      {creature.specialAbilities.length > 0 && (
+                        <div className="text-xs text-off-white/50 mt-0.5 italic">
+                          {creature.specialAbilities.slice(0, 2).join('; ')}
+                          {creature.specialAbilities.length > 2 && ' …'}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeFromVaultByIndex(index)}
+                      className="shrink-0 text-xs text-red-400 hover:text-red-300 mt-0.5"
+                      aria-label={`Remove ${creature.name}`}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </ContentBox>

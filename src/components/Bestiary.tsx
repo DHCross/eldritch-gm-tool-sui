@@ -1,12 +1,20 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { SavedCharacter, CreatureCategory, CreatureNature, CreatureSize } from '../types/party';
 import { getCharactersByType } from '../utils/partyStorage';
 import { resolveBackTargetFromParam } from '../utils/backNavigation';
 import ExportToEncounterPlus from './ExportToEncounterPlus';
+import {
+  addToVault,
+  removeFromVaultByIndex,
+  clearVault,
+  getVaultCreatures,
+  onVaultChange,
+  type VaultCreature,
+} from '../utils/encounterVaultStorage';
 
 interface BestiaryCreature {
   id: string;
@@ -1432,6 +1440,36 @@ export default function Bestiary() {
   const [difficulty, setDifficulty] = useState<Difficulty>('moderate');
   const [encounterCreatures, setEncounterCreatures] = useState<BestiaryCreature[]>([]);
 
+  // ── Vault sync: load on mount and listen for cross-tab / cross-component changes
+  useEffect(() => {
+    const syncFromVault = () => {
+      const vaultItems = getVaultCreatures();
+      // Map vault entries back to BestiaryCreature stubs for display
+      const mapped: BestiaryCreature[] = vaultItems.map(v => ({
+        id: v.id,
+        name: v.name,
+        category: v.category as CreatureCategory,
+        nature: v.nature as CreatureNature,
+        size: v.size as CreatureSize,
+        threatDice: {},
+        threatMV: v.threatMV,
+        hp: String(v.hp),
+        dr: String(v.dr),
+        savingThrow: v.savingThrow,
+        battlePhase: String(v.battlePhase),
+        extraAttacks: v.extraAttacks > 0 ? String(v.extraAttacks) : undefined,
+        specialAbilities: v.specialAbilities,
+        description: '',
+        source: v.source as BestiaryCreature['source'],
+        tags: [],
+      }));
+      setEncounterCreatures(mapped);
+    };
+    syncFromVault();
+    const unsub = onVaultChange(syncFromVault);
+    return unsub;
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -1502,22 +1540,54 @@ export default function Bestiary() {
     setSelectedSource('All');
   };
 
-  const addToEncounter = (creature: BestiaryCreature) => {
+  const addToEncounter = useCallback((creature: BestiaryCreature) => {
     const projectedThreat = currentThreat + creature.threatMV;
     if (threatBudget > 0 && projectedThreat > threatBudget * 1.2) {
       return;
     }
 
-    setEncounterCreatures(prev => [...prev, creature]);
+    const firstDice =
+      creature.threatDice.melee ??
+      creature.threatDice.natural ??
+      creature.threatDice.ranged ??
+      creature.threatDice.arcane ??
+      '—';
+
+    const vaultEntry: VaultCreature = {
+      id: creature.id,
+      name: creature.name,
+      category: creature.category,
+      nature: creature.nature,
+      size: creature.size,
+      threatMV: creature.threatMV,
+      threatDice: firstDice,
+      hp: Number(creature.hp) || 0,
+      dr: Number(creature.dr) || 0,
+      savingThrow: creature.savingThrow,
+      battlePhase: Number(creature.battlePhase) || 0,
+      extraAttacks: Number(creature.extraAttacks) || 0,
+      specialAbilities: creature.specialAbilities ?? [],
+      source: creature.source,
+      addedAt: new Date().toISOString(),
+    };
+
+    addToVault(vaultEntry);
+    // State will sync via the vault onChange listener
 
     if (!showEncounterBuilder) {
       setShowEncounterBuilder(true);
     }
-  };
+  }, [currentThreat, threatBudget, showEncounterBuilder]);
 
-  const removeFromEncounter = (index: number) => {
-    setEncounterCreatures(prev => prev.filter((_, i) => i !== index));
-  };
+  const removeFromEncounter = useCallback((index: number) => {
+    removeFromVaultByIndex(index);
+    // State will sync via the vault onChange listener
+  }, []);
+
+  const handleClearEncounter = useCallback(() => {
+    clearVault();
+    // State will sync via the vault onChange listener
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
@@ -1642,7 +1712,25 @@ export default function Bestiary() {
         {/* Encounter Builder */}
         {showEncounterBuilder && (
           <div className="border-t pt-4 bg-purple-50 -m-6 mt-4 p-6 rounded-b-lg">
-            <h3 className="text-lg font-bold mb-4">Encounter Builder</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold">Encounter Builder</h3>
+              <div className="flex items-center gap-3">
+                {encounterCreatures.length > 0 && (
+                  <button
+                    onClick={handleClearEncounter}
+                    className="text-xs text-red-400 hover:text-red-300 border border-red-400/40 px-2 py-1 rounded"
+                  >
+                    Clear All
+                  </button>
+                )}
+                <Link
+                  href="/encounter-generator?from=bestiary"
+                  className="inline-flex items-center gap-1 bg-soft-amethyst hover:bg-soft-amethyst/80 text-white text-sm font-semibold px-3 py-1.5 rounded"
+                >
+                  Open in Encounter Generator →
+                </Link>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
               <div>
