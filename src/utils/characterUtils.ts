@@ -31,6 +31,7 @@ export function getRandomElement<T>(array: readonly T[]): T {
 
 export function getDieValue(die: DieRank): number {
   const values: Record<DieRank, number> = {
+    d0: 0,
     d4: 4,
     d6: 6,
     d8: 8,
@@ -65,6 +66,7 @@ export function calculateCPCost(fromDie: DieRank, toDie: DieRank): number {
 
 export function getDefensePool(die: DieRank): number {
   const values: Record<DieRank, number> = {
+    d0: 0,
     d4: 2,
     d6: 3,
     d8: 4,

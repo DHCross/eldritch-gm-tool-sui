@@ -1,7 +1,7 @@
 
 // Game data for Eldritch RPG 2nd Edition Character Generator
 
-export const dieRanks = ['d4', 'd6', 'd8', 'd10', 'd12'] as const;
+export const dieRanks = ['d0', 'd4', 'd6', 'd8', 'd10', 'd12'] as const;
 export type DieRank = typeof dieRanks[number];
 
 export const abilities = ['Competence', 'Prowess', 'Fortitude'] as const;
@@ -277,6 +277,7 @@ export const levelInfo = [
 export const levels = [1, 2, 3, 4, 5] as const;
 
 export const costToRankUpDie: Record<DieRank, number> = {
+  d0: 4,  // acquiring an untrained specialty costs 4 CP
   d4: 6,
   d6: 8,
   d8: 10,

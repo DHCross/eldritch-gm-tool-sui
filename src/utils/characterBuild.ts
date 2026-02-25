@@ -240,11 +240,11 @@ export function createCharacterShell(race: RaceName, klass: ClassName, level: nu
 
   (abilities as readonly string[]).forEach(a => {
     const abilityKey = a as keyof typeof specs;
-    ch.abilities[a] = 'd4';
+    ch.abilities[a] = 'd4'; // basic abilities are always free at d4
     ch.specialties[a] = {};
     ch.focuses[a] = {};
     specs[abilityKey].forEach(s => {
-      ch.specialties[a][s] = 'd4';
+      ch.specialties[a][s] = 'd0'; // specialties are untrained (d0) until granted by race/class or purchased
       foci[s as keyof typeof foci].forEach(fx => {
         ch.focuses[a][fx] = '+0';
       });

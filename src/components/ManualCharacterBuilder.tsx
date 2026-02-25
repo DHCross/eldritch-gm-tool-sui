@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   abilities,
   calculateCPSpent,
@@ -196,7 +197,9 @@ export default function ManualCharacterBuilder() {
     });
   };
 
-  const cpSpentFromBudget = useMemo(() => (cpSpent ? Math.max(0, cpSpent.total - 10) : 0), [cpSpent]);
+  // calculateCPSpent already measures only the delta above the race/class baseline,
+  // so cpSpent.total IS the correct number of customization CPs spent.
+  const cpSpentFromBudget = useMemo(() => (cpSpent ? cpSpent.total : 0), [cpSpent]);
   const cpRemaining = useMemo(() => cpBudget - cpSpentFromBudget, [cpBudget, cpSpentFromBudget]);
 
   const cpWarning = cpRemaining < 0 ? `You have overspent by ${Math.abs(cpRemaining)} CP.` : null;
@@ -302,9 +305,18 @@ export default function ManualCharacterBuilder() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-off-white">Manual Character Builder</h1>
-          <p className="text-sm text-off-white/60">Plan every CP by hand to create bespoke heroes. Choose race, class, and level, then allocate abilities, specialties, and focuses within your budget.</p>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/player-tools"
+            className="flex items-center justify-center w-9 h-9 rounded-full border border-white/20 text-off-white/60 hover:bg-white/10 hover:text-off-white transition-colors"
+            aria-label="Back to Player Tools"
+          >
+            ←
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold text-off-white">Manual Character Builder</h1>
+            <p className="text-sm text-off-white/60">Plan every CP by hand to create bespoke heroes. Choose race, class, and level, then allocate abilities, specialties, and focuses within your budget.</p>
+          </div>
         </div>
         <button
           onClick={resetBuilder}
