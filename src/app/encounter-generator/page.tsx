@@ -99,6 +99,36 @@ interface MonsterResult {
   specialAbilities: string[];
 }
 
+function formatVaultThreatDice(threatDice: VaultCreature['threatDice']): string {
+  const entries: Array<[label: string, value: string | undefined]> = [
+    ['Melee', threatDice.melee],
+    ['Natural', threatDice.natural],
+    ['Ranged', threatDice.ranged],
+    ['Arcane', threatDice.arcane],
+  ];
+
+  const formatted = entries
+    .filter(([, value]) => typeof value === 'string' && value.trim().length > 0)
+    .map(([label, value]) => `${label} ${value}`);
+
+  return formatted.length > 0 ? formatted.join(', ') : '—';
+}
+
+function formatVaultDR(dr: string): string {
+  const trimmed = dr.trim();
+  if (!trimmed || trimmed === '0' || trimmed.toLowerCase() === 'none') {
+    return 'None';
+  }
+  return dr;
+}
+
+function formatVaultExtraAttacks(extraAttacks?: string): string {
+  if (!extraAttacks || extraAttacks.trim().length === 0 || extraAttacks.trim() === '0') {
+    return 'None';
+  }
+  return extraAttacks;
+}
+
 
 function calculateHitPoints(threatMV: number, size: keyof typeof hpMultipliers, nature: (typeof natureOrder)[number]) {
   const multiplier = hpMultipliers[size][nature];
@@ -541,7 +571,7 @@ function EncounterGeneratorContent() {
       vaultCreatures.forEach(c => {
         lines.push(`${c.category} — ${c.name}`);
         lines.push(
-          `TD: ${c.threatDice} | EA: ${c.extraAttacks} | DR: ${c.dr === 0 ? 'None' : c.dr} | ST: ${c.savingThrow} | BP: ${c.battlePhase}`
+          `TD: ${formatVaultThreatDice(c.threatDice)} | EA: ${formatVaultExtraAttacks(c.extraAttacks)} | DR: ${formatVaultDR(c.dr)} | ST: ${c.savingThrow} | BP: ${c.battlePhase}`
         );
         lines.push(
           `HP: ${c.hp} [${c.size}, ${c.nature}] \u2013 Threat MV: ${c.threatMV}`
@@ -816,8 +846,8 @@ function EncounterGeneratorContent() {
                         </span>
                       </div>
                       <div className="text-xs text-off-white/50 mt-0.5">
-                        TD: {creature.threatDice} · HP: {creature.hp} · DR: {creature.dr === 0 ? 'None' : creature.dr} · ST: {creature.savingThrow} · BP: {creature.battlePhase}
-                        {creature.extraAttacks > 0 && ` · EA: ${creature.extraAttacks}`}
+                        TD: {formatVaultThreatDice(creature.threatDice)} · HP: {creature.hp} · DR: {formatVaultDR(creature.dr)} · ST: {creature.savingThrow} · BP: {creature.battlePhase}
+                        {formatVaultExtraAttacks(creature.extraAttacks) !== 'None' && ` · EA: ${formatVaultExtraAttacks(creature.extraAttacks)}`}
                       </div>
                       <div className="text-xs text-off-white/40">
                         {creature.size} {creature.nature} [{creature.source}]

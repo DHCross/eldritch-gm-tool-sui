@@ -13,6 +13,7 @@ import {
   clearVault,
   getVaultCreatures,
   onVaultChange,
+  type VaultThreatDice,
   type VaultCreature,
 } from '../utils/encounterVaultStorage';
 
@@ -22,12 +23,7 @@ interface BestiaryCreature {
   category: CreatureCategory;
   nature: CreatureNature;
   size: CreatureSize;
-  threatDice: {
-    melee?: string;
-    natural?: string;
-    ranged?: string;
-    arcane?: string;
-  };
+  threatDice: VaultThreatDice;
   threatMV: number;
   hp: string;
   dr: string;
@@ -1451,13 +1447,13 @@ export default function Bestiary() {
         category: v.category as CreatureCategory,
         nature: v.nature as CreatureNature,
         size: v.size as CreatureSize,
-        threatDice: {},
+        threatDice: v.threatDice,
         threatMV: v.threatMV,
-        hp: String(v.hp),
-        dr: String(v.dr),
+        hp: v.hp,
+        dr: v.dr,
         savingThrow: v.savingThrow,
-        battlePhase: String(v.battlePhase),
-        extraAttacks: v.extraAttacks > 0 ? String(v.extraAttacks) : undefined,
+        battlePhase: v.battlePhase,
+        extraAttacks: v.extraAttacks,
         specialAbilities: v.specialAbilities,
         description: '',
         source: v.source as BestiaryCreature['source'],
@@ -1546,13 +1542,6 @@ export default function Bestiary() {
       return;
     }
 
-    const firstDice =
-      creature.threatDice.melee ??
-      creature.threatDice.natural ??
-      creature.threatDice.ranged ??
-      creature.threatDice.arcane ??
-      '—';
-
     const vaultEntry: VaultCreature = {
       id: creature.id,
       name: creature.name,
@@ -1560,12 +1549,12 @@ export default function Bestiary() {
       nature: creature.nature,
       size: creature.size,
       threatMV: creature.threatMV,
-      threatDice: firstDice,
-      hp: Number(creature.hp) || 0,
-      dr: Number(creature.dr) || 0,
+      threatDice: creature.threatDice,
+      hp: creature.hp,
+      dr: creature.dr,
       savingThrow: creature.savingThrow,
-      battlePhase: Number(creature.battlePhase) || 0,
-      extraAttacks: Number(creature.extraAttacks) || 0,
+      battlePhase: creature.battlePhase,
+      extraAttacks: creature.extraAttacks,
       specialAbilities: creature.specialAbilities ?? [],
       source: creature.source,
       addedAt: new Date().toISOString(),
@@ -1711,7 +1700,7 @@ export default function Bestiary() {
 
         {/* Encounter Builder */}
         {showEncounterBuilder && (
-          <div className="border-t pt-4 bg-purple-50 -m-6 mt-4 p-6 rounded-b-lg">
+          <div className="border-t border-white/10 pt-4 bg-white/5 -m-6 mt-4 p-6 rounded-b-lg">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold">Encounter Builder</h3>
               <div className="flex items-center gap-3">
@@ -1792,11 +1781,11 @@ export default function Bestiary() {
 
             {/* Current Encounter */}
             {encounterCreatures.length > 0 && (
-              <div className="bg-white/5 p-4 rounded border mb-4">
+            <div className="bg-white/5 p-4 rounded border border-white/10 mb-4">
                 <h4 className="font-semibold mb-2">Current Encounter:</h4>
                 <div className="space-y-2">
                   {encounterCreatures.map((creature, index) => (
-                    <div key={index} className="flex items-center justify-between bg-white/5 p-2 rounded">
+                    <div key={index} className="flex items-center justify-between bg-white/10 p-2 rounded">
                       <span className="text-sm">
                         {creature.name} ({creature.category}) - Threat MV: {creature.threatMV}
                       </span>
@@ -1854,7 +1843,7 @@ export default function Bestiary() {
       </div>
 
       {!showEncounterBuilder && encounterCreatures.length > 0 && (
-        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-sm text-purple-800">
+        <div className="bg-white/5 border border-white/15 rounded-lg p-4 text-sm text-off-white/80">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span>
               Encounter contains {encounterCreatures.length} creature{encounterCreatures.length === 1 ? '' : 's'}
@@ -1862,7 +1851,7 @@ export default function Bestiary() {
             </span>
             <button
               onClick={() => setShowEncounterBuilder(true)}
-              className="text-purple-700 hover:text-purple-900 font-semibold"
+              className="text-soft-amethyst hover:text-soft-amethyst/80 font-semibold"
             >
               Open Encounter Builder
             </button>
