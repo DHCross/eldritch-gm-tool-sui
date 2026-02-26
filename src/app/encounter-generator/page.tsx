@@ -14,6 +14,7 @@ import { PartyFolder, SavedCharacter, MonsterData, PartyDefenseProfile } from '.
 import { resolveBackTargetFromParam } from '../../utils/backNavigation';
 import ContentBox from '@/components/ContentBox';
 import {
+  addToVault,
   getVaultCreatures,
   removeFromVaultByIndex,
   clearVault,
@@ -127,6 +128,78 @@ function formatVaultExtraAttacks(extraAttacks?: string): string {
     return 'None';
   }
   return extraAttacks;
+}
+
+function deriveCategoryFromThreat(threatMV: number): CreatureCategory {
+  if (threatMV <= 12) return 'Minor';
+  if (threatMV <= 24) return 'Standard';
+  if (threatMV <= 40) return 'Exceptional';
+  return 'Legendary';
+}
+
+function extractThreatFromNpcData(npc: SavedCharacter): number | undefined {
+  const rawData = npc.full_data;
+  if (!rawData || typeof rawData !== 'object') {
+    return undefined;
+  }
+
+  const candidate = rawData as Record<string, unknown>;
+  if (typeof candidate.threatMV === 'number' && Number.isFinite(candidate.threatMV)) {
+    return candidate.threatMV;
+  }
+  if (typeof candidate.threat_mv === 'number' && Number.isFinite(candidate.threat_mv)) {
+    return candidate.threat_mv;
+  }
+  return undefined;
+}
+
+function estimateNpcThreatMV(npc: SavedCharacter): number {
+  const directThreat = extractThreatFromNpcData(npc);
+  if (typeof directThreat === 'number' && directThreat > 0) {
+    return Math.round(directThreat);
+  }
+
+  const levelThreat = Math.max(4, npc.level * 4);
+  const defenseThreat = Math.round((npc.computed.active_dp + npc.computed.passive_dp) / 2);
+  const spiritBonus = Math.round(npc.computed.spirit_pts / 2);
+
+  return Math.max(4, Math.max(levelThreat, defenseThreat + spiritBonus));
+}
+
+function buildVaultNpcEntry(npc: SavedCharacter): VaultCreature {
+  const threatMV = estimateNpcThreatMV(npc);
+  const category = deriveCategoryFromThreat(threatMV);
+  const fullData = (npc.full_data && typeof npc.full_data === 'object')
+    ? (npc.full_data as Record<string, unknown>)
+    : {};
+  const activeHp = npc.status.current_hp_active || npc.computed.active_dp;
+  const passiveHp = npc.status.current_hp_passive || npc.computed.passive_dp;
+  const totalHp = activeHp + passiveHp;
+  const hp = `${totalHp} (${activeHp}/${passiveHp})`;
+  const masteryDie = typeof fullData.masteryDie === 'string' ? fullData.masteryDie : 'd6';
+  const armor = typeof fullData.armor === 'string' && fullData.armor.trim().length > 0
+    ? fullData.armor
+    : 'None';
+  const notes = typeof npc.status.notes === 'string' ? npc.status.notes.trim() : '';
+
+  return {
+    id: npc.id,
+    entryType: 'npc',
+    name: npc.name,
+    category,
+    nature: 'Mundane',
+    size: 'Medium',
+    threatMV,
+    threatDice: {},
+    hp,
+    dr: armor,
+    savingThrow: masteryDie,
+    battlePhase: masteryDie,
+    extraAttacks: undefined,
+    specialAbilities: notes ? [notes] : [],
+    source: 'NPC Roster',
+    addedAt: new Date().toISOString()
+  };
 }
 
 
@@ -353,13 +426,39 @@ function EncounterGeneratorContent() {
   const [usePartyStats, setUsePartyStats] = useState<boolean>(false);
   const [partyDefenseProfile, setPartyDefenseProfile] = useState<PartyDefenseProfile | null>(null);
   const [availableMonsters, setAvailableMonsters] = useState<MonsterData[]>([]);
+  const [selectedNpcIdToStage, setSelectedNpcIdToStage] = useState<string>('');
+  const [importedVaultCreatures, setImportedVaultCreatures] = useState<VaultCreature[]>([]);
 
   // Encounter Vault — persisted bestiary picks
   const [vaultCreatures, setVaultCreatures] = useState<VaultCreature[]>([]);
 
+  const availableNpcCharacters = useMemo(
+    () => availableCharacters.filter(character => character.type === 'NPC'),
+    [availableCharacters]
+  );
+
+  const vaultCreatureRows = useMemo(
+    () => vaultCreatures
+      .map((creature, index) => ({ creature, index }))
+      .filter(({ creature }) => creature.entryType !== 'npc'),
+    [vaultCreatures]
+  );
+
+  const vaultNpcRows = useMemo(
+    () => vaultCreatures
+      .map((creature, index) => ({ creature, index }))
+      .filter(({ creature }) => creature.entryType === 'npc'),
+    [vaultCreatures]
+  );
+
   const vaultThreatTotal = useMemo(
     () => vaultCreatures.reduce((sum, c) => sum + c.threatMV, 0),
     [vaultCreatures],
+  );
+
+  const importedThreatTotal = useMemo(
+    () => importedVaultCreatures.reduce((sum, c) => sum + c.threatMV, 0),
+    [importedVaultCreatures]
   );
 
   const activeDefenseLevel = defenseLevels[defenseLevelIndex];
@@ -383,6 +482,20 @@ function EncounterGeneratorContent() {
     const unsub = onVaultChange(() => setVaultCreatures(getVaultCreatures()));
     return unsub;
   }, []);
+
+  useEffect(() => {
+    if (availableNpcCharacters.length === 0) {
+      if (selectedNpcIdToStage) {
+        setSelectedNpcIdToStage('');
+      }
+      return;
+    }
+
+    const stillAvailable = availableNpcCharacters.some(character => character.id === selectedNpcIdToStage);
+    if (!stillAvailable) {
+      setSelectedNpcIdToStage(availableNpcCharacters[0].id);
+    }
+  }, [availableNpcCharacters, selectedNpcIdToStage]);
 
   useEffect(() => {
     // Calculate party defense profile when selection changes
@@ -420,6 +533,27 @@ function EncounterGeneratorContent() {
     setSelectedTypes(prev => ({ ...prev, [type]: !prev[type] }));
   }, []);
 
+  const handleStageNpc = useCallback(() => {
+    if (!selectedNpcIdToStage) {
+      return;
+    }
+
+    const npc = availableNpcCharacters.find(character => character.id === selectedNpcIdToStage);
+    if (!npc) {
+      return;
+    }
+
+    addToVault(buildVaultNpcEntry(npc));
+  }, [availableNpcCharacters, selectedNpcIdToStage]);
+
+  const handleImportStagedRoster = useCallback(() => {
+    setImportedVaultCreatures(vaultCreatures);
+  }, [vaultCreatures]);
+
+  const handleClearImportedRoster = useCallback(() => {
+    setImportedVaultCreatures([]);
+  }, []);
+
   const handleGenerate = useCallback(() => {
     const enabledTypes = (Object.keys(selectedTypes) as CreatureCategory[]).filter(type => selectedTypes[type]);
     if (!enabledTypes.length) {
@@ -437,11 +571,38 @@ function EncounterGeneratorContent() {
     const difficultyBand = encounterDifficultyTable[partySz];
     const targetThreat = difficultyBand[defenseTier][difficultyIndex];
 
-    // Generate monsters so that their total threatMV matches or is just under the targetThreat
-    let totalThreatMV = 0;
+    const importedEntries = importedVaultCreatures;
+    const importedThreat = importedEntries.reduce((sum, creature) => sum + creature.threatMV, 0);
+
+    // Start from imported staged roster, then fill to budget.
+    let totalThreatMV = importedThreat;
+    let remainingBudget = Math.max(0, targetThreat - importedThreat);
+
+    const stagedReinforcements: VaultCreature[] = [];
+    const reinforcementPool = importedEntries.filter(creature => creature.threatMV > 0);
+    if (remainingBudget > 0 && reinforcementPool.length > 0) {
+      const minReinforcementThreat = Math.min(...reinforcementPool.map(creature => creature.threatMV));
+      let reinforcementSafety = 0;
+
+      while (remainingBudget >= minReinforcementThreat && reinforcementSafety < 120) {
+        const candidate = reinforcementPool
+          .filter(creature => creature.threatMV <= remainingBudget)
+          .sort((a, b) => b.threatMV - a.threatMV)[0];
+
+        if (!candidate) {
+          break;
+        }
+
+        stagedReinforcements.push(candidate);
+        totalThreatMV += candidate.threatMV;
+        remainingBudget -= candidate.threatMV;
+        reinforcementSafety++;
+      }
+    }
+
+    // Procedural generation fills whatever threat remains after imported roster.
     const monsters: MonsterResult[] = [];
     let safety = 0;
-    let remainingBudget = targetThreat;
 
     const minThreats: Record<CreatureCategory, number> = {
       Minor: 4,
@@ -500,34 +661,71 @@ function EncounterGeneratorContent() {
 
     lines.push(`Difficulty: ${activeDifficultyLabel}`);
     lines.push(`Target Threat Budget: ${targetThreat}`);
-    lines.push(`Generated Total Threat: ${totalThreatMV} (${budgetUtilization.toFixed(1)}% of budget)`);
+    lines.push(`Encounter Threat Total: ${totalThreatMV} (${budgetUtilization.toFixed(1)}% of budget)`);
+    lines.push(`Imported Roster Threat: ${importedThreat}`);
+    lines.push(`Remaining Threat After Fill: ${remainingBudget}`);
 
     if (budgetExceeded) {
-      lines.push('⚠️  WARNING: Generated encounter exceeds target threat budget!');
+      lines.push('⚠️  WARNING: Encounter exceeds target threat budget after imports.');
     } else if (budgetUtilization < 80) {
       lines.push(`ℹ️  Note: Encounter uses ${budgetUtilization.toFixed(1)}% of available threat budget`);
     }
 
-    lines.push('');
-    lines.push('Creatures:');
-    lines.push('=========================');
-
-  monsters.forEach((monster) => {
-      // Heading with Type and Name
-      lines.push(`${monster.category} — ${monster.name}`);
-      // Core combat line with explicit attack type and EA/DR
-      lines.push(
-        `TD: ${monster.threatDice} [${monster.attackType}] | EA: ${monster.extraAttacks} | DR: ${monster.damageReduction === 0 ? 'None' : monster.damageReduction} | ST: ${monster.savingThrow} | BP: ${monster.battlePhase} (${monster.battlePhaseDie})`
-      );
-      // Defensive profile + traits
-      lines.push(
-        `HP: ${monster.hitPoints} (AD ${monster.activeDefense} / PD ${monster.passiveDefense}) [${monster.size}, ${monster.nature}; ×${monster.multiplier}] ${monster.creatureType}`
-      );
-      if (monster.specialAbilities.length > 0) {
-        lines.push(`Special: ${monster.specialAbilities.join('; ')}`);
-      }
+    if (importedEntries.length > 0) {
       lines.push('');
-    });
+      lines.push('Imported Staged Roster:');
+      lines.push('=========================');
+      importedEntries.forEach(creature => {
+        const rosterLabel = creature.entryType === 'npc' ? 'NPC' : creature.category;
+        lines.push(`${rosterLabel} — ${creature.name}`);
+        lines.push(
+          `TD: ${formatVaultThreatDice(creature.threatDice)} | EA: ${formatVaultExtraAttacks(creature.extraAttacks)} | DR: ${formatVaultDR(creature.dr)} | ST: ${creature.savingThrow} | BP: ${creature.battlePhase}`
+        );
+        lines.push(`HP: ${creature.hp} [${creature.size}, ${creature.nature}] – Threat MV: ${creature.threatMV}`);
+        if (creature.specialAbilities.length > 0) {
+          lines.push(`Special: ${creature.specialAbilities.join('; ')}`);
+        }
+        lines.push('');
+      });
+    }
+
+    if (stagedReinforcements.length > 0) {
+      lines.push('Auto-Added Reinforcements (from imported roster):');
+      lines.push('=========================');
+      stagedReinforcements.forEach((creature, index) => {
+        const rosterLabel = creature.entryType === 'npc' ? 'NPC Reinforcement' : 'Creature Reinforcement';
+        lines.push(`${index + 1}. ${rosterLabel}: ${creature.name} (Threat MV ${creature.threatMV})`);
+      });
+      lines.push('');
+    }
+
+    lines.push('Generated Additions:');
+    lines.push('=========================');
+    if (monsters.length === 0) {
+      lines.push(importedEntries.length > 0
+        ? 'No procedural additions were required.'
+        : 'No creatures could be generated with current settings.');
+      lines.push('');
+    } else {
+      monsters.forEach((monster) => {
+        lines.push(`${monster.category} — ${monster.name}`);
+        lines.push(
+          `TD: ${monster.threatDice} [${monster.attackType}] | EA: ${monster.extraAttacks} | DR: ${monster.damageReduction === 0 ? 'None' : monster.damageReduction} | ST: ${monster.savingThrow} | BP: ${monster.battlePhase} (${monster.battlePhaseDie})`
+        );
+        lines.push(
+          `HP: ${monster.hitPoints} (AD ${monster.activeDefense} / PD ${monster.passiveDefense}) [${monster.size}, ${monster.nature}; ×${monster.multiplier}] ${monster.creatureType}`
+        );
+        if (monster.specialAbilities.length > 0) {
+          lines.push(`Special: ${monster.specialAbilities.join('; ')}`);
+        }
+        lines.push('');
+      });
+    }
+
+    if (remainingBudget > 0) {
+      lines.push(`⚠️  Unfilled threat budget remains: ${remainingBudget}`);
+      lines.push('');
+    }
 
     // Add monster suggestions from saved library
     if (availableMonsters.length > 0) {
@@ -563,28 +761,6 @@ function EncounterGeneratorContent() {
       }
     }
 
-    // ── Bestiary Picks from Vault
-    if (vaultCreatures.length > 0) {
-      lines.push('');
-      lines.push('Bestiary Roster (Pinned from Bestiary):');
-      lines.push('=========================');
-      vaultCreatures.forEach(c => {
-        lines.push(`${c.category} — ${c.name}`);
-        lines.push(
-          `TD: ${formatVaultThreatDice(c.threatDice)} | EA: ${formatVaultExtraAttacks(c.extraAttacks)} | DR: ${formatVaultDR(c.dr)} | ST: ${c.savingThrow} | BP: ${c.battlePhase}`
-        );
-        lines.push(
-          `HP: ${c.hp} [${c.size}, ${c.nature}] \u2013 Threat MV: ${c.threatMV}`
-        );
-        if (c.specialAbilities.length > 0) {
-          lines.push(`Special: ${c.specialAbilities.join('; ')}`);
-        }
-        lines.push('');
-      });
-      lines.push(`Pinned Threat Total: ${vaultThreatTotal}`);
-      lines.push('');
-    }
-
     setEncounterOutput(lines.join('\n'));
   }, [
     selectedTypes,
@@ -600,8 +776,7 @@ function EncounterGeneratorContent() {
     selectedPartyIds,
     partyFolders,
     availableMonsters,
-    vaultCreatures,
-    vaultThreatTotal,
+    importedVaultCreatures,
   ]);
 
   const selectedCount = useMemo(
@@ -790,87 +965,189 @@ function EncounterGeneratorContent() {
             )}
           </ContentBox>
 
-          {/* Bestiary Roster Vault */}
+          {/* Staged Session Roster */}
           <ContentBox>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-soft-amethyst">
-                Bestiary Roster
-                {vaultCreatures.length > 0 && (
-                  <span className="ml-2 text-sm font-normal text-muted-eldritch-green">
-                    ({vaultCreatures.length} creature{vaultCreatures.length !== 1 ? 's' : ''} · Threat {vaultThreatTotal})
-                  </span>
-                )}
-              </h2>
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/bestiary?from=encounter-generator"
-                  className="text-xs bg-btn-bg hover:bg-btn-hover text-off-white px-3 py-1.5 rounded font-semibold"
-                >
-                  ← Browse Bestiary
-                </Link>
-                {vaultCreatures.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => clearVault()}
-                    className="text-xs text-red-400 hover:text-red-300 border border-red-400/40 px-2 py-1.5 rounded"
+            <div className="space-y-4">
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <h2 className="text-xl font-semibold text-soft-amethyst">
+                  Staged Session Roster
+                  {vaultCreatures.length > 0 && (
+                    <span className="ml-2 text-sm font-normal text-muted-eldritch-green">
+                      ({vaultCreatures.length} staged · Threat {vaultThreatTotal})
+                    </span>
+                  )}
+                </h2>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Link
+                    href="/bestiary?from=encounter-generator"
+                    className="text-xs bg-btn-bg hover:bg-btn-hover text-off-white px-3 py-1.5 rounded font-semibold"
                   >
-                    Clear All
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {vaultCreatures.length === 0 ? (
-              <p className="text-sm text-off-white/50 text-center py-4">
-                No creatures pinned yet. Visit the{' '}
-                <Link href="/bestiary?from=encounter-generator" className="text-soft-amethyst hover:underline">
-                  Bestiary
-                </Link>{' '}
-                and use <strong className="text-off-white/80">&ldquo;Add to Encounter&rdquo;</strong> to build your roster here.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {vaultCreatures.map((creature, index) => (
-                  <div
-                    key={`${creature.id}-${index}`}
-                    className="flex items-start justify-between gap-3 rounded-md bg-charcoal-violet/60 border border-muted-eldritch-green/30 px-4 py-3"
+                    ← Browse Bestiary
+                  </Link>
+                  <Link
+                    href="/npc-roster?from=encounter-generator"
+                    className="text-xs bg-charcoal-violet/70 hover:bg-charcoal-violet text-off-white px-3 py-1.5 rounded font-semibold border border-white/15"
                   >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-off-white/90 text-sm">{creature.name}</span>
-                        <span className="text-xs text-soft-amethyst/80 border border-soft-amethyst/30 px-1.5 rounded">
-                          {creature.category}
-                        </span>
-                        <span className="text-xs text-muted-eldritch-green/80">
-                          Threat {creature.threatMV}
-                        </span>
-                      </div>
-                      <div className="text-xs text-off-white/50 mt-0.5">
-                        TD: {formatVaultThreatDice(creature.threatDice)} · HP: {creature.hp} · DR: {formatVaultDR(creature.dr)} · ST: {creature.savingThrow} · BP: {creature.battlePhase}
-                        {formatVaultExtraAttacks(creature.extraAttacks) !== 'None' && ` · EA: ${formatVaultExtraAttacks(creature.extraAttacks)}`}
-                      </div>
-                      <div className="text-xs text-off-white/40">
-                        {creature.size} {creature.nature} [{creature.source}]
-                      </div>
-                      {creature.specialAbilities.length > 0 && (
-                        <div className="text-xs text-off-white/50 mt-0.5 italic">
-                          {creature.specialAbilities.slice(0, 2).join('; ')}
-                          {creature.specialAbilities.length > 2 && ' …'}
-                        </div>
-                      )}
-                    </div>
+                    Open NPC Roster →
+                  </Link>
+                  {vaultCreatures.length > 0 && (
                     <button
                       type="button"
-                      onClick={() => removeFromVaultByIndex(index)}
-                      className="shrink-0 text-xs text-red-400 hover:text-red-300 mt-0.5"
-                      aria-label={`Remove ${creature.name}`}
+                      onClick={() => clearVault()}
+                      className="text-xs text-red-400 hover:text-red-300 border border-red-400/40 px-2 py-1.5 rounded"
                     >
-                      ✕
+                      Clear Staged
                     </button>
-                  </div>
-                ))}
+                  )}
+                </div>
               </div>
-            )}
+
+              <div className="rounded-md border border-white/10 bg-charcoal-violet/40 px-3 py-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-semibold text-soft-amethyst">Stage NPC:</span>
+                  {availableNpcCharacters.length === 0 ? (
+                    <span className="text-xs text-off-white/60">No saved NPCs found.</span>
+                  ) : (
+                    <>
+                      <select
+                        value={selectedNpcIdToStage}
+                        onChange={(event) => setSelectedNpcIdToStage(event.target.value)}
+                        className="text-xs border border-white/15 rounded px-2 py-1 bg-charcoal-violet/80 text-off-white"
+                      >
+                        {availableNpcCharacters.map(npc => (
+                          <option key={npc.id} value={npc.id}>
+                            {npc.name} (Threat {estimateNpcThreatMV(npc)})
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={handleStageNpc}
+                        className="text-xs bg-btn-bg hover:bg-btn-hover text-off-white px-3 py-1.5 rounded font-semibold"
+                      >
+                        Stage NPC
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={handleImportStagedRoster}
+                  disabled={vaultCreatures.length === 0}
+                  className="text-xs bg-btn-bg hover:bg-btn-hover disabled:bg-white/20 disabled:text-off-white/40 text-off-white px-3 py-1.5 rounded font-semibold"
+                >
+                  Import Staged Roster to Encounter
+                </button>
+                {importedVaultCreatures.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleClearImportedRoster}
+                    className="text-xs text-red-300 hover:text-red-200 border border-red-300/40 px-2 py-1.5 rounded"
+                  >
+                    Clear Imported
+                  </button>
+                )}
+                <span className="text-xs text-off-white/60">
+                  Imported: {importedVaultCreatures.length} {importedVaultCreatures.length === 1 ? 'entry' : 'entries'} · Threat {importedThreatTotal}
+                </span>
+              </div>
+
+              {vaultCreatures.length === 0 ? (
+                <p className="text-sm text-off-white/50 text-center py-2">
+                  No staged entries yet. Stage creatures from Bestiary and NPCs here, then import them into encounter generation.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-semibold text-soft-amethyst">
+                      Creatures / Monsters ({vaultCreatureRows.length})
+                    </h3>
+                    {vaultCreatureRows.length === 0 ? (
+                      <p className="text-xs text-off-white/50">No staged creatures yet.</p>
+                    ) : (
+                      vaultCreatureRows.map(({ creature, index }) => (
+                        <div
+                          key={`${creature.id}-${index}`}
+                          className="flex items-start justify-between gap-3 rounded-md bg-charcoal-violet/60 border border-muted-eldritch-green/30 px-4 py-3"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-semibold text-off-white/90 text-sm">{creature.name}</span>
+                              <span className="text-xs text-soft-amethyst/80 border border-soft-amethyst/30 px-1.5 rounded">
+                                {creature.category}
+                              </span>
+                              <span className="text-xs text-muted-eldritch-green/80">
+                                Threat {creature.threatMV}
+                              </span>
+                            </div>
+                            <div className="text-xs text-off-white/50 mt-0.5">
+                              TD: {formatVaultThreatDice(creature.threatDice)} · HP: {creature.hp} · DR: {formatVaultDR(creature.dr)} · ST: {creature.savingThrow} · BP: {creature.battlePhase}
+                              {formatVaultExtraAttacks(creature.extraAttacks) !== 'None' && ` · EA: ${formatVaultExtraAttacks(creature.extraAttacks)}`}
+                            </div>
+                            <div className="text-xs text-off-white/40">
+                              {creature.size} {creature.nature} [{creature.source}]
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeFromVaultByIndex(index)}
+                            className="shrink-0 text-xs text-red-400 hover:text-red-300 mt-0.5"
+                            aria-label={`Remove ${creature.name}`}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-semibold text-soft-amethyst">
+                      NPCs ({vaultNpcRows.length})
+                    </h3>
+                    {vaultNpcRows.length === 0 ? (
+                      <p className="text-xs text-off-white/50">No staged NPCs yet.</p>
+                    ) : (
+                      vaultNpcRows.map(({ creature, index }) => (
+                        <div
+                          key={`${creature.id}-${index}`}
+                          className="flex items-start justify-between gap-3 rounded-md bg-charcoal-violet/60 border border-soft-amethyst/30 px-4 py-3"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-semibold text-off-white/90 text-sm">{creature.name}</span>
+                              <span className="text-xs text-soft-amethyst/80 border border-soft-amethyst/30 px-1.5 rounded">
+                                NPC
+                              </span>
+                              <span className="text-xs text-muted-eldritch-green/80">
+                                Threat {creature.threatMV}
+                              </span>
+                            </div>
+                            <div className="text-xs text-off-white/50 mt-0.5">
+                              HP: {creature.hp} · DR: {formatVaultDR(creature.dr)} · ST: {creature.savingThrow} · BP: {creature.battlePhase}
+                            </div>
+                            <div className="text-xs text-off-white/40">
+                              {creature.size} {creature.nature} [{creature.source}]
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeFromVaultByIndex(index)}
+                            className="shrink-0 text-xs text-red-400 hover:text-red-300 mt-0.5"
+                            aria-label={`Remove ${creature.name}`}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </ContentBox>
 
           <section className="space-y-6">

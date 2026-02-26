@@ -1441,24 +1441,26 @@ export default function Bestiary() {
     const syncFromVault = () => {
       const vaultItems = getVaultCreatures();
       // Map vault entries back to BestiaryCreature stubs for display
-      const mapped: BestiaryCreature[] = vaultItems.map(v => ({
-        id: v.id,
-        name: v.name,
-        category: v.category as CreatureCategory,
-        nature: v.nature as CreatureNature,
-        size: v.size as CreatureSize,
-        threatDice: v.threatDice,
-        threatMV: v.threatMV,
-        hp: v.hp,
-        dr: v.dr,
-        savingThrow: v.savingThrow,
-        battlePhase: v.battlePhase,
-        extraAttacks: v.extraAttacks,
-        specialAbilities: v.specialAbilities,
-        description: '',
-        source: v.source as BestiaryCreature['source'],
-        tags: [],
-      }));
+      const mapped: BestiaryCreature[] = vaultItems
+        .filter(v => v.entryType !== 'npc')
+        .map(v => ({
+          id: v.id,
+          name: v.name,
+          category: v.category as CreatureCategory,
+          nature: v.nature as CreatureNature,
+          size: v.size as CreatureSize,
+          threatDice: v.threatDice,
+          threatMV: v.threatMV,
+          hp: v.hp,
+          dr: v.dr,
+          savingThrow: v.savingThrow,
+          battlePhase: v.battlePhase,
+          extraAttacks: v.extraAttacks,
+          specialAbilities: v.specialAbilities,
+          description: '',
+          source: v.source as BestiaryCreature['source'],
+          tags: [],
+        }));
       setEncounterCreatures(mapped);
     };
     syncFromVault();
@@ -1537,13 +1539,9 @@ export default function Bestiary() {
   };
 
   const addToEncounter = useCallback((creature: BestiaryCreature) => {
-    const projectedThreat = currentThreat + creature.threatMV;
-    if (threatBudget > 0 && projectedThreat > threatBudget * 1.2) {
-      return;
-    }
-
     const vaultEntry: VaultCreature = {
       id: creature.id,
+      entryType: 'creature',
       name: creature.name,
       category: creature.category,
       nature: creature.nature,
@@ -1566,7 +1564,7 @@ export default function Bestiary() {
     if (!showEncounterBuilder) {
       setShowEncounterBuilder(true);
     }
-  }, [currentThreat, threatBudget, showEncounterBuilder]);
+  }, [showEncounterBuilder]);
 
   const removeFromEncounter = useCallback((index: number) => {
     removeFromVaultByIndex(index);
@@ -1678,7 +1676,7 @@ export default function Bestiary() {
             onClick={() => setShowEncounterBuilder(!showEncounterBuilder)}
             className="bg-soft-amethyst hover:bg-soft-amethyst/80 text-white font-bold py-2 px-4 rounded"
           >
-            {showEncounterBuilder ? 'Hide' : 'Show'} Encounter Builder
+            {showEncounterBuilder ? 'Hide' : 'Show'} Encounter Staging
             {encounterCreatures.length > 0 && ` (${encounterCreatures.length})`}
           </button>
         </div>
@@ -1698,11 +1696,11 @@ export default function Bestiary() {
           )}
         </div>
 
-        {/* Encounter Builder */}
+        {/* Encounter Staging */}
         {showEncounterBuilder && (
           <div className="border-t border-white/10 pt-4 bg-white/5 -m-6 mt-4 p-6 rounded-b-lg">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold">Encounter Builder</h3>
+              <h3 className="text-lg font-bold">Encounter Staging</h3>
               <div className="flex items-center gap-3">
                 {encounterCreatures.length > 0 && (
                   <button
@@ -1712,12 +1710,9 @@ export default function Bestiary() {
                     Clear All
                   </button>
                 )}
-                <Link
-                  href="/encounter-generator?from=bestiary"
-                  className="inline-flex items-center gap-1 bg-soft-amethyst hover:bg-soft-amethyst/80 text-white text-sm font-semibold px-3 py-1.5 rounded"
-                >
-                  Open in Encounter Generator →
-                </Link>
+                <span className="text-xs text-off-white/60">
+                  Staged creatures can be imported in Encounter Generator.
+                </span>
               </div>
             </div>
 
@@ -1779,10 +1774,10 @@ export default function Bestiary() {
               </div>
             </div>
 
-            {/* Current Encounter */}
+            {/* Staged Creatures */}
             {encounterCreatures.length > 0 && (
             <div className="bg-white/5 p-4 rounded border border-white/10 mb-4">
-                <h4 className="font-semibold mb-2">Current Encounter:</h4>
+                <h4 className="font-semibold mb-2">Staged Creatures:</h4>
                 <div className="space-y-2">
                   {encounterCreatures.map((creature, index) => (
                     <div key={index} className="flex items-center justify-between bg-white/10 p-2 rounded">
@@ -1846,14 +1841,14 @@ export default function Bestiary() {
         <div className="bg-white/5 border border-white/15 rounded-lg p-4 text-sm text-off-white/80">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span>
-              Encounter contains {encounterCreatures.length} creature{encounterCreatures.length === 1 ? '' : 's'}
+              Staged roster contains {encounterCreatures.length} creature{encounterCreatures.length === 1 ? '' : 's'}
               {threatBudget > 0 ? ` (Threat ${currentThreat}/${threatBudget})` : ` (Threat ${currentThreat})`}
             </span>
             <button
               onClick={() => setShowEncounterBuilder(true)}
               className="text-soft-amethyst hover:text-soft-amethyst/80 font-semibold"
             >
-              Open Encounter Builder
+              Open Encounter Staging
             </button>
           </div>
         </div>
@@ -1914,10 +1909,9 @@ export default function Bestiary() {
               </button>
               <button
                 onClick={() => addToEncounter(creature)}
-                disabled={threatBudget > 0 && currentThreat + creature.threatMV > threatBudget * 1.2}
-                className="bg-soft-amethyst hover:bg-soft-amethyst/80 disabled:bg-white/20 text-white font-bold py-2 px-3 rounded text-sm"
+                className="bg-soft-amethyst hover:bg-soft-amethyst/80 text-white font-bold py-2 px-3 rounded text-sm"
               >
-                {showEncounterBuilder ? 'Add' : 'Add to Encounter'}
+                {showEncounterBuilder ? 'Stage' : 'Stage Creature'}
               </button>
             </div>
           </div>

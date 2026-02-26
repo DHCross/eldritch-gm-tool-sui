@@ -1,8 +1,8 @@
 /**
  * Encounter Vault Storage
  *
- * Shared localStorage bridge between the Bestiary ("Add to Encounter")
- * and the Encounter Generator page ("Bestiary Roster" panel).
+ * Shared localStorage bridge between Bestiary / NPC staging
+ * and the Encounter Generator page ("Staged Session Roster" panel).
  *
  * Key difference from partyStorage: vault entries are temporary staging
  * objects that the GM assembles from the Bestiary and then refines in the
@@ -16,9 +16,12 @@ export interface VaultThreatDice {
   arcane?: string;
 }
 
+export type VaultEntryType = 'creature' | 'npc';
+
 export interface VaultCreature {
   /** Unique id — taken from BestiaryCreature.id */
   id: string;
+  entryType: VaultEntryType;
   name: string;
   category: string;       // 'Minor' | 'Standard' | 'Exceptional' | 'Legendary'
   nature: string;         // 'Mundane' | 'Magical' | 'Preternatural' | 'Supernatural'
@@ -91,6 +94,7 @@ export function getVaultCreatures(): VaultCreature[] {
 
       return [{
         id: candidate.id,
+        entryType: candidate.entryType === 'npc' ? 'npc' : 'creature',
         name: candidate.name,
         category: typeof candidate.category === 'string' ? candidate.category : 'Standard',
         nature: typeof candidate.nature === 'string' ? candidate.nature : 'Mundane',
@@ -121,7 +125,11 @@ function persist(creatures: VaultCreature[]): void {
 
 export function addToVault(creature: VaultCreature): void {
   const current = getVaultCreatures();
-  current.push({ ...creature, addedAt: new Date().toISOString() });
+  current.push({
+    ...creature,
+    entryType: creature.entryType === 'npc' ? 'npc' : 'creature',
+    addedAt: new Date().toISOString()
+  });
   persist(current);
 }
 
