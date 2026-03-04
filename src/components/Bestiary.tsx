@@ -1531,6 +1531,26 @@ export default function Bestiary() {
     return encounterCreatures.reduce((total, creature) => total + creature.threatMV, 0);
   }, [encounterCreatures]);
 
+  const stagedCountById = useMemo(() => {
+    return encounterCreatures.reduce<Record<string, number>>((counts, creature) => {
+      counts[creature.id] = (counts[creature.id] || 0) + 1;
+      return counts;
+    }, {});
+  }, [encounterCreatures]);
+
+  const groupedEncounterCreatures = useMemo(() => {
+    const groups = new Map<string, { creature: BestiaryCreature; quantity: number }>();
+    encounterCreatures.forEach(creature => {
+      const existing = groups.get(creature.id);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        groups.set(creature.id, { creature, quantity: 1 });
+      }
+    });
+    return Array.from(groups.values()).sort((a, b) => a.creature.name.localeCompare(b.creature.name));
+  }, [encounterCreatures]);
+
   const resetFilters = () => {
     setSearchTerm('');
     setSelectedCategory('All');
@@ -1570,6 +1590,13 @@ export default function Bestiary() {
     removeFromVaultByIndex(index);
     // State will sync via the vault onChange listener
   }, []);
+
+  const removeOneFromEncounter = useCallback((creatureId: string) => {
+    const index = encounterCreatures.map(creature => creature.id).lastIndexOf(creatureId);
+    if (index >= 0) {
+      removeFromEncounter(index);
+    }
+  }, [encounterCreatures, removeFromEncounter]);
 
   const handleClearEncounter = useCallback(() => {
     clearVault();
@@ -1779,17 +1806,27 @@ export default function Bestiary() {
             <div className="bg-white/5 p-4 rounded border border-white/10 mb-4">
                 <h4 className="font-semibold mb-2">Staged Creatures:</h4>
                 <div className="space-y-2">
-                  {encounterCreatures.map((creature, index) => (
-                    <div key={index} className="flex items-center justify-between bg-white/10 p-2 rounded">
+                  {groupedEncounterCreatures.map(({ creature, quantity }) => (
+                    <div key={creature.id} className="flex items-center justify-between bg-white/10 p-2 rounded">
                       <span className="text-sm">
-                        {creature.name} ({creature.category}) - Threat MV: {creature.threatMV}
+                        {creature.name} ({creature.category}) x{quantity} - Threat MV: {creature.threatMV * quantity}
                       </span>
-                      <button
-                        onClick={() => removeFromEncounter(index)}
-                        className="text-red-400 hover:text-red-400 text-sm"
-                      >
-                        Remove
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => removeOneFromEncounter(creature.id)}
+                          className="w-7 h-7 rounded-full border border-white/20 bg-white/10 text-off-white"
+                          aria-label={`Remove one ${creature.name}`}
+                        >
+                          −
+                        </button>
+                        <button
+                          onClick={() => addToEncounter(creature)}
+                          className="w-7 h-7 rounded-full border border-white/20 bg-white/10 text-off-white"
+                          aria-label={`Add one ${creature.name}`}
+                        >
+                          +
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1872,14 +1909,21 @@ export default function Bestiary() {
           <div key={creature.id} className="bg-white/5 rounded-lg shadow-lg p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xl font-bold text-off-white">{creature.name}</h3>
-              <span className={`px-2 py-1 rounded text-xs font-medium ${
-                creature.category === 'Minor' ? 'bg-green-900/20 text-muted-eldritch-green' :
-                creature.category === 'Standard' ? 'bg-blue-900/30 text-blue-300' :
-                creature.category === 'Exceptional' ? 'bg-yellow-900/20 text-yellow-300' :
-                'bg-red-900/20 text-red-400'
-              }`}>
-                {creature.category}
-              </span>
+              <div className="flex items-center gap-2">
+                {stagedCountById[creature.id] > 0 && (
+                  <span className="px-2 py-1 rounded text-xs font-medium bg-soft-amethyst/20 text-soft-amethyst">
+                    Staged x{stagedCountById[creature.id]}
+                  </span>
+                )}
+                <span className={`px-2 py-1 rounded text-xs font-medium ${
+                  creature.category === 'Minor' ? 'bg-green-900/20 text-muted-eldritch-green' :
+                  creature.category === 'Standard' ? 'bg-blue-900/30 text-blue-300' :
+                  creature.category === 'Exceptional' ? 'bg-yellow-900/20 text-yellow-300' :
+                  'bg-red-900/20 text-red-400'
+                }`}>
+                  {creature.category}
+                </span>
+              </div>
             </div>
 
             <div className="space-y-2 text-sm text-off-white/60 mb-4">
@@ -1907,12 +1951,23 @@ export default function Bestiary() {
               >
                 View Details
               </button>
-              <button
-                onClick={() => addToEncounter(creature)}
-                className="bg-soft-amethyst hover:bg-soft-amethyst/80 text-white font-bold py-2 px-3 rounded text-sm"
-              >
-                {showEncounterBuilder ? 'Stage' : 'Stage Creature'}
-              </button>
+              <div className="flex items-center gap-2">
+                {stagedCountById[creature.id] > 0 && (
+                  <button
+                    onClick={() => removeOneFromEncounter(creature.id)}
+                    className="w-9 h-9 rounded-md border border-white/20 bg-white/10 text-off-white font-bold"
+                    aria-label={`Remove one ${creature.name}`}
+                  >
+                    −
+                  </button>
+                )}
+                <button
+                  onClick={() => addToEncounter(creature)}
+                  className="bg-soft-amethyst hover:bg-soft-amethyst/80 text-white font-bold py-2 px-3 rounded text-sm"
+                >
+                  {stagedCountById[creature.id] > 0 ? 'Add More' : showEncounterBuilder ? 'Stage' : 'Stage Creature'}
+                </button>
+              </div>
             </div>
           </div>
         ))}

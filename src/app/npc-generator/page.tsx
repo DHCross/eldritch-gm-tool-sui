@@ -10,12 +10,12 @@ export default async function NPCGeneratorPage({ searchParams }: PageProps) {
   const backTarget = resolveBackTargetFromSearchParams(resolvedSearchParams, 'gm-tools');
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-charcoal-violet text-off-white">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
           <Link
             href={backTarget.href}
-            className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+            className="inline-flex items-center text-soft-amethyst hover:text-soft-amethyst/80 transition-colors"
           >
             {backTarget.label}
           </Link>
