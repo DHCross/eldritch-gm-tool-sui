@@ -240,12 +240,12 @@ export default function AdvancedNPCGenerator() {
         </div>
 
         {npcs.length > 0 && (
-          <div className="mt-6 pt-6 border-t">
+          <div className="mt-6 pt-6 border-t border-white/10">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold">Generated NPCs ({npcs.length})</h3>
+              <h3 className="text-lg font-bold text-off-white">Generated NPCs ({npcs.length})</h3>
               <button
                 onClick={() => setNpcs([])}
-                className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors"
+                className="bg-white/10 hover:bg-white/15 text-off-white font-bold py-2 px-4 rounded transition-colors"
               >
                 Clear All
               </button>
@@ -283,7 +283,7 @@ export default function AdvancedNPCGenerator() {
                   </button>
                   <button
                     onClick={() => handleExportHTML(npc)}
-                    className="bg-soft-amethyst hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                    className="bg-soft-amethyst hover:bg-soft-amethyst/80 text-white px-3 py-1 rounded text-sm transition-colors"
                     title="Copy as HTML"
                   >
                     Copy HTML
@@ -308,24 +308,24 @@ export default function AdvancedNPCGenerator() {
               {/* Abilities Section */}
               <div className="mb-6">
                 <h4 className="text-lg font-bold text-off-white mb-3">Abilities</h4>
-                <div className="bg-blue-50 rounded-lg p-4 space-y-2">
+                <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-2 text-off-white/90">
                   <div>
-                    <span className="font-semibold">Competence {npc.abilities.competence} →</span>
-                    <div className="ml-4 text-sm">
+                    <span className="font-semibold text-off-white">Competence {npc.abilities.competence} →</span>
+                    <div className="ml-4 text-sm text-off-white/75">
                       Expertise {npc.specialties.competence.expertise} ({Object.keys(npc.focuses.expertise || {})[0]} {Object.values(npc.focuses.expertise || {})[0]}),
                       Perception {npc.specialties.competence.perception} ({Object.keys(npc.focuses.perception || {})[0]} {Object.values(npc.focuses.perception || {})[0]}).
                     </div>
                   </div>
                   <div>
-                    <span className="font-semibold">Prowess {npc.abilities.prowess} →</span>
-                    <div className="ml-4 text-sm">
+                    <span className="font-semibold text-off-white">Prowess {npc.abilities.prowess} →</span>
+                    <div className="ml-4 text-sm text-off-white/75">
                       Melee {npc.specialties.prowess.melee} ({Object.keys(npc.focuses.melee || {})[0]} {Object.values(npc.focuses.melee || {})[0]}),
                       Agility {npc.specialties.prowess.agility} ({Object.keys(npc.focuses.agility || {})[0]} {Object.values(npc.focuses.agility || {})[0]}).
                     </div>
                   </div>
                   <div>
-                    <span className="font-semibold">Fortitude {npc.abilities.fortitude} →</span>
-                    <div className="ml-4 text-sm">
+                    <span className="font-semibold text-off-white">Fortitude {npc.abilities.fortitude} →</span>
+                    <div className="ml-4 text-sm text-off-white/75">
                       Endurance {npc.specialties.fortitude.endurance} ({Object.keys(npc.focuses.endurance || {})[0]} {Object.values(npc.focuses.endurance || {})[0]}),
                       Strength {npc.specialties.fortitude.strength} ({Object.keys(npc.focuses.strength || {})[0]} {Object.values(npc.focuses.strength || {})[0]}),
                       Willpower {npc.specialties.fortitude.willpower} ({Object.keys(npc.focuses.willpower || {})[0]} {Object.values(npc.focuses.willpower || {})[0]}).
@@ -336,7 +336,7 @@ export default function AdvancedNPCGenerator() {
 
               {/* Combat Stats & Actions */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <div className="bg-red-900/20 rounded-lg p-4">
+                <div className="bg-red-900/20 rounded-lg p-4 text-off-white/90">
                   <h4 className="font-bold text-red-400 mb-3">Combat Stats</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
@@ -362,24 +362,24 @@ export default function AdvancedNPCGenerator() {
                   </div>
                 </div>
 
-                <div className="bg-amber-50 rounded-lg p-4">
-                  <h4 className="font-bold text-amber-300 mb-3">Actions</h4>
+                <div className="bg-white/5 border border-white/10 rounded-lg p-4 text-off-white/90">
+                  <h4 className="font-bold text-muted-eldritch-green mb-3">Actions</h4>
                   <div className="space-y-2 text-sm">
                     <div>
-                      <span className="font-medium">Melee Attack:</span>
-                      <div className="text-xs">{npc.actions.meleeAttack}</div>
+                      <span className="font-medium text-off-white">Melee Attack:</span>
+                      <div className="text-xs text-off-white/70">{npc.actions.meleeAttack}</div>
                     </div>
                     <div>
-                      <span className="font-medium">Ranged Attack:</span>
-                      <div className="text-xs">{npc.actions.rangedAttack}</div>
+                      <span className="font-medium text-off-white">Ranged Attack:</span>
+                      <div className="text-xs text-off-white/70">{npc.actions.rangedAttack}</div>
                     </div>
                     <div>
-                      <span className="font-medium">Magic Attack:</span>
-                      <div className="text-xs">{npc.actions.magicAttack}</div>
+                      <span className="font-medium text-off-white">Magic Attack:</span>
+                      <div className="text-xs text-off-white/70">{npc.actions.magicAttack}</div>
                     </div>
                     <div>
-                      <span className="font-medium">Perception Check:</span>
-                      <div className="text-xs">{npc.actions.perceptionCheck}</div>
+                      <span className="font-medium text-off-white">Perception Check:</span>
+                      <div className="text-xs text-off-white/70">{npc.actions.perceptionCheck}</div>
                     </div>
                   </div>
                 </div>
