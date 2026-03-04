@@ -163,11 +163,11 @@ export default function AdvancedNPCGenerator() {
               <select
                 value={selectedRace}
                 onChange={(e) => setSelectedRace(e.target.value)}
-                className="w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-white/15 rounded-md px-3 py-2 bg-charcoal-violet text-off-white [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-soft-amethyst"
               >
-                <option value="">Random</option>
+                <option value="" className="bg-charcoal-violet text-off-white">Random</option>
                 {npcRaces.map(race => (
-                  <option key={race} value={race}>{race}</option>
+                  <option key={race} value={race} className="bg-charcoal-violet text-off-white">{race}</option>
                 ))}
               </select>
             </div>
@@ -179,11 +179,11 @@ export default function AdvancedNPCGenerator() {
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
-                className="w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-white/15 rounded-md px-3 py-2 bg-charcoal-violet text-off-white [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-soft-amethyst"
               >
-                <option value="">Random</option>
+                <option value="" className="bg-charcoal-violet text-off-white">Random</option>
                 {npcRoles.map(role => (
-                  <option key={role} value={role}>{role}</option>
+                  <option key={role} value={role} className="bg-charcoal-violet text-off-white">{role}</option>
                 ))}
               </select>
             </div>
@@ -195,11 +195,11 @@ export default function AdvancedNPCGenerator() {
               <select
                 value={selectedLevel}
                 onChange={(e) => setSelectedLevel(e.target.value ? parseInt(e.target.value) : '')}
-                className="w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-white/15 rounded-md px-3 py-2 bg-charcoal-violet text-off-white [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-soft-amethyst"
               >
-                <option value="">Random</option>
+                <option value="" className="bg-charcoal-violet text-off-white">Random</option>
                 {npcLevels.map(level => (
-                  <option key={level} value={level}>Level {level}</option>
+                  <option key={level} value={level} className="bg-charcoal-violet text-off-white">Level {level}</option>
                 ))}
               </select>
             </div>
@@ -211,11 +211,11 @@ export default function AdvancedNPCGenerator() {
               <select
                 value={selectedGender}
                 onChange={(e) => setSelectedGender(e.target.value as 'Male' | 'Female' | '')}
-                className="w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-white/15 rounded-md px-3 py-2 bg-charcoal-violet text-off-white [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-soft-amethyst"
               >
-                <option value="">Random</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
+                <option value="" className="bg-charcoal-violet text-off-white">Random</option>
+                <option value="Male" className="bg-charcoal-violet text-off-white">Male</option>
+                <option value="Female" className="bg-charcoal-violet text-off-white">Female</option>
               </select>
             </div>
           </div>
@@ -439,11 +439,11 @@ export default function AdvancedNPCGenerator() {
                 <select
                   value={selectedPartyId}
                   onChange={(e) => setSelectedPartyId(e.target.value)}
-                  className="w-full border border-white/15 rounded-md px-3 py-2"
+                  className="w-full border border-white/15 rounded-md px-3 py-2 bg-charcoal-violet text-off-white [color-scheme:dark]"
                 >
-                  <option value="">No specific folder</option>
+                  <option value="" className="bg-charcoal-violet text-off-white">No specific folder</option>
                   {partyFolders.map(folder => (
-                    <option key={folder.id} value={folder.id}>
+                    <option key={folder.id} value={folder.id} className="bg-charcoal-violet text-off-white">
                       {folder.name} ({folder.folder_type})
                     </option>
                   ))}
