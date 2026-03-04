@@ -163,7 +163,7 @@ export default function AdvancedNPCGenerator() {
               <select
                 value={selectedRace}
                 onChange={(e) => setSelectedRace(e.target.value)}
-                className="w-full border border-white/15 rounded-md px-3 py-2 bg-charcoal-violet text-off-white [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-soft-amethyst"
+                className="npc-native-select w-full border border-white/15 rounded-md px-3 py-2 bg-charcoal-violet text-off-white [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-soft-amethyst"
               >
                 <option value="" className="bg-charcoal-violet text-off-white">Random</option>
                 {npcRaces.map(race => (
@@ -179,7 +179,7 @@ export default function AdvancedNPCGenerator() {
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
-                className="w-full border border-white/15 rounded-md px-3 py-2 bg-charcoal-violet text-off-white [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-soft-amethyst"
+                className="npc-native-select w-full border border-white/15 rounded-md px-3 py-2 bg-charcoal-violet text-off-white [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-soft-amethyst"
               >
                 <option value="" className="bg-charcoal-violet text-off-white">Random</option>
                 {npcRoles.map(role => (
@@ -195,7 +195,7 @@ export default function AdvancedNPCGenerator() {
               <select
                 value={selectedLevel}
                 onChange={(e) => setSelectedLevel(e.target.value ? parseInt(e.target.value) : '')}
-                className="w-full border border-white/15 rounded-md px-3 py-2 bg-charcoal-violet text-off-white [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-soft-amethyst"
+                className="npc-native-select w-full border border-white/15 rounded-md px-3 py-2 bg-charcoal-violet text-off-white [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-soft-amethyst"
               >
                 <option value="" className="bg-charcoal-violet text-off-white">Random</option>
                 {npcLevels.map(level => (
@@ -211,7 +211,7 @@ export default function AdvancedNPCGenerator() {
               <select
                 value={selectedGender}
                 onChange={(e) => setSelectedGender(e.target.value as 'Male' | 'Female' | '')}
-                className="w-full border border-white/15 rounded-md px-3 py-2 bg-charcoal-violet text-off-white [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-soft-amethyst"
+                className="npc-native-select w-full border border-white/15 rounded-md px-3 py-2 bg-charcoal-violet text-off-white [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-soft-amethyst"
               >
                 <option value="" className="bg-charcoal-violet text-off-white">Random</option>
                 <option value="Male" className="bg-charcoal-violet text-off-white">Male</option>
@@ -439,7 +439,7 @@ export default function AdvancedNPCGenerator() {
                 <select
                   value={selectedPartyId}
                   onChange={(e) => setSelectedPartyId(e.target.value)}
-                  className="w-full border border-white/15 rounded-md px-3 py-2 bg-charcoal-violet text-off-white [color-scheme:dark]"
+                  className="npc-native-select w-full border border-white/15 rounded-md px-3 py-2 bg-charcoal-violet text-off-white [color-scheme:dark]"
                 >
                   <option value="" className="bg-charcoal-violet text-off-white">No specific folder</option>
                   {partyFolders.map(folder => (

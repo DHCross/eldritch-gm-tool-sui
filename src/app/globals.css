@@ -106,4 +106,17 @@ html {
   .animate-smoke-clearing {
     animation: clear-smoke 1.2s ease-out forwards;
   }
+
+  /* Native select popup contrast fix (macOS/Safari/Chromium system menu rendering) */
+  .npc-native-select option {
+    color: #111827;
+    background-color: #ffffff;
+    opacity: 1;
+  }
+
+  .npc-native-select option:checked,
+  .npc-native-select option:hover {
+    color: #111827;
+    background-color: #bfdbfe;
+  }
 }
