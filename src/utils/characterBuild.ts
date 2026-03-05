@@ -29,6 +29,50 @@ export const classes = classNames;
 
 export const stepCost = costToRankUpDie;
 export const focusStepCost = costToRankUpFocus;
+export const getCustomizationBudget = (level: number, mythicBonus = false) =>
+  (level === 1 ? 10 : 10 + (level - 1) * 100) + (mythicBonus ? 10 : 0);
+
+export interface CustomFocus {
+  id: string;
+  ability: Ability;
+  specialty: Specialty;
+  name: string;
+  value: string;
+}
+
+export interface DuplicateMinimaMatch {
+  key: string;
+  value: string;
+  kind: 'ability' | 'specialty' | 'focus';
+}
+
+export interface CreationFocusBonus {
+  ability: Ability;
+  specialty: Specialty;
+  focus: string;
+  value: number;
+}
+
+export interface FocusSwapSelection {
+  sourceFocus: string;
+  targetFocus: string;
+}
+
+export interface CrossDisciplineSpellcastingSummary {
+  available: boolean;
+  primaryFocus: 'Wizardry' | 'Theurgy';
+  secondaryFocus: 'Wizardry' | 'Theurgy';
+  spellCapacity: number;
+}
+
+export interface CreationRuleSummary {
+  duplicateMinima: DuplicateMinimaMatch[];
+  duplicateAdvantages: string[];
+  duplicateBenefitAvailable: boolean;
+  racialFocusBonuses: CreationFocusBonus[];
+  classBaseSpecialties: Array<{ ability: Ability; specialty: Specialty }>;
+  focusSwapTargets: CreationFocusBonus[];
+}
 
 export interface Character {
   race: RaceName;
@@ -42,6 +86,7 @@ export interface Character {
   flaws: string[];
   classFeats: string[];
   equipment: string[];
+  customFocuses: CustomFocus[];
   magicPath?: string;
   actions: Record<string, string>;
   pools: {
@@ -55,8 +100,173 @@ export const idx = (r: string) => dieRanks.indexOf(r as DieRank);
 export const mv = (r: string) => (r && r.startsWith('d') ? parseInt(r.slice(1), 10) : 0);
 export const fnum = (v: string | number) => (v ? parseInt(String(v).replace('+', ''), 10) : 0);
 
+const normalizeAdvantageName = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '');
+const isAbilityKey = (value: string): value is Ability =>
+  (abilities as readonly string[]).includes(value);
+const findAbilityForSpecialty = (value: string): Ability | undefined =>
+  abilities.find(ability => (specs[ability] as readonly string[]).includes(value)) as Ability | undefined;
+const isSpecialtyKey = (value: string): value is Specialty =>
+  Boolean(findAbilityForSpecialty(value));
+const findSpecialtyForFocus = (value: string): Specialty | undefined => {
+  const specialty = Object.keys(foci).find(candidate =>
+    (foci[candidate as keyof typeof foci] as readonly string[]).includes(value)
+  );
+  return specialty as Specialty | undefined;
+};
+const isFocusKey = (value: string): value is Focus | string =>
+  Boolean(findSpecialtyForFocus(value));
+
+const getKeyKind = (key: string): DuplicateMinimaMatch['kind'] => {
+  if (isAbilityKey(key)) return 'ability';
+  if (isSpecialtyKey(key)) return 'specialty';
+  return 'focus';
+};
+
+const getFocusValueFromMinima = (minima: Record<string, string>, focus: string) => {
+  const rawValue = minima[focus];
+  return rawValue ? fnum(rawValue) : 0;
+};
+
+export function getDuplicateMinima(race: RaceName, klass: ClassName): DuplicateMinimaMatch[] {
+  const raceMinima = raceDefinitions[race]?.minima ?? {};
+  const classMinima = classDefinitions[klass]?.minima ?? {};
+
+  return Object.keys(raceMinima)
+    .filter(key => classMinima[key] && raceMinima[key] === classMinima[key])
+    .map(key => ({
+      key,
+      value: raceMinima[key],
+      kind: getKeyKind(key)
+    }));
+}
+
+export function getDuplicateAdvantages(race: RaceName, klass: ClassName): string[] {
+  const raceAdvantages = raceDefinitions[race]?.advantages ?? [];
+  const classAdvantages = classDefinitions[klass]?.advantages ?? [];
+  const raceByNormalizedName = new Map<string, string>();
+
+  raceAdvantages.forEach(advantage => {
+    raceByNormalizedName.set(normalizeAdvantageName(advantage), advantage);
+  });
+
+  return classAdvantages.reduce<string[]>((matches, advantage) => {
+    const normalized = normalizeAdvantageName(advantage);
+    const raceAdvantage = raceByNormalizedName.get(normalized);
+    if (raceAdvantage && !matches.some(existing => normalizeAdvantageName(existing) === normalized)) {
+      matches.push(raceAdvantage);
+    }
+    return matches;
+  }, []);
+}
+
+export function getRacialFocusBonuses(race: RaceName): CreationFocusBonus[] {
+  const minima = raceDefinitions[race]?.minima ?? {};
+
+  return Object.entries(minima)
+    .filter(([key, value]) => isFocusKey(key) && value.startsWith('+') && fnum(value) > 0)
+    .map(([focus, value]) => {
+      const specialty = findSpecialtyForFocus(focus)!;
+      return {
+        ability: findAbilityForSpecialty(specialty)!,
+        specialty,
+        focus,
+        value: fnum(value)
+      };
+    });
+}
+
+export function getClassBaseSpecialties(klass: ClassName): Array<{ ability: Ability; specialty: Specialty }> {
+  const minima = classDefinitions[klass]?.minima ?? {};
+
+  return Object.keys(minima)
+    .filter(isSpecialtyKey)
+    .map(specialty => ({
+      ability: findAbilityForSpecialty(specialty)!,
+      specialty
+    }))
+    .filter((entry, index, all) =>
+      all.findIndex(candidate => candidate.specialty === entry.specialty) === index
+    );
+}
+
+export function getAvailableFocusSwapTargets(race: RaceName, klass: ClassName): CreationFocusBonus[] {
+  const raceFocusBonuses = getRacialFocusBonuses(race);
+  if (!raceFocusBonuses.length) return [];
+
+  const minimaCharacter = createCharacterShell(race, klass, 1).baseCharacter;
+  const classSpecialties = getClassBaseSpecialties(klass);
+
+  return classSpecialties.flatMap(({ ability, specialty }) =>
+    foci[specialty].reduce<CreationFocusBonus[]>((targets, focus) => {
+      if (fnum(minimaCharacter.focuses[ability][focus]) > 0) {
+        return targets;
+      }
+
+      targets.push({
+        ability,
+        specialty,
+        focus,
+        value: raceFocusBonuses[0]?.value ?? 1
+      });
+      return targets;
+    }, [])
+  );
+}
+
+export function getCreationRuleSummary(race: RaceName, klass: ClassName): CreationRuleSummary {
+  const duplicateMinima = getDuplicateMinima(race, klass);
+  const duplicateAdvantages = getDuplicateAdvantages(race, klass);
+  const racialFocusBonuses = getRacialFocusBonuses(race);
+
+  return {
+    duplicateMinima,
+    duplicateAdvantages,
+    duplicateBenefitAvailable: duplicateMinima.length > 0 || duplicateAdvantages.length > 0,
+    racialFocusBonuses,
+    classBaseSpecialties: getClassBaseSpecialties(klass),
+    focusSwapTargets: getAvailableFocusSwapTargets(race, klass)
+  };
+}
+
+export function getMulticlassFeatCost(level: number) {
+  if (level === 3) return 8;
+  if (level === 4) return 6;
+  if (level >= 5) return 4;
+  return null;
+}
+
+export function getCrossDisciplineSpellcastingSummary(ch: Character): CrossDisciplineSpellcastingSummary | null {
+  const hasGiftOfMagic = ch.advantages.some(advantage => normalizeAdvantageName(advantage) === 'giftofmagic');
+  if (!hasGiftOfMagic) return null;
+
+  const wizardry = fnum(ch.focuses.Competence.Wizardry);
+  const theurgy = fnum(ch.focuses.Competence.Theurgy);
+  const primaryFocus = ch.class === 'Theurgist' ? 'Theurgy' : 'Wizardry';
+  const secondaryFocus = primaryFocus === 'Wizardry' ? 'Theurgy' : 'Wizardry';
+  const spellCapacity = secondaryFocus === 'Wizardry' ? wizardry : theurgy;
+
+  return {
+    available: spellCapacity > 0,
+    primaryFocus,
+    secondaryFocus,
+    spellCapacity
+  };
+}
+
 export function deepCloneCharacter<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function applyFocusSwap(ch: Character, race: RaceName, klass: ClassName, selection?: FocusSwapSelection) {
+  if (!selection) return;
+
+  const source = getRacialFocusBonuses(race).find(entry => entry.focus === selection.sourceFocus);
+  const target = getAvailableFocusSwapTargets(race, klass).find(entry => entry.focus === selection.targetFocus);
+  if (!source || !target) return;
+
+  const classSourceValue = getFocusValueFromMinima(classDefinitions[klass]?.minima ?? {}, source.focus);
+  ch.focuses[source.ability][source.focus] = `+${classSourceValue}`;
+  ch.focuses[target.ability][target.focus] = `+${Math.max(fnum(ch.focuses[target.ability][target.focus]), source.value)}`;
 }
 
 export function applyMinima(ch: Character, minima: Record<string, string>) {
@@ -206,6 +416,12 @@ export function calculateCPSpent(finalChar: Character, baseChar: Character, icon
 
   }
 
+  const baseCustomFocuses = new Map(baseChar.customFocuses.map(focus => [focus.id, focus]));
+  finalChar.customFocuses.forEach(focus => {
+    const baseFocus = baseCustomFocuses.get(focus.id);
+    spent.focuses += (fnum(focus.value) - fnum(baseFocus?.value ?? '+0')) * focusStepCost;
+  });
+
   spent.total = spent.abilities + spent.specialties + spent.focuses + spent.advantages;
   return spent;
 }
@@ -213,7 +429,22 @@ export function calculateCPSpent(finalChar: Character, baseChar: Character, icon
 export function getAdvantages(race: string, klass: string) {
   const raceAdv = raceDefinitions[race as RaceName]?.advantages ?? [];
   const classAdv = classDefinitions[klass as ClassName]?.advantages ?? [];
-  return [...new Set([...raceAdv, ...classAdv])];
+  const combined = [...raceAdv, ...classAdv];
+  const uniqueAdvantages = combined.reduce<string[]>((acc, advantage) => {
+    if (!acc.some(existing => normalizeAdvantageName(existing) === normalizeAdvantageName(advantage))) {
+      acc.push(advantage);
+    }
+    return acc;
+  }, []);
+  const hasGiftOfMagicDuplicate = getDuplicateAdvantages(race as RaceName, klass as ClassName)
+    .some(advantage => normalizeAdvantageName(advantage) === 'giftofmagic');
+  const hasMagicDefense = uniqueAdvantages.some(advantage => normalizeAdvantageName(advantage) === 'magicdefense');
+
+  if (hasGiftOfMagicDuplicate && !hasMagicDefense) {
+    uniqueAdvantages.push('Magic Defense');
+  }
+
+  return uniqueAdvantages;
 }
 
 export function getEquipment(klass: string) {
@@ -221,7 +452,14 @@ export function getEquipment(klass: string) {
   return [...equipment];
 }
 
-export function createCharacterShell(race: RaceName, klass: ClassName, level: number) {
+export function createCharacterShell(
+  race: RaceName,
+  klass: ClassName,
+  level: number,
+  options?: {
+    focusSwap?: FocusSwapSelection;
+  }
+) {
   const ch: Character = {
     race,
     class: klass,
@@ -234,6 +472,7 @@ export function createCharacterShell(race: RaceName, klass: ClassName, level: nu
     flaws: [],
     classFeats: [],
     equipment: [],
+    customFocuses: [],
     actions: {},
     pools: { active: 0, passive: 0, spirit: 0 }
   };
@@ -254,6 +493,7 @@ export function createCharacterShell(race: RaceName, klass: ClassName, level: nu
   const baseCharacter = deepCloneCharacter(ch);
   applyMinima(baseCharacter, raceDefinitions[race as RaceName]?.minima || {});
   applyMinima(baseCharacter, classDefinitions[klass as ClassName]?.minima || {});
+  applyFocusSwap(baseCharacter, race, klass, options?.focusSwap);
 
   const workingCharacter = deepCloneCharacter(baseCharacter);
   workingCharacter.masteryDie = levelInfo[level - 1]?.masteryDie || 'd4';

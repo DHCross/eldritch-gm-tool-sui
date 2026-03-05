@@ -1,15 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   calculateCPSpent,
   createCharacterShell,
   fnum,
+  getCreationRuleSummary,
+  getCrossDisciplineSpellcastingSummary,
+  getCustomizationBudget,
+  getMulticlassFeatCost,
   spendCP,
   updateDerivedCharacterData,
   weaknessReport,
   mv,
-  type Character
+  type Character,
+  type FocusSwapSelection
 } from '../utils/characterBuild';
 import {
   abilities,
@@ -55,12 +60,22 @@ export default function CharacterGenerator() {
   const [characterClass, setCharacterClass] = useState('');
   const [level, setLevel] = useState<number>(1);
   const [magicPath, setMagicPath] = useState('');
+  const [mythicCustomization, setMythicCustomization] = useState(false);
+  const [focusSwapSource, setFocusSwapSource] = useState('');
+  const [focusSwapTarget, setFocusSwapTarget] = useState('');
   const [buildStyle, setBuildStyle] = useState('balanced');
   const [rookieProfile, setRookieProfile] = useState('off');
   const [enforceSoftcaps, setEnforceSoftcaps] = useState(true);
   const [iconicArcane, setIconicArcane] = useState(false);
   const [showWeakness, setShowWeakness] = useState(true);
   const [character, setCharacter] = useState<Character | null>(null);
+  const creationRules = useMemo(
+    () => (race && characterClass ? getCreationRuleSummary(race as RaceName, characterClass as ClassName) : null),
+    [race, characterClass]
+  );
+  const activeFocusSwap = useMemo<FocusSwapSelection | undefined>(() => (
+    focusSwapSource && focusSwapTarget ? { sourceFocus: focusSwapSource, targetFocus: focusSwapTarget } : undefined
+  ), [focusSwapSource, focusSwapTarget]);
 
   // PC-specific fields
   const [pcName, setPcName] = useState('');
@@ -101,12 +116,32 @@ export default function CharacterGenerator() {
     }
   }, [character?.race, character?.class, characterGender, nameCulture]);
 
+  useEffect(() => {
+    if (!creationRules) {
+      setFocusSwapSource('');
+      setFocusSwapTarget('');
+      return;
+    }
+
+    const validSources = new Set(creationRules.racialFocusBonuses.map(entry => entry.focus));
+    if (focusSwapSource && !validSources.has(focusSwapSource)) {
+      setFocusSwapSource('');
+    }
+
+    const validTargets = new Set(creationRules.focusSwapTargets.map(entry => entry.focus));
+    if (focusSwapTarget && !validTargets.has(focusSwapTarget)) {
+      setFocusSwapTarget('');
+    }
+  }, [creationRules, focusSwapSource, focusSwapTarget]);
+
   const [lastCharacter, setLastCharacter] = useState<{
     ch: Character;
     base: Character;
     iconic: boolean;
     style: string;
     rp: string;
+    mythic: boolean;
+    focusSwap?: FocusSwapSelection;
     spent: { abilities: number; specialties: number; focuses: number; advantages: number; total: number };
   } | null>(null);
 
@@ -117,9 +152,14 @@ export default function CharacterGenerator() {
       return;
     }
 
-    const { character: ch, baseCharacter } = createCharacterShell(race as RaceName, characterClass as ClassName, level);
+    const { character: ch, baseCharacter } = createCharacterShell(
+      race as RaceName,
+      characterClass as ClassName,
+      level,
+      { focusSwap: activeFocusSwap }
+    );
 
-    const cpBudgetVal = (level === 1 && rookieProfile !== 'off') ? 10 : 10 + (level - 1) * 100;
+    const cpBudgetVal = getCustomizationBudget(level, mythicCustomization);
     const cpBudget = { value: cpBudgetVal };
 
     if (iconicArcane) {
@@ -140,12 +180,24 @@ export default function CharacterGenerator() {
 
     const spentTotals = calculateCPSpent(ch, baseCharacter, iconicArcane);
     setCharacter(ch);
-    setLastCharacter({ ch, base: baseCharacter, iconic: iconicArcane, style: buildStyle, rp: rookieProfile, spent: spentTotals });
+    setLastCharacter({
+      ch,
+      base: baseCharacter,
+      iconic: iconicArcane,
+      style: buildStyle,
+      rp: rookieProfile,
+      mythic: mythicCustomization,
+      focusSwap: activeFocusSwap,
+      spent: spentTotals
+    });
   }
 
   function getFullMarkdown() {
     if (!lastCharacter) return '';
-    const { ch, spent } = lastCharacter;
+    const { ch, spent, mythic, focusSwap } = lastCharacter;
+    const markdownCreationRules = getCreationRuleSummary(ch.race as RaceName, ch.class as ClassName);
+    const markdownMulticlassCost = getMulticlassFeatCost(ch.level);
+    const markdownCrossDiscipline = getCrossDisciplineSpellcastingSummary(ch);
 
     let md = `# ${ch.race} ${ch.class} (Level ${ch.level})\n\n` +
       `### Core Stats\n` +
@@ -163,8 +215,6 @@ export default function CharacterGenerator() {
       md += `**${a} ${ch.abilities[a]}** → ${sp}.\n`;
     }
 
-    md += `\n### Actions\n- **Melee Attack:** ${ch.actions.meleeAttack}\n- **Ranged Attack:** ${ch.actions.rangedAttack}\n- **Perception Check:** ${ch.actions.perceptionCheck}\n` + ((casterClasses as readonly string[]).includes(ch.class) ? `- **Magic Attack:** ${ch.actions.magicAttack}\n\n` : '\n');
-
     md += `\n### Actions\n- **Melee Attack:** ${ch.actions.meleeAttack}\n- **Ranged Attack:** ${ch.actions.rangedAttack}\n- **Perception Check:** ${ch.actions.perceptionCheck}\n` + (isCasterClass(ch.class) ? `- **Magic Attack:** ${ch.actions.magicAttack}\n\n` : '\n');
 
 
@@ -174,6 +224,25 @@ export default function CharacterGenerator() {
 
     md += `### Character Points Spent\n- **Spent on Abilities:** ${spent.abilities}\n- **Spent on Specialties:** ${spent.specialties}\n- **Spent on Focuses:** ${spent.focuses}\n- **Spent on Advantages:** ${spent.advantages}\n- **Total CP Spent from Budget:** ${spent.total}\n`;
     md += `\n_Note: This shows CPs spent from the customization budget (10 CP + Level Bonus). Free racial/class minimums cost 0 CP._\n`;
+    if (markdownCreationRules) {
+      md += `\n### Creation Rule Notes\n`;
+      md += markdownCreationRules.duplicateBenefitAvailable
+        ? `- One duplicate race/class overlap can be converted into a free 2-point advantage, a tier-up, or a same-cost swap.\n`
+        : `- No duplicate minima or advantages were detected for this pairing.\n`;
+      if (markdownMulticlassCost) {
+        md += `- Out-of-class feat purchase cost at level ${ch.level}: ${markdownMulticlassCost} CP.\n`;
+      }
+      if (markdownCrossDiscipline) {
+        md += `- Secondary-discipline spell capacity: ${markdownCrossDiscipline.spellCapacity} ${markdownCrossDiscipline.secondaryFocus} spell${markdownCrossDiscipline.spellCapacity === 1 ? '' : 's'}.\n`;
+      }
+      if (focusSwap) {
+        md += `- Focus swap applied: ${focusSwap.sourceFocus} -> ${focusSwap.targetFocus}.\n`;
+      }
+      if (mythic) {
+        md += `- Mythic/custom campaign bonus applied: +10 customization CP.\n`;
+      }
+      md += '\n';
+    }
     return md;
   }
 
@@ -305,6 +374,20 @@ export default function CharacterGenerator() {
   };
 
   const warnings = character && showWeakness ? weaknessReport(character) : [];
+  const multiclassFeatCost = useMemo(() => getMulticlassFeatCost(level), [level]);
+  const crossDisciplineSpellcasting = useMemo(
+    () => (character ? getCrossDisciplineSpellcastingSummary(character) : null),
+    [character]
+  );
+  const selectedFocusSwap = creationRules?.racialFocusBonuses.find(entry => entry.focus === focusSwapSource) ?? null;
+  const resultCreationRules = useMemo(
+    () => (character ? getCreationRuleSummary(character.race as RaceName, character.class as ClassName) : null),
+    [character]
+  );
+  const resultMulticlassFeatCost = useMemo(
+    () => (character ? getMulticlassFeatCost(character.level) : multiclassFeatCost),
+    [character, multiclassFeatCost]
+  );
 
   return (
     <div className="text-off-white min-h-screen">
@@ -360,7 +443,7 @@ export default function CharacterGenerator() {
                 {levels.map(l => <option key={l} value={l}>{l}</option>)}
               </select>
             </div>
-            {magicPathsByClass[characterClass as keyof typeof magicPathsByClass] && characterClass !== 'Adept' && characterClass !== 'Mystic' && (
+            {magicPathsByClass[characterClass as keyof typeof magicPathsByClass]?.length && characterClass !== 'Adept' && characterClass !== 'Mystic' ? (
               <div>
                 <label className="block text-sm font-medium mb-1" htmlFor="magic-path">Chosen Magic Path</label>
                 <select
@@ -372,10 +455,10 @@ export default function CharacterGenerator() {
                   {magicPathsByClass[characterClass as keyof typeof magicPathsByClass]?.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>
-            )}
+            ) : null}
           </div>
 
-          <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Build Philosophy */}
             <div className="bg-white/5 rounded-xl p-4">
               <h3 className="font-semibold mb-2">Build Philosophy</h3>
@@ -422,6 +505,62 @@ export default function CharacterGenerator() {
                 <option value="specialist">Specialist Rookie (focused)</option>
               </select>
               <p className="mt-2 text-xs text-off-white/50">Generate a true starting character with only the 10 bonus CPs.</p>
+            </div>
+
+            <div className="bg-white/5 rounded-xl p-4 space-y-3">
+              <h3 className="font-semibold">Creation Rules</h3>
+              <label className="flex items-start gap-2 text-sm">
+                <input
+                  id="mythic-customization"
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 rounded"
+                  checked={mythicCustomization}
+                  onChange={(e) => setMythicCustomization(e.target.checked)}
+                />
+                <span>
+                  Mythic/custom campaign
+                  <span className="block text-xs text-off-white/50">Adds +10 customization CP for Mythic Physiology or custom-character tables.</span>
+                </span>
+              </label>
+              {creationRules?.duplicateBenefitAvailable && (
+                <div className="rounded-lg border border-amber-400/20 bg-amber-500/10 p-3 text-xs text-amber-100">
+                  Duplicate race/class overlap detected. One duplicate can become a free 2-point advantage, a tier-up, or a same-cost swap.
+                </div>
+              )}
+              {creationRules && creationRules.racialFocusBonuses.length > 0 && creationRules.focusSwapTargets.length > 0 && (
+                <>
+                  <select
+                    className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 p-2.5 text-sm"
+                    value={focusSwapSource}
+                    onChange={(e) => setFocusSwapSource(e.target.value)}
+                  >
+                    <option value="">Keep racial focus</option>
+                    {creationRules.racialFocusBonuses.map(entry => (
+                      <option key={entry.focus} value={entry.focus}>
+                        Swap {entry.focus} +{entry.value}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 p-2.5 text-sm"
+                    value={focusSwapTarget}
+                    onChange={(e) => setFocusSwapTarget(e.target.value)}
+                    disabled={!focusSwapSource}
+                  >
+                    <option value="">Choose class-linked focus</option>
+                    {creationRules.focusSwapTargets.map(entry => (
+                      <option key={entry.focus} value={entry.focus}>
+                        {entry.specialty} → {entry.focus}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-off-white/50">
+                    {selectedFocusSwap
+                      ? `Swapping ${selectedFocusSwap.focus} +${selectedFocusSwap.value} updates the starting minima before generation.`
+                      : 'Focus swaps move a racial focus bonus into an ungranted focus tied to a class specialty.'}
+                  </p>
+                </>
+              )}
             </div>
 
             {/* Options & Actions */}
@@ -594,6 +733,54 @@ export default function CharacterGenerator() {
                     <ul className="text-sm text-amber-900 list-disc list-inside">
                       {warnings.map(w => <li key={w}>{w}</li>)}
                     </ul>
+                  </div>
+                </div>
+              )}
+              {resultCreationRules && (
+                <div className="lg:col-span-2">
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-off-white/70 space-y-2">
+                    <h3 className="font-semibold text-off-white">Creation Rule Notes</h3>
+                    {resultCreationRules.duplicateBenefitAvailable ? (
+                      <>
+                        <div>This pairing has a one-time duplicate-trait benefit available during character creation.</div>
+                        {resultCreationRules.duplicateMinima.length > 0 && (
+                          <div className="text-xs text-off-white/50">
+                            Duplicate minima: {resultCreationRules.duplicateMinima.map(match => `${match.key} ${match.value}`).join(', ')}.
+                          </div>
+                        )}
+                        {resultCreationRules.duplicateAdvantages.length > 0 && (
+                          <div className="text-xs text-off-white/50">
+                            Duplicate advantages: {resultCreationRules.duplicateAdvantages.join(', ')}.
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="text-xs text-off-white/50">No duplicate minima or advantages detected for this build.</div>
+                    )}
+                    {lastCharacter?.focusSwap && (
+                      <div className="text-xs text-off-white/50">
+                        Focus swap applied: {lastCharacter.focusSwap.sourceFocus} → {lastCharacter.focusSwap.targetFocus}.
+                      </div>
+                    )}
+                    {resultMulticlassFeatCost ? (
+                      <div className="text-xs text-off-white/50">
+                        At level {character.level}, purchasing an out-of-class feat costs {resultMulticlassFeatCost} CP if the character meets the other class minima and has narrative justification.
+                      </div>
+                    ) : (
+                      <div className="text-xs text-off-white/50">
+                        Out-of-class feat purchases start at level 3. Failed out-of-class attempts impose the next-turn -2 test penalty.
+                      </div>
+                    )}
+                    {crossDisciplineSpellcasting && (
+                      <div className="text-xs text-off-white/50">
+                        Secondary-discipline spell capacity: {crossDisciplineSpellcasting.spellCapacity} {crossDisciplineSpellcasting.secondaryFocus} spell{crossDisciplineSpellcasting.spellCapacity === 1 ? '' : 's'}.
+                      </div>
+                    )}
+                    {lastCharacter?.mythic && (
+                      <div className="text-xs text-muted-eldritch-green">
+                        Mythic/custom campaign bonus applied: +10 customization CP.
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

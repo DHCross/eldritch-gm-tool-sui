@@ -12,6 +12,10 @@ import {
   fnum,
   foci,
   focusStepCost,
+  getCreationRuleSummary,
+  getCrossDisciplineSpellcastingSummary,
+  getCustomizationBudget,
+  getMulticlassFeatCost,
   magicPathsByClass,
   races,
   specs,
@@ -22,7 +26,8 @@ import {
   levels,
   mv,
   type Character,
-  type DieRank
+  type DieRank,
+  type FocusSwapSelection
 } from '../utils/characterBuild';
 import type { ClassName, RaceName } from '../data/gameData';
 import {
@@ -50,7 +55,6 @@ interface CPBreakdown {
   total: number;
 }
 
-const getBudgetForLevel = (level: number) => (level === 1 ? 10 : 10 + (level - 1) * 100);
 const NAME_CULTURE_OPTIONS: NameCulture[] = ['English', 'Scottish', 'Welsh', 'Irish', 'Norse', 'French', 'Germanic', 'Fantasy'];
 
 const ADVANTAGE_DESCRIPTIONS: Record<string, string> = {
@@ -82,6 +86,9 @@ export default function ManualCharacterBuilder() {
   const [selectedClass, setSelectedClass] = useState<ClassName | ''>('');
   const [selectedLevel, setSelectedLevel] = useState<number>(1);
   const [selectedMagicPath, setSelectedMagicPath] = useState('');
+  const [mythicCustomization, setMythicCustomization] = useState(false);
+  const [focusSwapSource, setFocusSwapSource] = useState('');
+  const [focusSwapTarget, setFocusSwapTarget] = useState('');
 
   const [character, setCharacter] = useState<Character | null>(null);
   const [baseCharacter, setBaseCharacter] = useState<Character | null>(null);
@@ -94,6 +101,13 @@ export default function ManualCharacterBuilder() {
   const [suggestedNames, setSuggestedNames] = useState<Array<{ firstName: string; familyName?: string; culture: NameCulture; suggestion: string }>>([]);
 
   const selectedClassMagicPaths = selectedClass ? magicPathsByClass[selectedClass] : undefined;
+  const creationRules = useMemo(
+    () => (selectedRace && selectedClass ? getCreationRuleSummary(selectedRace as RaceName, selectedClass) : null),
+    [selectedRace, selectedClass]
+  );
+  const activeFocusSwap = useMemo<FocusSwapSelection | undefined>(() => (
+    focusSwapSource && focusSwapTarget ? { sourceFocus: focusSwapSource, targetFocus: focusSwapTarget } : undefined
+  ), [focusSwapSource, focusSwapTarget]);
 
   const [partyFolders, setPartyFolders] = useState<PartyFolder[]>([]);
   const [selectedParty, setSelectedParty] = useState('');
@@ -132,14 +146,36 @@ export default function ManualCharacterBuilder() {
     }
   }, [character?.race, character?.class, characterGender, nameCulture]);
 
-  const cpBudget = useMemo(() => getBudgetForLevel(selectedLevel), [selectedLevel]);
+  useEffect(() => {
+    if (!creationRules) {
+      setFocusSwapSource('');
+      setFocusSwapTarget('');
+      return;
+    }
+
+    const validSources = new Set(creationRules.racialFocusBonuses.map(entry => entry.focus));
+    if (focusSwapSource && !validSources.has(focusSwapSource)) {
+      setFocusSwapSource('');
+    }
+
+    const validTargets = new Set(creationRules.focusSwapTargets.map(entry => entry.focus));
+    if (focusSwapTarget && !validTargets.has(focusSwapTarget)) {
+      setFocusSwapTarget('');
+    }
+  }, [creationRules, focusSwapSource, focusSwapTarget]);
+
+  const cpBudget = useMemo(
+    () => getCustomizationBudget(selectedLevel, mythicCustomization),
+    [selectedLevel, mythicCustomization]
+  );
 
   useEffect(() => {
     if (selectedRace && selectedClass) {
       const { character: workingCharacter, baseCharacter: minimaCharacter } = createCharacterShell(
         selectedRace as RaceName,
         selectedClass,
-        selectedLevel
+        selectedLevel,
+        { focusSwap: activeFocusSwap }
       );
       updateDerivedCharacterData(workingCharacter);
       setCharacter(workingCharacter);
@@ -150,7 +186,7 @@ export default function ManualCharacterBuilder() {
       setBaseCharacter(null);
       setCpSpent(null);
     }
-  }, [selectedRace, selectedClass, selectedLevel]);
+  }, [selectedRace, selectedClass, selectedLevel, activeFocusSwap]);
 
   useEffect(() => {
     setCharacter(prev => {
@@ -241,6 +277,61 @@ export default function ManualCharacterBuilder() {
     .filter(Boolean)
     .map(warning => toGuidanceWarning(warning as string)) as string[];
   const canFinalize = Boolean(character && baseCharacter && cpRemaining >= 0);
+  const multiclassFeatCost = useMemo(() => getMulticlassFeatCost(selectedLevel), [selectedLevel]);
+  const crossDisciplineSpellcasting = useMemo(
+    () => (character ? getCrossDisciplineSpellcastingSummary(character) : null),
+    [character]
+  );
+  const selectedFocusSwapSource = creationRules?.racialFocusBonuses.find(entry => entry.focus === focusSwapSource) ?? null;
+
+  const addCustomFocus = (ability: keyof typeof specs, specialty: string) => {
+    applyCharacterUpdate(draft => {
+      draft.customFocuses.push({
+        id: `custom-focus-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        ability,
+        specialty: specialty as (typeof specs)[keyof typeof specs][number],
+        name: '',
+        value: '+0'
+      });
+    });
+  };
+
+  const updateCustomFocusName = (focusId: string, name: string) => {
+    applyCharacterUpdate(draft => {
+      const customFocus = draft.customFocuses.find(entry => entry.id === focusId);
+      if (customFocus) {
+        customFocus.name = name;
+      }
+    });
+  };
+
+  const adjustCustomFocus = (focusId: string, delta: number) => {
+    if (!character) return;
+    const customFocus = character.customFocuses.find(entry => entry.id === focusId);
+    if (!customFocus) return;
+
+    const currentValue = fnum(customFocus.value);
+    const nextValue = currentValue + delta;
+    if (nextValue < 0 || nextValue > 5) return;
+
+    if (delta > 0 && focusStepCost > cpRemaining) {
+      setInteractionWarning('Not enough CP remaining to increase this custom focus.');
+      return;
+    }
+
+    applyCharacterUpdate(draft => {
+      const draftFocus = draft.customFocuses.find(entry => entry.id === focusId);
+      if (draftFocus) {
+        draftFocus.value = `+${nextValue}`;
+      }
+    });
+  };
+
+  const removeCustomFocus = (focusId: string) => {
+    applyCharacterUpdate(draft => {
+      draft.customFocuses = draft.customFocuses.filter(entry => entry.id !== focusId);
+    });
+  };
 
   useEffect(() => {
     const previous = previousCpSpent.current;
@@ -286,6 +377,9 @@ export default function ManualCharacterBuilder() {
     setSelectedRace('');
     setSelectedClass('');
     setSelectedMagicPath('');
+    setMythicCustomization(false);
+    setFocusSwapSource('');
+    setFocusSwapTarget('');
     setCharacter(null);
     setBaseCharacter(null);
     setCpSpent(null);
@@ -345,7 +439,11 @@ export default function ManualCharacterBuilder() {
         character_gender: characterGender,
         name_culture: nameCulture,
         magic_path: selectedMagicPath,
-        build_method: 'manual'
+        build_method: 'manual',
+        creation_options: {
+          mythic_customization: mythicCustomization,
+          focus_swap: activeFocusSwap ?? null
+        }
       }
     };
 
@@ -458,7 +556,7 @@ export default function ManualCharacterBuilder() {
               {levels.map(level => <option key={level} value={level}>{level}</option>)}
             </select>
           </div>
-          {selectedClassMagicPaths && selectedClass !== 'Adept' && selectedClass !== 'Mystic' && (
+          {selectedClassMagicPaths?.length && selectedClass !== 'Adept' && selectedClass !== 'Mystic' ? (
             <div>
               <label className="block text-sm font-medium mb-1 text-off-white/80" htmlFor="magic-path">Magic Path</label>
               <select
@@ -471,7 +569,77 @@ export default function ManualCharacterBuilder() {
                 {selectedClassMagicPaths.map(path => <option key={path} value={path}>{path}</option>)}
               </select>
             </div>
-          )}
+          ) : null}
+          <div className="rounded-xl border border-white/10 bg-white/5 p-3 space-y-3">
+            <div>
+              <div className="text-sm font-medium text-off-white/80">Advanced Creation Rules</div>
+              <p className="mt-1 text-xs text-off-white/50">
+                Apply optional Eldritch edge rules before you spend CP.
+              </p>
+            </div>
+            <label className="flex items-start gap-2 text-sm text-off-white/75">
+              <input
+                type="checkbox"
+                className="mt-0.5"
+                checked={mythicCustomization}
+                onChange={(e) => setMythicCustomization(e.target.checked)}
+              />
+              <span>
+                Mythic/custom campaign bonus
+                <span className="block text-xs text-off-white/45">Adds +10 customization CP when Mythic Physiology or full custom play is allowed.</span>
+              </span>
+            </label>
+
+            {creationRules?.duplicateBenefitAvailable && (
+              <div className="rounded-lg border border-amber-400/20 bg-amber-500/10 p-3 text-xs text-amber-100">
+                <div className="font-semibold">Duplicate benefit available</div>
+                <div className="mt-1 text-amber-100/80">
+                  One duplicate overlap can become a free 2-point advantage, an advantage tier-up, or a same-cost swap with any lower-value loss discarded.
+                </div>
+              </div>
+            )}
+
+            {creationRules && creationRules.racialFocusBonuses.length > 0 && creationRules.focusSwapTargets.length > 0 && (
+              <div className="space-y-2">
+                <div className="text-xs font-semibold uppercase tracking-wide text-off-white/50">Focus Swap</div>
+                <select
+                  className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 p-2 text-sm text-off-white"
+                  value={focusSwapSource}
+                  onChange={(e) => setFocusSwapSource(e.target.value)}
+                >
+                  <option value="">Keep racial focus as-is</option>
+                  {creationRules.racialFocusBonuses.map(entry => (
+                    <option key={entry.focus} value={entry.focus}>
+                      Swap {entry.focus} +{entry.value}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 p-2 text-sm text-off-white"
+                  value={focusSwapTarget}
+                  onChange={(e) => setFocusSwapTarget(e.target.value)}
+                  disabled={!focusSwapSource}
+                >
+                  <option value="">Choose class-linked focus</option>
+                  {creationRules.focusSwapTargets.map(entry => (
+                    <option key={entry.focus} value={entry.focus}>
+                      {entry.specialty} → {entry.focus}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-off-white/45">
+                  {selectedFocusSwapSource
+                    ? `Swaps ${selectedFocusSwapSource.focus} +${selectedFocusSwapSource.value} into an ungranted focus tied to one of ${selectedClass}'s base specialties.`
+                    : 'Use this when you want a racial focus to align with your class package.'}
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-1 text-xs text-off-white/55">
+              <div>Custom focuses cost 4 CP per +1 and should be GM-approved.</div>
+              <div>Starting flaws should not exceed 4 CP total.</div>
+            </div>
+          </div>
         </div>
 
         <div className="lg:col-span-3 space-y-6">
@@ -500,7 +668,7 @@ export default function ManualCharacterBuilder() {
                 <div>Advantages: <span className="font-semibold text-off-white">{cpSpent.advantages}</span></div>
               </div>
               <p className="text-xs text-off-white/40 mt-2 italic">
-                Focus bonuses also spend CP unless they are part of the starting race/class package.
+                Standard and custom focus bonuses both spend CP unless they are part of the starting race/class package.
               </p>
               <div className="mt-4 border-t border-white/10 pt-3">
                 <div className="text-xs uppercase tracking-wide text-off-white/50 mb-2">Quick Start Presets</div>
@@ -522,6 +690,55 @@ export default function ManualCharacterBuilder() {
               {combinedWarnings.map((warning, index) => (
                 <div key={`${warning}-${index}`}>{warning}</div>
               ))}
+            </div>
+          )}
+
+          {creationRules && (
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-off-white/70 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="font-semibold text-base text-off-white">Creation Rule Notes</h3>
+                {mythicCustomization && (
+                  <span className="rounded-full border border-muted-eldritch-green/30 bg-muted-eldritch-green/10 px-3 py-1 text-xs text-muted-eldritch-green">
+                    Mythic +10 CP active
+                  </span>
+                )}
+              </div>
+              {creationRules.duplicateBenefitAvailable ? (
+                <div className="space-y-1">
+                  <div className="text-off-white">
+                    This race/class pair qualifies for a one-time duplicate-trait creation benefit.
+                  </div>
+                  {creationRules.duplicateMinima.length > 0 && (
+                    <div className="text-xs text-off-white/55">
+                      Duplicate minima: {creationRules.duplicateMinima.map(match => `${match.key} ${match.value}`).join(', ')}.
+                    </div>
+                  )}
+                  {creationRules.duplicateAdvantages.length > 0 && (
+                    <div className="text-xs text-off-white/55">
+                      Duplicate advantages: {creationRules.duplicateAdvantages.join(', ')}.
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-xs text-off-white/55">No duplicate minima or advantages detected for this race/class pairing.</div>
+              )}
+              {multiclassFeatCost ? (
+                <div className="text-xs text-off-white/55">
+                  Out-of-class feat purchase is available at level {selectedLevel} for {multiclassFeatCost} CP if the narrative and minima requirements are met.
+                </div>
+              ) : (
+                <div className="text-xs text-off-white/55">
+                  Out-of-class feat purchases unlock at level 3. Failed out-of-class attempts still impose the next-turn -2 penalty.
+                </div>
+              )}
+              {crossDisciplineSpellcasting && (
+                <div className="text-xs text-off-white/55">
+                  Secondary-discipline spell capacity: {crossDisciplineSpellcasting.spellCapacity} {crossDisciplineSpellcasting.secondaryFocus} spell{crossDisciplineSpellcasting.spellCapacity === 1 ? '' : 's'}.
+                </div>
+              )}
+              <div className="text-xs text-off-white/45">
+                Custom archetype builds and full 80 CP complete customization still require GM adjudication outside this standard race/class workflow.
+              </div>
             </div>
           )}
 
@@ -622,6 +839,59 @@ export default function ManualCharacterBuilder() {
                                     </div>
                                   </div>
                                 ))}
+                              </div>
+                              <div className="mt-3 rounded-lg border border-dashed border-white/10 p-3">
+                                <div className="flex items-center justify-between gap-3">
+                                  <div>
+                                    <div className="text-xs font-semibold uppercase tracking-wide text-off-white/50">Custom Focuses</div>
+                                    <div className="text-xs text-off-white/40">
+                                      Add GM-approved focus areas under {spec}. Cost: 4 CP per +1.
+                                    </div>
+                                  </div>
+                                  <button
+                                    className="rounded-full border border-white/20 px-3 py-1 text-xs text-off-white/75 hover:bg-white/10"
+                                    onClick={() => addCustomFocus(ability as keyof typeof specs, spec)}
+                                  >
+                                    Add Custom Focus
+                                  </button>
+                                </div>
+                                {character.customFocuses.filter(entry => entry.ability === ability && entry.specialty === spec).length > 0 && (
+                                  <div className="mt-3 space-y-2">
+                                    {character.customFocuses
+                                      .filter(entry => entry.ability === ability && entry.specialty === spec)
+                                      .map(customFocus => (
+                                        <div key={customFocus.id} className="flex flex-wrap items-center gap-2 rounded-lg bg-white/5 px-3 py-2">
+                                          <input
+                                            value={customFocus.name}
+                                            onChange={(e) => updateCustomFocusName(customFocus.id, e.target.value)}
+                                            placeholder="e.g. Diplomacy, Rune Lore, Astronomy"
+                                            className="min-w-[14rem] flex-1 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-off-white placeholder-off-white/30"
+                                          />
+                                          <div className="flex items-center gap-2">
+                                            <button
+                                              className="w-6 h-6 rounded-full border border-white/20 bg-white/10 text-off-white"
+                                              onClick={() => adjustCustomFocus(customFocus.id, -1)}
+                                            >
+                                              −
+                                            </button>
+                                            <span className="font-mono text-sm text-off-white">{customFocus.value}</span>
+                                            <button
+                                              className="w-6 h-6 rounded-full border border-white/20 bg-white/10 text-off-white"
+                                              onClick={() => adjustCustomFocus(customFocus.id, 1)}
+                                            >
+                                              +
+                                            </button>
+                                            <button
+                                              className="rounded-full border border-white/20 px-2 py-1 text-xs text-off-white/65 hover:bg-white/10"
+                                              onClick={() => removeCustomFocus(customFocus.id)}
+                                            >
+                                              Remove
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           ))}
