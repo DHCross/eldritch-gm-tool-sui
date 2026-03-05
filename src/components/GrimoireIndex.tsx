@@ -209,7 +209,7 @@ export default function GrimoireIndex() {
             <select
               value={selectedPath}
               onChange={(e) => setSelectedPath(e.target.value)}
-              className="w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soft-amethyst/50"
+              className="npc-native-select w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soft-amethyst/50"
             >
               <option value="">All Paths</option>
               {uniquePaths.map(path => (
@@ -225,7 +225,7 @@ export default function GrimoireIndex() {
             <select
               value={selectedRarity}
               onChange={(e) => setSelectedRarity(e.target.value)}
-              className="w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soft-amethyst/50"
+              className="npc-native-select w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soft-amethyst/50"
             >
               <option value="">All Rarities</option>
               {uniqueRarities.map(rarity => (
@@ -241,7 +241,7 @@ export default function GrimoireIndex() {
             <select
               value={selectedEffect}
               onChange={(e) => setSelectedEffect(e.target.value)}
-              className="w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soft-amethyst/50"
+              className="npc-native-select w-full border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soft-amethyst/50"
             >
               <option value="">All Effects</option>
               {uniqueEffects.map(effect => (

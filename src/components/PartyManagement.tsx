@@ -193,7 +193,7 @@ export default function PartyManagement() {
             <select
               value={newFolderType}
               onChange={(e) => setNewFolderType(e.target.value as FolderType)}
-              className="w-full p-2 border rounded mb-2"
+              className="npc-native-select w-full p-2 border rounded mb-2"
             >
               <option value="PC_party">PC Party</option>
               <option value="NPC_roster">NPC Roster</option>

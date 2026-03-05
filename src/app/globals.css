@@ -108,14 +108,17 @@ html {
   }
 
   /* Native select popup contrast fix (macOS/Safari/Chromium system menu rendering) */
-  .npc-native-select option {
+  .npc-native-select option,
+  select[class*="text-off-white"] option {
     color: #111827;
     background-color: #ffffff;
     opacity: 1;
   }
 
   .npc-native-select option:checked,
-  .npc-native-select option:hover {
+  .npc-native-select option:hover,
+  select[class*="text-off-white"] option:checked,
+  select[class*="text-off-white"] option:hover {
     color: #111827;
     background-color: #bfdbfe;
   }

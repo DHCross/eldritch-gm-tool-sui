@@ -321,7 +321,7 @@ export default function CharacterGenerator() {
               <label className="block text-sm font-medium mb-1" htmlFor="race">Race</label>
               <select
                 id="race"
-                className="w-full rounded-lg border border-white/15 bg-white/5 p-2.5"
+                className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 p-2.5"
                 value={race}
                 onChange={(e) => setRace(e.target.value)}
               >
@@ -333,7 +333,7 @@ export default function CharacterGenerator() {
               <label className="block text-sm font-medium mb-1" htmlFor="class">Class</label>
               <select
                 id="class"
-                className="w-full rounded-lg border border-white/15 bg-white/5 p-2.5"
+                className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 p-2.5"
                 value={characterClass}
                 onChange={(e) => {
                   setCharacterClass(e.target.value);
@@ -353,7 +353,7 @@ export default function CharacterGenerator() {
               <label className="block text-sm font-medium mb-1" htmlFor="level">Level</label>
               <select
                 id="level"
-                className="w-full rounded-lg border border-white/15 bg-white/5 p-2.5"
+                className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 p-2.5"
                 value={level}
                 onChange={(e) => setLevel(parseInt(e.target.value))}
               >
@@ -365,7 +365,7 @@ export default function CharacterGenerator() {
                 <label className="block text-sm font-medium mb-1" htmlFor="magic-path">Chosen Magic Path</label>
                 <select
                   id="magic-path"
-                  className="w-full rounded-lg border border-white/15 bg-white/5 p-2.5"
+                  className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 p-2.5"
                   value={magicPath}
                   onChange={(e) => setMagicPath(e.target.value)}
                 >
@@ -411,7 +411,7 @@ export default function CharacterGenerator() {
               <h3 className="font-semibold mb-2">Rookie Profile (Level 1 Only)</h3>
               <select
                 id="rookie-profile"
-                className="w-full rounded-lg border border-white/15 bg-white/5 p-2.5"
+                className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 p-2.5"
                 disabled={level !== 1}
                 value={rookieProfile}
                 onChange={(e) => setRookieProfile(e.target.value)}
@@ -675,7 +675,7 @@ export default function CharacterGenerator() {
                     <select
                       value={characterGender}
                       onChange={(e) => setCharacterGender(e.target.value as Gender)}
-                      className="w-full border border-white/15 rounded p-2 text-sm"
+                      className="npc-native-select w-full border border-white/15 rounded p-2 text-sm"
                     >
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
@@ -687,7 +687,7 @@ export default function CharacterGenerator() {
                     <select
                       value={nameCulture}
                       onChange={(e) => setNameCulture(e.target.value as NameCulture)}
-                      className="w-full border border-white/15 rounded p-2 text-sm"
+                      className="npc-native-select w-full border border-white/15 rounded p-2 text-sm"
                     >
                       <option value="English">English</option>
                       <option value="Scottish">Scottish</option>
@@ -733,7 +733,7 @@ export default function CharacterGenerator() {
                 <select
                   value={selectedParty}
                   onChange={(e) => setSelectedParty(e.target.value)}
-                  className="w-full border border-white/15 rounded-lg p-2"
+                  className="npc-native-select w-full border border-white/15 rounded-lg p-2"
                 >
                   <option value="">No party assignment</option>
                   {partyFolders.map(folder => (

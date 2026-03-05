@@ -332,7 +332,7 @@ export default function ManualCharacterBuilder() {
             <label className="block text-sm font-medium mb-1 text-off-white/80" htmlFor="race">Race</label>
             <select
               id="race"
-              className="w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5"
+              className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5"
               value={selectedRace}
               onChange={(e) => setSelectedRace(e.target.value)}
             >
@@ -344,7 +344,7 @@ export default function ManualCharacterBuilder() {
             <label className="block text-sm font-medium mb-1 text-off-white/80" htmlFor="class">Class</label>
             <select
               id="class"
-              className="w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5"
+              className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5"
               value={selectedClass}
               onChange={(e) => {
                 const nextClass = e.target.value as ClassName | '';
@@ -360,7 +360,7 @@ export default function ManualCharacterBuilder() {
             <label className="block text-sm font-medium mb-1 text-off-white/80" htmlFor="level">Level</label>
             <select
               id="level"
-              className="w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5"
+              className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5"
               value={selectedLevel}
               onChange={(e) => setSelectedLevel(parseInt(e.target.value))}
             >
@@ -372,7 +372,7 @@ export default function ManualCharacterBuilder() {
               <label className="block text-sm font-medium mb-1 text-off-white/80" htmlFor="magic-path">Magic Path</label>
               <select
                 id="magic-path"
-                className="w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5"
+                className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5"
                 value={selectedMagicPath}
                 onChange={(e) => setSelectedMagicPath(e.target.value)}
               >
@@ -548,7 +548,7 @@ export default function ManualCharacterBuilder() {
                       <select
                         value={nameCulture}
                         onChange={(e) => setNameCulture(e.target.value as NameCulture)}
-                        className="text-xs rounded-full border border-white/20 bg-white/5 text-off-white px-3 py-1.5"
+                        className="npc-native-select text-xs rounded-full border border-white/20 bg-white/5 text-off-white px-3 py-1.5"
                       >
                         {NAME_CULTURE_OPTIONS.map(culture => (
                           <option key={culture} value={culture}>{culture}</option>
@@ -632,7 +632,7 @@ export default function ManualCharacterBuilder() {
             <h3 className="text-lg font-semibold text-off-white">Assign to Party</h3>
             <p className="text-sm text-off-white/60">Optionally choose a party folder for this character.</p>
             <select
-              className="w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5"
+              className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5"
               value={selectedParty}
               onChange={(e) => setSelectedParty(e.target.value)}
             >
