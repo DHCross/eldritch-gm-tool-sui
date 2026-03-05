@@ -15,6 +15,7 @@ import {
   getCreationRuleSummary,
   getCrossDisciplineSpellcastingSummary,
   getCustomizationBudget,
+  getFocusSwapCPCost,
   getMulticlassFeatCost,
   magicPathsByClass,
   races,
@@ -89,6 +90,7 @@ export default function ManualCharacterBuilder() {
   const [mythicCustomization, setMythicCustomization] = useState(false);
   const [focusSwapSource, setFocusSwapSource] = useState('');
   const [focusSwapTarget, setFocusSwapTarget] = useState('');
+  const [focusSwapMode, setFocusSwapMode] = useState<'standard' | 'single_specialty_broad' | 'single_specialty_upgrade'>('standard');
 
   const [character, setCharacter] = useState<Character | null>(null);
   const [baseCharacter, setBaseCharacter] = useState<Character | null>(null);
@@ -106,8 +108,14 @@ export default function ManualCharacterBuilder() {
     [selectedRace, selectedClass]
   );
   const activeFocusSwap = useMemo<FocusSwapSelection | undefined>(() => (
-    focusSwapSource && focusSwapTarget ? { sourceFocus: focusSwapSource, targetFocus: focusSwapTarget } : undefined
-  ), [focusSwapSource, focusSwapTarget]);
+    focusSwapSource && focusSwapTarget
+      ? {
+          sourceFocus: focusSwapSource,
+          targetFocus: focusSwapTarget,
+          mode: creationRules?.singleSpecialtyFocusSwap ? focusSwapMode : 'standard'
+        }
+      : undefined
+  ), [creationRules?.singleSpecialtyFocusSwap, focusSwapMode, focusSwapSource, focusSwapTarget]);
 
   const [partyFolders, setPartyFolders] = useState<PartyFolder[]>([]);
   const [selectedParty, setSelectedParty] = useState('');
@@ -150,6 +158,7 @@ export default function ManualCharacterBuilder() {
     if (!creationRules) {
       setFocusSwapSource('');
       setFocusSwapTarget('');
+      setFocusSwapMode('standard');
       return;
     }
 
@@ -162,12 +171,29 @@ export default function ManualCharacterBuilder() {
     if (focusSwapTarget && !validTargets.has(focusSwapTarget)) {
       setFocusSwapTarget('');
     }
-  }, [creationRules, focusSwapSource, focusSwapTarget]);
+
+    if (focusSwapTarget && focusSwapTarget === focusSwapSource) {
+      setFocusSwapTarget('');
+    }
+
+    if (!focusSwapSource && creationRules.racialFocusBonuses.length === 1) {
+      setFocusSwapSource(creationRules.racialFocusBonuses[0].focus);
+    }
+
+    if (creationRules.singleSpecialtyFocusSwap && focusSwapMode === 'standard') {
+      setFocusSwapMode('single_specialty_broad');
+    }
+
+    if (!creationRules.singleSpecialtyFocusSwap && focusSwapMode !== 'standard') {
+      setFocusSwapMode('standard');
+    }
+  }, [creationRules, focusSwapMode, focusSwapSource, focusSwapTarget]);
 
   const cpBudget = useMemo(
     () => getCustomizationBudget(selectedLevel, mythicCustomization),
     [selectedLevel, mythicCustomization]
   );
+  const focusSwapCpCost = useMemo(() => getFocusSwapCPCost(activeFocusSwap), [activeFocusSwap]);
 
   useEffect(() => {
     if (selectedRace && selectedClass) {
@@ -180,13 +206,13 @@ export default function ManualCharacterBuilder() {
       updateDerivedCharacterData(workingCharacter);
       setCharacter(workingCharacter);
       setBaseCharacter(minimaCharacter);
-      setCpSpent(calculateCPSpent(workingCharacter, minimaCharacter, false));
+      setCpSpent(calculateCPSpent(workingCharacter, minimaCharacter, false, focusSwapCpCost));
     } else {
       setCharacter(null);
       setBaseCharacter(null);
       setCpSpent(null);
     }
-  }, [selectedRace, selectedClass, selectedLevel, activeFocusSwap]);
+  }, [selectedRace, selectedClass, selectedLevel, activeFocusSwap, focusSwapCpCost]);
 
   useEffect(() => {
     setCharacter(prev => {
@@ -203,7 +229,7 @@ export default function ManualCharacterBuilder() {
     updater(next);
     updateDerivedCharacterData(next);
     setCharacter(next);
-    setCpSpent(calculateCPSpent(next, baseCharacter, false));
+    setCpSpent(calculateCPSpent(next, baseCharacter, false, focusSwapCpCost));
     setInteractionWarning(null);
   };
 
@@ -364,12 +390,12 @@ export default function ManualCharacterBuilder() {
     recommended.level = selectedLevel;
     recommended.magicPath = selectedMagicPath;
 
-    const budget = { value: cpBudget };
+    const budget = { value: cpBudget - focusSwapCpCost };
     spendCP(recommended, budget, 'balanced', selectedLevel, false, true);
     updateDerivedCharacterData(recommended);
 
     setCharacter(recommended);
-    setCpSpent(calculateCPSpent(recommended, baseCharacter, false));
+    setCpSpent(calculateCPSpent(recommended, baseCharacter, false, focusSwapCpCost));
     setInteractionWarning(`Applied recommended ${selectedClass} baseline. You can now fine-tune manually.`);
   };
 
@@ -380,6 +406,7 @@ export default function ManualCharacterBuilder() {
     setMythicCustomization(false);
     setFocusSwapSource('');
     setFocusSwapTarget('');
+    setFocusSwapMode('standard');
     setCharacter(null);
     setBaseCharacter(null);
     setCpSpent(null);
@@ -572,9 +599,9 @@ export default function ManualCharacterBuilder() {
           ) : null}
           <div className="rounded-xl border border-white/10 bg-white/5 p-3 space-y-3">
             <div>
-              <div className="text-sm font-medium text-off-white/80">Advanced Creation Rules</div>
+              <div className="text-sm font-medium text-off-white/80">Character Creation Rules</div>
               <p className="mt-1 text-xs text-off-white/50">
-                Apply optional Eldritch edge rules before you spend CP.
+                These Eldritch edge rules can apply to normal race/class builds too. The mythic/custom campaign toggle is only one option here.
               </p>
             </div>
             <label className="flex items-start gap-2 text-sm text-off-white/75">
@@ -602,35 +629,77 @@ export default function ManualCharacterBuilder() {
             {creationRules && creationRules.racialFocusBonuses.length > 0 && creationRules.focusSwapTargets.length > 0 && (
               <div className="space-y-2">
                 <div className="text-xs font-semibold uppercase tracking-wide text-off-white/50">Focus Swap</div>
-                <select
-                  className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 p-2 text-sm text-off-white"
-                  value={focusSwapSource}
-                  onChange={(e) => setFocusSwapSource(e.target.value)}
-                >
-                  <option value="">Keep racial focus as-is</option>
-                  {creationRules.racialFocusBonuses.map(entry => (
-                    <option key={entry.focus} value={entry.focus}>
-                      Swap {entry.focus} +{entry.value}
-                    </option>
-                  ))}
-                </select>
+                {creationRules.racialFocusBonuses.length > 1 ? (
+                  <select
+                    className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 p-2 text-sm text-off-white"
+                    value={focusSwapSource}
+                    onChange={(e) => setFocusSwapSource(e.target.value)}
+                  >
+                    <option value="">Keep racial focus as-is</option>
+                    {creationRules.racialFocusBonuses.map(entry => (
+                      <option key={entry.focus} value={entry.focus}>
+                        Swap {entry.focus} +{entry.value}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-off-white/80">
+                    Source focus: {creationRules.racialFocusBonuses[0].focus} +{creationRules.racialFocusBonuses[0].value}
+                  </div>
+                )}
+                {creationRules.singleSpecialtyFocusSwap && (
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <label className="flex items-start gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-off-white/75">
+                      <input
+                        type="radio"
+                        name="focus-swap-mode"
+                        value="single_specialty_broad"
+                        checked={focusSwapMode === 'single_specialty_broad'}
+                        onChange={() => setFocusSwapMode('single_specialty_broad')}
+                      />
+                      <span>
+                        Reassign as +1
+                        <span className="block text-xs text-off-white/45">Choose any focus not already granted by the class.</span>
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-off-white/75">
+                      <input
+                        type="radio"
+                        name="focus-swap-mode"
+                        value="single_specialty_upgrade"
+                        checked={focusSwapMode === 'single_specialty_upgrade'}
+                        onChange={() => setFocusSwapMode('single_specialty_upgrade')}
+                      />
+                      <span>
+                        Upgrade to +2
+                        <span className="block text-xs text-off-white/45">Uses the swap as a 4 CP discount and spends 4 CP from your budget.</span>
+                      </span>
+                    </label>
+                  </div>
+                )}
                 <select
                   className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 p-2 text-sm text-off-white"
                   value={focusSwapTarget}
                   onChange={(e) => setFocusSwapTarget(e.target.value)}
                   disabled={!focusSwapSource}
                 >
-                  <option value="">Choose class-linked focus</option>
-                  {creationRules.focusSwapTargets.map(entry => (
+                  <option value="">
+                    {creationRules.singleSpecialtyFocusSwap ? 'Choose target focus' : 'Choose class-linked focus'}
+                  </option>
+                  {creationRules.focusSwapTargets.filter(entry => entry.focus !== focusSwapSource).map(entry => (
                     <option key={entry.focus} value={entry.focus}>
-                      {entry.specialty} → {entry.focus}
+                      {creationRules.singleSpecialtyFocusSwap ? `${entry.focus} (${entry.specialty})` : `${entry.specialty} → ${entry.focus}`}
                     </option>
                   ))}
                 </select>
                 <p className="text-xs text-off-white/45">
                   {selectedFocusSwapSource
-                    ? `Swaps ${selectedFocusSwapSource.focus} +${selectedFocusSwapSource.value} into an ungranted focus tied to one of ${selectedClass}'s base specialties.`
-                    : 'Use this when you want a racial focus to align with your class package.'}
+                    ? creationRules.singleSpecialtyFocusSwap
+                      ? focusSwapMode === 'single_specialty_upgrade'
+                        ? `Swaps ${selectedFocusSwapSource.focus} +${selectedFocusSwapSource.value} into a different focus at +2 and reserves 4 CP from your customization budget.`
+                        : `Swaps ${selectedFocusSwapSource.focus} +${selectedFocusSwapSource.value} into any focus not already granted by ${selectedClass}.`
+                      : `Swaps ${selectedFocusSwapSource.focus} +${selectedFocusSwapSource.value} into an ungranted focus tied to one of ${selectedClass}'s base specialties.`
+                    : 'Choose the racial focus you want to reassign, then pick the target focus.'}
                 </p>
               </div>
             )}
@@ -734,6 +803,11 @@ export default function ManualCharacterBuilder() {
               {crossDisciplineSpellcasting && (
                 <div className="text-xs text-off-white/55">
                   Secondary-discipline spell capacity: {crossDisciplineSpellcasting.spellCapacity} {crossDisciplineSpellcasting.secondaryFocus} spell{crossDisciplineSpellcasting.spellCapacity === 1 ? '' : 's'}.
+                </div>
+              )}
+              {activeFocusSwap?.mode === 'single_specialty_upgrade' && focusSwapTarget && (
+                <div className="text-xs text-off-white/55">
+                  Single-specialty upgrade path active: {focusSwapTarget} starts at +2 and counts as 4 CP spent.
                 </div>
               )}
               <div className="text-xs text-off-white/45">

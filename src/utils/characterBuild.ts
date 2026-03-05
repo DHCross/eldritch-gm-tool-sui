@@ -56,6 +56,7 @@ export interface CreationFocusBonus {
 export interface FocusSwapSelection {
   sourceFocus: string;
   targetFocus: string;
+  mode?: 'standard' | 'single_specialty_broad' | 'single_specialty_upgrade';
 }
 
 export interface CrossDisciplineSpellcastingSummary {
@@ -71,6 +72,8 @@ export interface CreationRuleSummary {
   duplicateBenefitAvailable: boolean;
   racialFocusBonuses: CreationFocusBonus[];
   classBaseSpecialties: Array<{ ability: Ability; specialty: Specialty }>;
+  classGrantedFocuses: CreationFocusBonus[];
+  singleSpecialtyFocusSwap: boolean;
   focusSwapTargets: CreationFocusBonus[];
 }
 
@@ -175,6 +178,22 @@ export function getRacialFocusBonuses(race: RaceName): CreationFocusBonus[] {
     });
 }
 
+export function getClassGrantedFocusBonuses(klass: ClassName): CreationFocusBonus[] {
+  const minima = classDefinitions[klass]?.minima ?? {};
+
+  return Object.entries(minima)
+    .filter(([key, value]) => isFocusKey(key) && value.startsWith('+') && fnum(value) > 0)
+    .map(([focus, value]) => {
+      const specialty = findSpecialtyForFocus(focus)!;
+      return {
+        ability: findAbilityForSpecialty(specialty)!,
+        specialty,
+        focus,
+        value: fnum(value)
+      };
+    });
+}
+
 export function getClassBaseSpecialties(klass: ClassName): Array<{ ability: Ability; specialty: Specialty }> {
   const minima = classDefinitions[klass]?.minima ?? {};
 
@@ -190,11 +209,34 @@ export function getClassBaseSpecialties(klass: ClassName): Array<{ ability: Abil
 }
 
 export function getAvailableFocusSwapTargets(race: RaceName, klass: ClassName): CreationFocusBonus[] {
+  const classSpecialties = getClassBaseSpecialties(klass);
+  const singleSpecialtyFocusSwap = classSpecialties.length === 1;
+  const classGrantedFocuses = getClassGrantedFocusBonuses(klass);
+  const classGrantedFocusNames = new Set(classGrantedFocuses.map(entry => entry.focus));
+
+  if (singleSpecialtyFocusSwap) {
+    return Object.keys(foci).flatMap(specialtyKey =>
+      foci[specialtyKey as keyof typeof foci].reduce<CreationFocusBonus[]>((targets, focus) => {
+        if (classGrantedFocusNames.has(focus)) {
+          return targets;
+        }
+
+        const specialty = specialtyKey as Specialty;
+        targets.push({
+          ability: findAbilityForSpecialty(specialty)!,
+          specialty,
+          focus,
+          value: 1
+        });
+        return targets;
+      }, [])
+    );
+  }
+
   const raceFocusBonuses = getRacialFocusBonuses(race);
   if (!raceFocusBonuses.length) return [];
 
   const minimaCharacter = createCharacterShell(race, klass, 1).baseCharacter;
-  const classSpecialties = getClassBaseSpecialties(klass);
 
   return classSpecialties.flatMap(({ ability, specialty }) =>
     foci[specialty].reduce<CreationFocusBonus[]>((targets, focus) => {
@@ -217,15 +259,26 @@ export function getCreationRuleSummary(race: RaceName, klass: ClassName): Creati
   const duplicateMinima = getDuplicateMinima(race, klass);
   const duplicateAdvantages = getDuplicateAdvantages(race, klass);
   const racialFocusBonuses = getRacialFocusBonuses(race);
+  const classBaseSpecialties = getClassBaseSpecialties(klass);
+  const classGrantedFocuses = getClassGrantedFocusBonuses(klass);
 
   return {
     duplicateMinima,
     duplicateAdvantages,
     duplicateBenefitAvailable: duplicateMinima.length > 0 || duplicateAdvantages.length > 0,
     racialFocusBonuses,
-    classBaseSpecialties: getClassBaseSpecialties(klass),
+    classBaseSpecialties,
+    classGrantedFocuses,
+    singleSpecialtyFocusSwap: classBaseSpecialties.length === 1,
     focusSwapTargets: getAvailableFocusSwapTargets(race, klass)
   };
+}
+
+export function getFocusSwapCPCost(selection?: FocusSwapSelection) {
+  if (!selection || selection.sourceFocus === selection.targetFocus) {
+    return 0;
+  }
+  return selection?.mode === 'single_specialty_upgrade' ? focusStepCost : 0;
 }
 
 export function getMulticlassFeatCost(level: number) {
@@ -258,7 +311,7 @@ export function deepCloneCharacter<T>(value: T): T {
 }
 
 function applyFocusSwap(ch: Character, race: RaceName, klass: ClassName, selection?: FocusSwapSelection) {
-  if (!selection) return;
+  if (!selection || selection.sourceFocus === selection.targetFocus) return;
 
   const source = getRacialFocusBonuses(race).find(entry => entry.focus === selection.sourceFocus);
   const target = getAvailableFocusSwapTargets(race, klass).find(entry => entry.focus === selection.targetFocus);
@@ -266,7 +319,10 @@ function applyFocusSwap(ch: Character, race: RaceName, klass: ClassName, selecti
 
   const classSourceValue = getFocusValueFromMinima(classDefinitions[klass]?.minima ?? {}, source.focus);
   ch.focuses[source.ability][source.focus] = `+${classSourceValue}`;
-  ch.focuses[target.ability][target.focus] = `+${Math.max(fnum(ch.focuses[target.ability][target.focus]), source.value)}`;
+  const targetValue = selection.mode === 'single_specialty_upgrade'
+    ? source.value + 1
+    : source.value;
+  ch.focuses[target.ability][target.focus] = `+${Math.max(fnum(ch.focuses[target.ability][target.focus]), targetValue)}`;
 }
 
 export function applyMinima(ch: Character, minima: Record<string, string>) {
@@ -384,7 +440,7 @@ export function weaknessReport(ch: Character) {
   return flags;
 }
 
-export function calculateCPSpent(finalChar: Character, baseChar: Character, iconic: boolean) {
+export function calculateCPSpent(finalChar: Character, baseChar: Character, iconic: boolean, focusSwapCpCost = 0) {
   const spent = { abilities: 0, specialties: 0, focuses: 0, advantages: 0, total: 0 };
   spent.advantages = iconic ? 4 : 0;
 
@@ -421,6 +477,8 @@ export function calculateCPSpent(finalChar: Character, baseChar: Character, icon
     const baseFocus = baseCustomFocuses.get(focus.id);
     spent.focuses += (fnum(focus.value) - fnum(baseFocus?.value ?? '+0')) * focusStepCost;
   });
+
+  spent.focuses += focusSwapCpCost;
 
   spent.total = spent.abilities + spent.specialties + spent.focuses + spent.advantages;
   return spent;

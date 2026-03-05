@@ -132,6 +132,10 @@ export default function CharacterGenerator() {
     if (focusSwapTarget && !validTargets.has(focusSwapTarget)) {
       setFocusSwapTarget('');
     }
+
+    if (!focusSwapSource && creationRules.racialFocusBonuses.length === 1) {
+      setFocusSwapSource(creationRules.racialFocusBonuses[0].focus);
+    }
   }, [creationRules, focusSwapSource, focusSwapTarget]);
 
   const [lastCharacter, setLastCharacter] = useState<{
@@ -509,6 +513,9 @@ export default function CharacterGenerator() {
 
             <div className="bg-white/5 rounded-xl p-4 space-y-3">
               <h3 className="font-semibold">Creation Rules</h3>
+              <p className="text-xs text-off-white/50">
+                These edge rules can apply to standard race/class builds too. Mythic/custom is only one toggle here.
+              </p>
               <label className="flex items-start gap-2 text-sm">
                 <input
                   id="mythic-customization"
@@ -529,18 +536,24 @@ export default function CharacterGenerator() {
               )}
               {creationRules && creationRules.racialFocusBonuses.length > 0 && creationRules.focusSwapTargets.length > 0 && (
                 <>
-                  <select
-                    className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 p-2.5 text-sm"
-                    value={focusSwapSource}
-                    onChange={(e) => setFocusSwapSource(e.target.value)}
-                  >
-                    <option value="">Keep racial focus</option>
-                    {creationRules.racialFocusBonuses.map(entry => (
-                      <option key={entry.focus} value={entry.focus}>
-                        Swap {entry.focus} +{entry.value}
-                      </option>
-                    ))}
-                  </select>
+                  {creationRules.racialFocusBonuses.length > 1 ? (
+                    <select
+                      className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 p-2.5 text-sm"
+                      value={focusSwapSource}
+                      onChange={(e) => setFocusSwapSource(e.target.value)}
+                    >
+                      <option value="">Keep racial focus</option>
+                      {creationRules.racialFocusBonuses.map(entry => (
+                        <option key={entry.focus} value={entry.focus}>
+                          Swap {entry.focus} +{entry.value}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-off-white/80">
+                      Source focus: {creationRules.racialFocusBonuses[0].focus} +{creationRules.racialFocusBonuses[0].value}
+                    </div>
+                  )}
                   <select
                     className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 p-2.5 text-sm"
                     value={focusSwapTarget}
@@ -557,7 +570,7 @@ export default function CharacterGenerator() {
                   <p className="text-xs text-off-white/50">
                     {selectedFocusSwap
                       ? `Swapping ${selectedFocusSwap.focus} +${selectedFocusSwap.value} updates the starting minima before generation.`
-                      : 'Focus swaps move a racial focus bonus into an ungranted focus tied to a class specialty.'}
+                      : 'Choose the racial focus you want to reassign, then pick the class-linked target focus.'}
                   </p>
                 </>
               )}

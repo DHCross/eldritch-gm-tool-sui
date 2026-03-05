@@ -7,6 +7,7 @@ import {
   getCreationRuleSummary,
   getCrossDisciplineSpellcastingSummary,
   getCustomizationBudget,
+  getFocusSwapCPCost,
   getMulticlassFeatCost
 } from '../src/utils/characterBuild';
 
@@ -47,11 +48,15 @@ describe('creation rule helpers', () => {
     const summary = getCreationRuleSummary('Human', 'Warrior');
 
     expect(summary.duplicateBenefitAvailable).toBe(true);
+    expect(summary.singleSpecialtyFocusSwap).toBe(true);
     expect(summary.duplicateMinima).toContainEqual(
       expect.objectContaining({ key: 'Threat', value: '+1', kind: 'focus' })
     );
     expect(summary.focusSwapTargets).toContainEqual(
       expect.objectContaining({ focus: 'Finesse', specialty: 'Melee' })
+    );
+    expect(summary.focusSwapTargets).toContainEqual(
+      expect.objectContaining({ focus: 'Cleverness', specialty: 'Adroitness' })
     );
   });
 
@@ -63,13 +68,30 @@ describe('creation rule helpers', () => {
     const { character, baseCharacter } = createCharacterShell('Human', 'Warrior', 1, {
       focusSwap: {
         sourceFocus: 'Threat',
-        targetFocus: 'Finesse'
+        targetFocus: 'Finesse',
+        mode: 'single_specialty_broad'
       }
     });
 
     expect(baseCharacter.focuses.Prowess.Threat).toBe('+1');
     expect(baseCharacter.focuses.Prowess.Finesse).toBe('+1');
     expect(calculateCPSpent(character, baseCharacter, false).total).toBe(0);
+  });
+
+  it('supports the single-specialty +2 focus swap path for 4 CP', () => {
+    const selection = {
+      sourceFocus: 'Threat',
+      targetFocus: 'Cleverness',
+      mode: 'single_specialty_upgrade' as const
+    };
+    const { character, baseCharacter } = createCharacterShell('Human', 'Warrior', 1, {
+      focusSwap: selection
+    });
+
+    expect(baseCharacter.focuses.Prowess.Threat).toBe('+1');
+    expect(baseCharacter.focuses.Competence.Cleverness).toBe('+2');
+    expect(getFocusSwapCPCost(selection)).toBe(4);
+    expect(calculateCPSpent(character, baseCharacter, false, getFocusSwapCPCost(selection)).total).toBe(4);
   });
 
   it('computes budget, multiclass cost, and cross-discipline spell capacity', () => {
