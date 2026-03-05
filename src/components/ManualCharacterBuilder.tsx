@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   abilities,
@@ -15,6 +15,7 @@ import {
   magicPathsByClass,
   races,
   specs,
+  spendCP,
   stepCost,
   updateDerivedCharacterData,
   weaknessReport,
@@ -52,6 +53,30 @@ interface CPBreakdown {
 const getBudgetForLevel = (level: number) => (level === 1 ? 10 : 10 + (level - 1) * 100);
 const NAME_CULTURE_OPTIONS: NameCulture[] = ['English', 'Scottish', 'Welsh', 'Irish', 'Norse', 'French', 'Germanic', 'Fantasy'];
 
+const ADVANTAGE_DESCRIPTIONS: Record<string, string> = {
+  Menacing: 'You are unsettling in close social pressure and intimidation scenes.',
+  Brutishness: 'Raw force and momentum dominate your close-quarters approach.',
+  ArcaneInheritance: 'Latent magical heritage improves access to arcane pressure moments.',
+  IronWill: 'Mental pressure and coercion are harder to force through you.',
+  KeenSenses: 'Subtle clues and hidden details are easier to catch under stress.'
+};
+
+const toGuidanceWarning = (warning: string) => {
+  if (warning.includes('Low Spirit Points')) {
+    return 'Low Spirit Points - magical pressure will be dangerous. Consider improving Willpower or related focuses.';
+  }
+  if (warning.includes('Low Active DP')) {
+    return 'Low Active DP - dodging and parrying will be difficult. Consider raising Agility, Reaction, or defensive specialties.';
+  }
+  if (warning.includes('Low Passive DP')) {
+    return 'Low Passive DP - sustained punishment may overwhelm this build. Fortitude and Endurance can stabilize survivability.';
+  }
+  if (warning.toLowerCase().includes('ranged')) {
+    return 'Weak ranged capability - consider improving Precision or ranged-aligned focuses.';
+  }
+  return warning;
+};
+
 export default function ManualCharacterBuilder() {
   const [selectedRace, setSelectedRace] = useState('');
   const [selectedClass, setSelectedClass] = useState<ClassName | ''>('');
@@ -74,6 +99,14 @@ export default function ManualCharacterBuilder() {
   const [selectedParty, setSelectedParty] = useState('');
   const [showPartyAssignment, setShowPartyAssignment] = useState(false);
   const [interactionWarning, setInteractionWarning] = useState<string | null>(null);
+  const [expandedAbilities, setExpandedAbilities] = useState<Record<string, boolean>>(() => (
+    abilities.reduce((acc, ability, index) => {
+      acc[ability] = index === 0;
+      return acc;
+    }, {} as Record<string, boolean>)
+  ));
+  const [cpDelta, setCpDelta] = useState<number | null>(null);
+  const previousCpSpent = useRef(0);
 
   useEffect(() => {
     const pcFolders = getAllPartyFolders().filter(folder => folder.folder_type === 'PC_party');
@@ -204,8 +237,50 @@ export default function ManualCharacterBuilder() {
 
   const cpWarning = cpRemaining < 0 ? `You have overspent by ${Math.abs(cpRemaining)} CP.` : null;
   const weaknessWarnings = character ? weaknessReport(character) : [];
-  const combinedWarnings = [interactionWarning, cpWarning, ...weaknessWarnings].filter(Boolean) as string[];
+  const combinedWarnings = [interactionWarning, cpWarning, ...weaknessWarnings]
+    .filter(Boolean)
+    .map(warning => toGuidanceWarning(warning as string)) as string[];
   const canFinalize = Boolean(character && baseCharacter && cpRemaining >= 0);
+
+  useEffect(() => {
+    const previous = previousCpSpent.current;
+    const diff = cpSpentFromBudget - previous;
+    previousCpSpent.current = cpSpentFromBudget;
+    if (diff === 0) return;
+
+    setCpDelta(diff);
+    const timeout = window.setTimeout(() => setCpDelta(null), 900);
+    return () => window.clearTimeout(timeout);
+  }, [cpSpentFromBudget]);
+
+  const toggleAbilityBranch = (ability: string) => {
+    setExpandedAbilities(prev => ({ ...prev, [ability]: !prev[ability] }));
+  };
+
+  const setAllBranchesExpanded = (expanded: boolean) => {
+    setExpandedAbilities(
+      abilities.reduce((acc, ability) => {
+        acc[ability] = expanded;
+        return acc;
+      }, {} as Record<string, boolean>)
+    );
+  };
+
+  const applyRecommendedBuild = () => {
+    if (!character || !baseCharacter || !selectedClass) return;
+
+    const recommended = deepCloneCharacter(baseCharacter);
+    recommended.level = selectedLevel;
+    recommended.magicPath = selectedMagicPath;
+
+    const budget = { value: cpBudget };
+    spendCP(recommended, budget, 'balanced', selectedLevel, false, true);
+    updateDerivedCharacterData(recommended);
+
+    setCharacter(recommended);
+    setCpSpent(calculateCPSpent(recommended, baseCharacter, false));
+    setInteractionWarning(`Applied recommended ${selectedClass} baseline. You can now fine-tune manually.`);
+  };
 
   const resetBuilder = () => {
     setSelectedRace('');
@@ -326,6 +401,22 @@ export default function ManualCharacterBuilder() {
         </button>
       </div>
 
+      {character && (
+        <div className="sticky top-2 z-40 mb-6 rounded-xl border border-white/15 bg-charcoal-violet/85 backdrop-blur px-4 py-3 shadow-lg">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+            <span className="text-off-white/70">Budget: <span className="font-semibold text-off-white">{cpBudget}</span></span>
+            <span className="text-off-white/70">Spent: <span className="font-semibold text-off-white">{cpSpentFromBudget}</span></span>
+            <span className="text-off-white/70">Remaining: <span className={`font-semibold ${cpRemaining < 0 ? 'text-red-400' : cpRemaining < 4 ? 'text-yellow-300' : 'text-muted-eldritch-green'}`}>{cpRemaining}</span></span>
+            <span className="text-off-white/50">A {cpSpent?.abilities ?? 0} | S {cpSpent?.specialties ?? 0} | F {cpSpent?.focuses ?? 0} | Adv {cpSpent?.advantages ?? 0}</span>
+            {cpDelta !== null && (
+              <span className={`rounded-full px-2 py-0.5 text-xs font-semibold animate-pulse ${cpDelta > 0 ? 'bg-red-900/40 text-red-300 border border-red-500/40' : 'bg-green-900/40 text-green-300 border border-green-500/40'}`}>
+                {cpDelta > 0 ? `Spent +${cpDelta} CP` : `Refund ${Math.abs(cpDelta)} CP`}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-4">
         <div className="bg-white/5 rounded-xl border border-white/10 p-4 space-y-4">
           <div>
@@ -411,6 +502,18 @@ export default function ManualCharacterBuilder() {
               <p className="text-xs text-off-white/40 mt-2 italic">
                 Focus bonuses also spend CP unless they are part of the starting race/class package.
               </p>
+              <div className="mt-4 border-t border-white/10 pt-3">
+                <div className="text-xs uppercase tracking-wide text-off-white/50 mb-2">Quick Start Presets</div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    className="rounded-full border border-white/20 px-3 py-1.5 text-xs font-medium text-off-white/80 hover:bg-white/10"
+                    onClick={applyRecommendedBuild}
+                    disabled={!selectedClass}
+                  >
+                    Apply Recommended {selectedClass || 'Class'} Baseline
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
@@ -426,6 +529,20 @@ export default function ManualCharacterBuilder() {
             <div className="space-y-4">
               <div className="bg-white/5 border border-white/10 rounded-xl p-4">
                 <h2 className="text-lg font-semibold mb-3 text-off-white">Abilities & Specialties</h2>
+                <div className="mb-3 flex flex-wrap gap-2">
+                  <button
+                    className="rounded-full border border-white/20 px-3 py-1 text-xs text-off-white/70 hover:bg-white/10"
+                    onClick={() => setAllBranchesExpanded(true)}
+                  >
+                    Expand All Branches
+                  </button>
+                  <button
+                    className="rounded-full border border-white/20 px-3 py-1 text-xs text-off-white/70 hover:bg-white/10"
+                    onClick={() => setAllBranchesExpanded(false)}
+                  >
+                    Collapse All Branches
+                  </button>
+                </div>
                 <div className="space-y-4">
                   {abilities.map(ability => (
                     <div key={ability} className="border border-white/10 rounded-lg">
@@ -448,60 +565,68 @@ export default function ManualCharacterBuilder() {
                           >
                             +
                           </button>
+                          <button
+                            className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-off-white/80"
+                            onClick={() => toggleAbilityBranch(ability)}
+                          >
+                            {expandedAbilities[ability] ? 'Hide Branch' : 'Show Branch'}
+                          </button>
                         </div>
                       </div>
-                      <div className="px-4 py-3 space-y-3">
-                        {specs[ability as keyof typeof specs].map(spec => (
-                          <div key={spec} className="border border-white/10 rounded-lg p-3">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <div className="text-sm font-medium text-off-white/90">{spec}</div>
-                                <div className="text-xs text-off-white/40">Minimum: {baseCharacter?.specialties[ability][spec]}</div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <button
-                                  className="w-7 h-7 rounded-full border border-white/20 bg-white/10 text-off-white"
-                                  onClick={() => adjustSpecialty(ability, spec, -1)}
-                                >
-                                  −
-                                </button>
-                                <span className="font-mono text-off-white">{character.specialties[ability][spec]}</span>
-                                <button
-                                  className="w-7 h-7 rounded-full border border-white/20 bg-white/10 text-off-white"
-                                  onClick={() => adjustSpecialty(ability, spec, 1)}
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </div>
-                            <div className="grid gap-2 mt-3 md:grid-cols-2">
-                              {foci[spec as keyof typeof foci].map(focusKey => (
-                                <div key={focusKey} className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2">
-                                  <div>
-                                    <div className="text-sm font-medium text-off-white/80">{focusKey}</div>
-                                    <div className="text-xs text-off-white/40">Minimum: +{fnum(baseCharacter?.focuses[ability][focusKey] ?? '+0')}</div>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <button
-                                      className="w-6 h-6 rounded-full border border-white/20 bg-white/10 text-off-white"
-                                      onClick={() => adjustFocus(ability, spec, focusKey, -1)}
-                                    >
-                                      −
-                                    </button>
-                                    <span className="font-mono text-off-white">{character.focuses[ability][focusKey]}</span>
-                                    <button
-                                      className="w-6 h-6 rounded-full border border-white/20 bg-white/10 text-off-white"
-                                      onClick={() => adjustFocus(ability, spec, focusKey, 1)}
-                                    >
-                                      +
-                                    </button>
-                                  </div>
+                      {expandedAbilities[ability] && (
+                        <div className="px-4 py-3 space-y-3">
+                          {specs[ability as keyof typeof specs].map(spec => (
+                            <div key={spec} className="border border-white/10 rounded-lg p-3">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="text-sm font-medium text-off-white/90">{spec}</div>
+                                  <div className="text-xs text-off-white/40">Minimum: {baseCharacter?.specialties[ability][spec]}</div>
                                 </div>
-                              ))}
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    className="w-7 h-7 rounded-full border border-white/20 bg-white/10 text-off-white"
+                                    onClick={() => adjustSpecialty(ability, spec, -1)}
+                                  >
+                                    −
+                                  </button>
+                                  <span className="font-mono text-off-white">{character.specialties[ability][spec]}</span>
+                                  <button
+                                    className="w-7 h-7 rounded-full border border-white/20 bg-white/10 text-off-white"
+                                    onClick={() => adjustSpecialty(ability, spec, 1)}
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="grid gap-2 mt-3 md:grid-cols-2">
+                                {foci[spec as keyof typeof foci].map(focusKey => (
+                                  <div key={focusKey} className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2">
+                                    <div>
+                                      <div className="text-sm font-medium text-off-white/80">{focusKey}</div>
+                                      <div className="text-xs text-off-white/40">Minimum: +{fnum(baseCharacter?.focuses[ability][focusKey] ?? '+0')}</div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        className="w-6 h-6 rounded-full border border-white/20 bg-white/10 text-off-white"
+                                        onClick={() => adjustFocus(ability, spec, focusKey, -1)}
+                                      >
+                                        −
+                                      </button>
+                                      <span className="font-mono text-off-white">{character.focuses[ability][focusKey]}</span>
+                                      <button
+                                        className="w-6 h-6 rounded-full border border-white/20 bg-white/10 text-off-white"
+                                        onClick={() => adjustFocus(ability, spec, focusKey, 1)}
+                                      >
+                                        +
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -515,7 +640,14 @@ export default function ManualCharacterBuilder() {
                 <div className="bg-white/5 border border-white/10 rounded-xl p-4">
                   <div className="text-sm text-off-white/50">Advantages</div>
                   <ul className="text-sm list-disc pl-5 mt-1 space-y-1 text-off-white/80">
-                    {character.advantages.map(adv => <li key={adv}>{adv}</li>)}
+                    {character.advantages.map(adv => (
+                      <li key={adv} title={ADVANTAGE_DESCRIPTIONS[adv] ?? undefined}>
+                        <span>{adv}</span>
+                        {ADVANTAGE_DESCRIPTIONS[adv] && (
+                          <span className="ml-1 text-xs text-off-white/50">- {ADVANTAGE_DESCRIPTIONS[adv]}</span>
+                        )}
+                      </li>
+                    ))}
                   </ul>
                 </div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-4">
