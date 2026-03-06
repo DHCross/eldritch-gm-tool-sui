@@ -30,9 +30,8 @@ import {
   type DieRank,
   type FocusSwapSelection
 } from '../utils/characterBuild';
-import type { ClassName, RaceName } from '../data/gameData';
+import { type ClassName, type RaceName, races as raceDefinitions } from '../data/gameData';
 import {
-  races as raceDefinitions,
   saveCharacter,
   generateId,
   getCurrentUserId,
