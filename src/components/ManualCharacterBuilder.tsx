@@ -104,6 +104,69 @@ const toGuidanceWarning = (warning: string) => {
   return warning;
 };
 
+const isDefinedWarning = (warning: string | null): warning is string => Boolean(warning);
+
+const formatGeneratedName = (firstName: string, familyName?: string) => (
+  familyName ? `${firstName} ${familyName}` : firstName
+);
+
+const getStepBadgeClassName = (isDone: boolean, isActive: boolean) => {
+  if (isDone) {
+    return 'border-muted-eldritch-green bg-muted-eldritch-green/20 text-muted-eldritch-green';
+  }
+
+  if (isActive) {
+    return 'border-soft-amethyst bg-soft-amethyst/20 text-soft-amethyst';
+  }
+
+  return 'border-white/20 text-off-white/35';
+};
+
+const getStepLabelClassName = (isDone: boolean, isActive: boolean) => {
+  if (isActive) {
+    return 'text-off-white';
+  }
+
+  if (isDone) {
+    return 'text-muted-eldritch-green/80';
+  }
+
+  return 'text-off-white/35';
+};
+
+const getCpRemainingClassName = (cpRemaining: number) => {
+  if (cpRemaining < 0) {
+    return 'text-red-400';
+  }
+
+  if (cpRemaining < 4) {
+    return 'text-yellow-300';
+  }
+
+  return 'text-muted-eldritch-green';
+};
+
+const getFocusSwapDescription = (
+  selectedFocusSwapSource: NonNullable<ReturnType<typeof getCreationRuleSummary>['racialFocusBonuses'][number]> | null,
+  creationRules: ReturnType<typeof getCreationRuleSummary> | null,
+  focusSwapMode: FocusSwapSelection['mode'],
+  selectedClass: ClassName | ''
+) => {
+  if (!selectedFocusSwapSource) {
+    return 'Choose the racial focus you want to reassign, then pick the target focus.';
+  }
+
+  if (!creationRules?.singleSpecialtyFocusSwap) {
+    return `Swaps ${selectedFocusSwapSource.focus} +${selectedFocusSwapSource.value} into an ungranted focus tied to one of ${selectedClass}'s base specialties.`;
+  }
+
+  if (focusSwapMode === 'single_specialty_upgrade') {
+    return `Swaps ${selectedFocusSwapSource.focus} +${selectedFocusSwapSource.value} into a different focus at +2 and reserves 4 CP from your customization budget.`;
+  }
+
+  return `Swaps ${selectedFocusSwapSource.focus} +${selectedFocusSwapSource.value} into any focus not already granted by ${selectedClass}.`;
+};
+
 export default function ManualCharacterBuilder() {
   const [selectedRace, setSelectedRace] = useState('');
   const [selectedClass, setSelectedClass] = useState<ClassName | ''>('');
@@ -280,7 +343,11 @@ export default function ManualCharacterBuilder() {
     if (!character || !baseCharacter) return;
     const next = deepCloneCharacter(character);
     updater(next);
+      const preservedAdvantages = [...next.advantages];
+      const preservedFlaws = [...next.flaws];
     updateDerivedCharacterData(next);
+      next.advantages = preservedAdvantages;
+      next.flaws = preservedFlaws;
     setCharacter(next);
     setCpSpent(calculateCPSpent(next, baseCharacter, false, focusSwapCpCost));
     setInteractionWarning(null);
@@ -358,8 +425,8 @@ export default function ManualCharacterBuilder() {
   const cpWarning = cpRemaining < 0 ? `You have overspent by ${Math.abs(cpRemaining)} CP.` : null;
   const weaknessWarnings = character ? weaknessReport(character) : [];
   const combinedWarnings = [interactionWarning, cpWarning, ...weaknessWarnings]
-    .filter(Boolean)
-    .map(warning => toGuidanceWarning(warning as string)) as string[];
+    .filter(isDefinedWarning)
+    .map(warning => toGuidanceWarning(warning));
   const canFinalize = Boolean(character && baseCharacter && cpRemaining >= 0);
   const multiclassFeatCost = useMemo(() => getMulticlassFeatCost(selectedLevel), [selectedLevel]);
   const crossDisciplineSpellcasting = useMemo(
@@ -478,8 +545,8 @@ export default function ManualCharacterBuilder() {
     if (diff === 0) return;
 
     setCpDelta(diff);
-    const timeout = window.setTimeout(() => setCpDelta(null), 900);
-    return () => window.clearTimeout(timeout);
+    const timeout = globalThis.setTimeout(() => setCpDelta(null), 900);
+    return () => globalThis.clearTimeout(timeout);
   }, [cpSpentFromBudget]);
 
   const toggleAbilityBranch = (ability: string) => {
@@ -615,7 +682,7 @@ export default function ManualCharacterBuilder() {
   const handleRandomName = () => {
     if (!character) return;
     const randomName = generateRandomName(characterGender, nameCulture, true, character.race);
-    setPcName(`${randomName.firstName}${randomName.familyName ? ` ${randomName.familyName}` : ''}`);
+    setPcName(formatGeneratedName(randomName.firstName, randomName.familyName));
   };
 
   return (
@@ -649,17 +716,12 @@ export default function ManualCharacterBuilder() {
               <button
                 onClick={() => isReachable && setCurrentStep(stepNum)}
                 disabled={!isReachable}
-                className="flex flex-col items-center gap-1 min-w-0"
-                style={{ flex: '0 0 auto' }}
+                className="flex flex-none flex-col items-center gap-1 min-w-0"
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors ${
-                  isDone ? 'border-muted-eldritch-green bg-muted-eldritch-green/20 text-muted-eldritch-green' :
-                  isActive ? 'border-soft-amethyst bg-soft-amethyst/20 text-soft-amethyst' :
-                  'border-white/20 text-off-white/35'
-                }`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors ${getStepBadgeClassName(isDone, isActive)}`}>
                   {isDone ? '✓' : stepNum}
                 </div>
-                <span className={`text-xs hidden sm:block truncate max-w-[4rem] ${isActive ? 'text-off-white' : isDone ? 'text-muted-eldritch-green/80' : 'text-off-white/35'}`}>{label}</span>
+                <span className={`text-xs hidden sm:block truncate max-w-[4rem] ${getStepLabelClassName(isDone, isActive)}`}>{label}</span>
               </button>
               {i < WIZARD_STEPS.length - 1 && (
                 <div className={`flex-1 h-px mx-1 ${i + 1 < currentStep ? 'bg-muted-eldritch-green/40' : 'bg-white/10'}`} />
@@ -675,7 +737,7 @@ export default function ManualCharacterBuilder() {
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
             <span className="text-off-white/70">Budget: <span className="font-semibold text-off-white">{cpBudget}</span></span>
             <span className="text-off-white/70">Spent: <span className="font-semibold text-off-white">{cpSpentFromBudget}</span></span>
-            <span className="text-off-white/70">Remaining: <span className={`font-semibold ${cpRemaining < 0 ? 'text-red-400' : cpRemaining < 4 ? 'text-yellow-300' : 'text-muted-eldritch-green'}`}>{cpRemaining}</span></span>
+            <span className="text-off-white/70">Remaining: <span className={`font-semibold ${getCpRemainingClassName(cpRemaining)}`}>{cpRemaining}</span></span>
             <span className="text-off-white/50">A {cpSpent?.abilities ?? 0} | S {cpSpent?.specialties ?? 0} | F {cpSpent?.focuses ?? 0} | Adv {cpSpent?.advantages ?? 0}</span>
             {cpDelta !== null && (
               <span className={`rounded-full px-2 py-0.5 text-xs font-semibold animate-pulse ${cpDelta > 0 ? 'bg-red-900/40 text-red-300 border border-red-500/40' : 'bg-green-900/40 text-green-300 border border-green-500/40'}`}>
@@ -717,7 +779,7 @@ export default function ManualCharacterBuilder() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1 text-off-white/80" htmlFor="level">Level</label>
-              <select id="level" className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5" value={selectedLevel} onChange={(e) => setSelectedLevel(parseInt(e.target.value))}>
+              <select id="level" className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5" value={selectedLevel} onChange={(e) => setSelectedLevel(Number.parseInt(e.target.value, 10))}>
                 {levels.map(level => <option key={level} value={level}>{level}</option>)}
               </select>
             </div>
@@ -740,7 +802,7 @@ export default function ManualCharacterBuilder() {
                 <p className="text-xs text-off-white/55 mt-1">Your race grants a focus bonus. You can optionally redirect it to a different area.</p>
               </div>
               {creationRules.racialFocusBonuses.length > 1 ? (
-                <select className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 p-2 text-sm text-off-white" value={focusSwapSource} onChange={(e) => setFocusSwapSource(e.target.value)}>
+                <select aria-label="Focus swap source" className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 p-2 text-sm text-off-white" value={focusSwapSource} onChange={(e) => setFocusSwapSource(e.target.value)}>
                   <option value="">Keep racial focus as-is</option>
                   {creationRules.racialFocusBonuses.map(entry => <option key={entry.focus} value={entry.focus}>Swap {entry.focus} +{entry.value}</option>)}
                 </select>
@@ -761,20 +823,14 @@ export default function ManualCharacterBuilder() {
                   </label>
                 </div>
               )}
-              <select className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 p-2 text-sm text-off-white" value={focusSwapTarget} onChange={(e) => setFocusSwapTarget(e.target.value)} disabled={!focusSwapSource}>
+              <select aria-label="Focus swap target" className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 p-2 text-sm text-off-white" value={focusSwapTarget} onChange={(e) => setFocusSwapTarget(e.target.value)} disabled={!focusSwapSource}>
                 <option value="">{creationRules.singleSpecialtyFocusSwap ? 'Choose target focus (trained specialty only)' : 'Choose class-linked focus'}</option>
                 {creationRules.focusSwapTargets.filter(entry => entry.focus !== focusSwapSource).map(entry => (
                   <option key={entry.focus} value={entry.focus}>{creationRules.singleSpecialtyFocusSwap ? `${entry.focus} (${entry.specialty})` : `${entry.specialty} → ${entry.focus}`}</option>
                 ))}
               </select>
               <p className="text-xs text-off-white/45">
-                {selectedFocusSwapSource
-                  ? creationRules.singleSpecialtyFocusSwap
-                    ? focusSwapMode === 'single_specialty_upgrade'
-                      ? `Swaps ${selectedFocusSwapSource.focus} +${selectedFocusSwapSource.value} into a different focus at +2 and reserves 4 CP from your customization budget.`
-                      : `Swaps ${selectedFocusSwapSource.focus} +${selectedFocusSwapSource.value} into any focus not already granted by ${selectedClass}.`
-                    : `Swaps ${selectedFocusSwapSource.focus} +${selectedFocusSwapSource.value} into an ungranted focus tied to one of ${selectedClass}'s base specialties.`
-                  : 'Choose the racial focus you want to reassign, then pick the target focus.'}
+                {getFocusSwapDescription(selectedFocusSwapSource, creationRules, focusSwapMode, selectedClass)}
               </p>
               <p className="text-xs text-off-white/40">Focus targets only appear when their parent specialty starts trained (d4 or higher).</p>
             </div>
@@ -1121,7 +1177,7 @@ export default function ManualCharacterBuilder() {
                 <input id="pc-name" value={pcName} onChange={(e) => setPcName(e.target.value)} className="w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5 placeholder-off-white/30" placeholder="Enter name" />
                 <div className="flex gap-2 mt-2">
                   <button onClick={handleRandomName} className="text-xs px-3 py-1.5 rounded-full border border-white/20 text-off-white/70 hover:bg-white/10">Random Name</button>
-                  <select value={nameCulture} onChange={(e) => setNameCulture(e.target.value as NameCulture)} className="npc-native-select text-xs rounded-full border border-white/20 bg-white/5 text-off-white px-3 py-1.5">
+                  <select aria-label="Name culture" value={nameCulture} onChange={(e) => setNameCulture(e.target.value as NameCulture)} className="npc-native-select text-xs rounded-full border border-white/20 bg-white/5 text-off-white px-3 py-1.5">
                     {NAME_CULTURE_OPTIONS.map(culture => <option key={culture} value={culture}>{culture}</option>)}
                   </select>
                 </div>
@@ -1144,7 +1200,7 @@ export default function ManualCharacterBuilder() {
                 <div className="text-xs font-semibold text-off-white/50 uppercase mb-2">Suggestions</div>
                 <div className="flex flex-wrap gap-2">
                   {suggestedNames.map(name => {
-                    const fullName = `${name.firstName}${name.familyName ? ` ${name.familyName}` : ''}`;
+                    const fullName = formatGeneratedName(name.firstName, name.familyName);
                     return (
                       <button key={name.suggestion} onClick={() => setPcName(fullName)} className="text-xs rounded-full border border-white/20 px-3 py-1 text-off-white/70 hover:bg-white/10">
                         {fullName}<span className="text-off-white/40 ml-1">({name.culture})</span>
@@ -1193,7 +1249,7 @@ export default function ManualCharacterBuilder() {
           <div className="bg-charcoal-violet rounded-xl shadow-lg border border-white/10 p-6 w-full max-w-lg space-y-4">
             <h3 className="text-lg font-semibold text-off-white">Assign to Party</h3>
             <p className="text-sm text-off-white/60">Optionally choose a party folder for this character.</p>
-            <select className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5" value={selectedParty} onChange={(e) => setSelectedParty(e.target.value)}>
+            <select aria-label="Party folder" className="npc-native-select w-full rounded-lg border border-white/15 bg-white/5 text-off-white p-2.5" value={selectedParty} onChange={(e) => setSelectedParty(e.target.value)}>
               <option value="">No Party Assignment</option>
               {partyFolders.map(folder => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
             </select>

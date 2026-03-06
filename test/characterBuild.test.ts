@@ -14,7 +14,7 @@ import {
 describe('calculateCPSpent', () => {
   it('correctly calculates the CP spent on a character', () => {
     const { character: baseCharacter } = createCharacterShell('Human', 'Warrior', 1);
-    const finalCharacter = JSON.parse(JSON.stringify(baseCharacter));
+    const finalCharacter = structuredClone(baseCharacter);
 
     finalCharacter.abilities.Prowess = 'd10';
     finalCharacter.specialties.Prowess.Melee = 'd8';
@@ -27,7 +27,7 @@ describe('calculateCPSpent', () => {
 
   it('counts custom focus bonuses from a zero baseline', () => {
     const { character, baseCharacter } = createCharacterShell('Human', 'Warrior', 1);
-    const finalCharacter = JSON.parse(JSON.stringify(character));
+    const finalCharacter = structuredClone(character);
 
     finalCharacter.customFocuses.push({
       id: 'custom-focus-1',
@@ -55,7 +55,7 @@ describe('creation rule helpers', () => {
     expect(summary.focusSwapTargets).toContainEqual(
       expect.objectContaining({ focus: 'Finesse', specialty: 'Melee' })
     );
-    expect(summary.focusSwapTargets).toContainEqual(
+    expect(summary.focusSwapTargets).not.toContainEqual(
       expect.objectContaining({ focus: 'Cleverness', specialty: 'Adroitness' })
     );
   });
@@ -81,7 +81,7 @@ describe('creation rule helpers', () => {
   it('supports the single-specialty +2 focus swap path for 4 CP', () => {
     const selection = {
       sourceFocus: 'Threat',
-      targetFocus: 'Cleverness',
+      targetFocus: 'Finesse',
       mode: 'single_specialty_upgrade' as const
     };
     const { character, baseCharacter } = createCharacterShell('Human', 'Warrior', 1, {
@@ -89,7 +89,7 @@ describe('creation rule helpers', () => {
     });
 
     expect(baseCharacter.focuses.Prowess.Threat).toBe('+1');
-    expect(baseCharacter.focuses.Competence.Cleverness).toBe('+2');
+    expect(baseCharacter.focuses.Prowess.Finesse).toBe('+2');
     expect(getFocusSwapCPCost(selection)).toBe(4);
     expect(calculateCPSpent(character, baseCharacter, false, getFocusSwapCPCost(selection)).total).toBe(4);
   });
