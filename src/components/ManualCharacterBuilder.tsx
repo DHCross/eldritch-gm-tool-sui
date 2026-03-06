@@ -313,22 +313,32 @@ export default function ManualCharacterBuilder() {
 
   useEffect(() => {
     if (selectedRaceName && selectedClass) {
-      const { character: workingCharacter, baseCharacter: minimaCharacter } = createCharacterShell(
+      const { baseCharacter: minimaCharacter } = createCharacterShell(
         selectedRaceName as RaceName,
         selectedClass,
         selectedLevel,
         { focusSwap: activeFocusSwap }
       );
-      updateDerivedCharacterData(workingCharacter);
-      setCharacter(workingCharacter);
+
+      const recommended = deepCloneCharacter(minimaCharacter);
+      recommended.level = selectedLevel;
+      recommended.magicPath = selectedMagicPath;
+
+      // Spend all available CP to build the class baseline, then use the raw
+      // race/class minima as the baseCharacter so calculateCPSpent correctly measures it.
+      const budget = { value: cpBudget - focusSwapCpCost };
+      spendCP(recommended, budget, 'balanced', selectedLevel, false, true);
+      updateDerivedCharacterData(recommended);
+
       setBaseCharacter(minimaCharacter);
-      setCpSpent(calculateCPSpent(workingCharacter, minimaCharacter, false, focusSwapCpCost));
+      setCharacter(deepCloneCharacter(recommended));
+      setCpSpent(calculateCPSpent(recommended, minimaCharacter, false, focusSwapCpCost));
     } else {
       setCharacter(null);
       setBaseCharacter(null);
       setCpSpent(null);
     }
-  }, [selectedRaceName, selectedClass, selectedLevel, activeFocusSwap, focusSwapCpCost]);
+  }, [selectedRaceName, selectedClass, selectedLevel, activeFocusSwap, focusSwapCpCost, cpBudget, selectedMagicPath]);
 
   useEffect(() => {
     setCharacter(prev => {
@@ -562,25 +572,6 @@ export default function ManualCharacterBuilder() {
     );
   };
 
-  const applyRecommendedBuild = () => {
-    if (!character || !baseCharacter || !selectedClass) return;
-
-    const recommended = deepCloneCharacter(baseCharacter);
-    recommended.level = selectedLevel;
-    recommended.magicPath = selectedMagicPath;
-
-    // Spend all available CP to build the class baseline, then re-anchor the
-    // baseline to the result so the player's full CP budget remains for customization.
-    const budget = { value: cpBudget - focusSwapCpCost };
-    spendCP(recommended, budget, 'balanced', selectedLevel, false, true);
-    updateDerivedCharacterData(recommended);
-
-    const newBase = deepCloneCharacter(recommended);
-    setBaseCharacter(newBase);
-    setCharacter(deepCloneCharacter(recommended));
-    setCpSpent(calculateCPSpent(recommended, newBase, false, focusSwapCpCost));
-    setInteractionWarning(`Applied recommended ${selectedClass} baseline. You can now fine-tune manually.`);
-  };
 
   const resetBuilder = () => {
     setSelectedRace('');
@@ -865,23 +856,6 @@ export default function ManualCharacterBuilder() {
               <div className="text-sm text-off-white/50">CP Remaining</div>
               <div className={`text-2xl font-bold ${cpRemaining < 0 ? 'text-red-400' : 'text-off-white'}`}>{cpRemaining}</div>
             </div>
-          </div>
-
-          {/* Quick start preset */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-5 space-y-3">
-            <div>
-              <h3 className="font-semibold text-base text-off-white">Quick Start Preset</h3>
-              <p className="text-xs text-off-white/55 mt-1">
-                Apply a balanced {selectedClass} build automatically. Your full {cpBudget} CP budget will then be free for fine-tuning — the baseline itself does not count against it.
-              </p>
-            </div>
-            <button
-              className="rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-off-white/80 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
-              onClick={applyRecommendedBuild}
-              disabled={!selectedClass}
-            >
-              Apply Recommended {selectedClass} Baseline
-            </button>
           </div>
 
           {/* Creation rules */}
