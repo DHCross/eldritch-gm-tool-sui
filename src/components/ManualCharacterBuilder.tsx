@@ -32,6 +32,7 @@ import {
 } from '../utils/characterBuild';
 import type { ClassName, RaceName } from '../data/gameData';
 import {
+  races as raceDefinitions,
   saveCharacter,
   generateId,
   getCurrentUserId,
@@ -110,6 +111,7 @@ export default function ManualCharacterBuilder() {
   const [focusSwapSource, setFocusSwapSource] = useState('');
   const [focusSwapTarget, setFocusSwapTarget] = useState('');
   const [focusSwapMode, setFocusSwapMode] = useState<'standard' | 'single_specialty_broad' | 'single_specialty_upgrade'>('standard');
+  const [customFlawInput, setCustomFlawInput] = useState('');
 
   const [character, setCharacter] = useState<Character | null>(null);
   const [baseCharacter, setBaseCharacter] = useState<Character | null>(null);
@@ -215,6 +217,11 @@ export default function ManualCharacterBuilder() {
     () => getCustomizationBudget(selectedLevel, mythicCustomization),
     [selectedLevel, mythicCustomization]
   );
+  const selectableDefaultAdvantages = useMemo(() => (baseCharacter?.advantages ?? []), [baseCharacter]);
+  const selectableDefaultFlaws = useMemo(
+    () => (selectedRaceName ? [...(raceDefinitions[selectedRaceName as RaceName]?.flaws ?? [])] : []),
+    [selectedRaceName]
+  );
   const focusSwapCpCost = useMemo(() => getFocusSwapCPCost(activeFocusSwap), [activeFocusSwap]);
 
   useEffect(() => {
@@ -299,6 +306,11 @@ export default function ManualCharacterBuilder() {
 
   const adjustFocus = (ability: string, specialty: string, focusKey: string, delta: number) => {
     if (!character || !baseCharacter) return;
+    if (delta > 0 && character.specialties[ability][specialty] === 'd0') {
+      setInteractionWarning(`Train ${specialty} to at least d4 before increasing ${focusKey}.`);
+      return;
+    }
+
     const currentValue = fnum(character.focuses[ability][focusKey]);
     const minValue = fnum(baseCharacter.focuses[ability][focusKey]);
     const nextValue = currentValue + delta;
@@ -333,6 +345,11 @@ export default function ManualCharacterBuilder() {
   const selectedFocusSwapSource = creationRules?.racialFocusBonuses.find(entry => entry.focus === focusSwapSource) ?? null;
 
   const addCustomFocus = (ability: keyof typeof specs, specialty: string) => {
+    if (!character || character.specialties[ability][specialty] === 'd0') {
+      setInteractionWarning(`Train ${specialty} to at least d4 before adding a custom focus.`);
+      return;
+    }
+
     applyCharacterUpdate(draft => {
       draft.customFocuses.push({
         id: `custom-focus-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -357,6 +374,10 @@ export default function ManualCharacterBuilder() {
     if (!character) return;
     const customFocus = character.customFocuses.find(entry => entry.id === focusId);
     if (!customFocus) return;
+    if (delta > 0 && character.specialties[customFocus.ability][customFocus.specialty] === 'd0') {
+      setInteractionWarning(`Train ${customFocus.specialty} to at least d4 before increasing this custom focus.`);
+      return;
+    }
 
     const currentValue = fnum(customFocus.value);
     const nextValue = currentValue + delta;
@@ -378,6 +399,51 @@ export default function ManualCharacterBuilder() {
   const removeCustomFocus = (focusId: string) => {
     applyCharacterUpdate(draft => {
       draft.customFocuses = draft.customFocuses.filter(entry => entry.id !== focusId);
+    });
+  };
+
+  const toggleAdvantage = (advantage: string, enabled: boolean) => {
+    applyCharacterUpdate(draft => {
+      if (enabled) {
+        if (!draft.advantages.includes(advantage)) {
+          draft.advantages.push(advantage);
+        }
+        return;
+      }
+
+      draft.advantages = draft.advantages.filter(existing => existing !== advantage);
+    });
+  };
+
+  const toggleDefaultFlaw = (flaw: string, enabled: boolean) => {
+    applyCharacterUpdate(draft => {
+      if (enabled) {
+        if (!draft.flaws.includes(flaw)) {
+          draft.flaws.push(flaw);
+        }
+        return;
+      }
+
+      draft.flaws = draft.flaws.filter(existing => existing !== flaw);
+    });
+  };
+
+  const addCustomFlaw = () => {
+    const nextFlaw = customFlawInput.trim();
+    if (!nextFlaw) return;
+
+    applyCharacterUpdate(draft => {
+      if (!draft.flaws.includes(nextFlaw)) {
+        draft.flaws.push(nextFlaw);
+      }
+    });
+
+    setCustomFlawInput('');
+  };
+
+  const removeFlaw = (flaw: string) => {
+    applyCharacterUpdate(draft => {
+      draft.flaws = draft.flaws.filter(existing => existing !== flaw);
     });
   };
 
@@ -707,7 +773,7 @@ export default function ManualCharacterBuilder() {
                   disabled={!focusSwapSource}
                 >
                   <option value="">
-                    {creationRules.singleSpecialtyFocusSwap ? 'Choose target focus' : 'Choose class-linked focus'}
+                    {creationRules.singleSpecialtyFocusSwap ? 'Choose target focus (trained specialty only)' : 'Choose class-linked focus'}
                   </option>
                   {creationRules.focusSwapTargets.filter(entry => entry.focus !== focusSwapSource).map(entry => (
                     <option key={entry.focus} value={entry.focus}>
@@ -723,6 +789,9 @@ export default function ManualCharacterBuilder() {
                         : `Swaps ${selectedFocusSwapSource.focus} +${selectedFocusSwapSource.value} into any focus not already granted by ${selectedClass}.`
                       : `Swaps ${selectedFocusSwapSource.focus} +${selectedFocusSwapSource.value} into an ungranted focus tied to one of ${selectedClass}'s base specialties.`
                     : 'Choose the racial focus you want to reassign, then pick the target focus.'}
+                </p>
+                <p className="text-xs text-off-white/40">
+                  Focus targets only appear when their parent specialty starts trained (d4 or higher).
                 </p>
               </div>
             )}
@@ -773,6 +842,94 @@ export default function ManualCharacterBuilder() {
                     Apply Recommended {selectedClass || 'Class'} Baseline
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {character && (
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-4">
+              <h3 className="font-semibold text-base text-off-white">Advantages & Flaws</h3>
+
+              <div className="space-y-2">
+                <div className="text-xs uppercase tracking-wide text-off-white/50">Default Advantages (Race/Class)</div>
+                {selectableDefaultAdvantages.length > 0 ? (
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {selectableDefaultAdvantages.map(advantage => (
+                      <label key={advantage} className="flex items-start gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-off-white/80">
+                        <input
+                          type="checkbox"
+                          className="mt-0.5"
+                          checked={character.advantages.includes(advantage)}
+                          onChange={(e) => toggleAdvantage(advantage, e.target.checked)}
+                        />
+                        <span>{advantage}</span>
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-xs text-off-white/50">Select race and class to load default advantages.</div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <div className="text-xs uppercase tracking-wide text-off-white/50">Default Flaws (Race)</div>
+                {selectableDefaultFlaws.length > 0 ? (
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {selectableDefaultFlaws.map(flaw => (
+                      <label key={flaw} className="flex items-start gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-off-white/80">
+                        <input
+                          type="checkbox"
+                          className="mt-0.5"
+                          checked={character.flaws.includes(flaw)}
+                          onChange={(e) => toggleDefaultFlaw(flaw, e.target.checked)}
+                        />
+                        <span>{flaw}</span>
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-xs text-off-white/50">No default race flaws for this selection.</div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <div className="text-xs uppercase tracking-wide text-off-white/50">Add Custom Flaw</div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    value={customFlawInput}
+                    onChange={(e) => setCustomFlawInput(e.target.value)}
+                    placeholder="Enter a flaw"
+                    className="min-w-[14rem] flex-1 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-off-white placeholder-off-white/30"
+                  />
+                  <button
+                    className="rounded-full border border-white/20 px-3 py-1.5 text-xs text-off-white/75 hover:bg-white/10"
+                    onClick={addCustomFlaw}
+                  >
+                    Add Flaw
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="text-xs uppercase tracking-wide text-off-white/50">Selected Flaws</div>
+                {character.flaws.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {character.flaws.map(flaw => (
+                      <span key={flaw} className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs text-off-white/80">
+                        <span>{flaw}</span>
+                        <button
+                          className="text-off-white/60 hover:text-off-white"
+                          onClick={() => removeFlaw(flaw)}
+                          aria-label={`Remove flaw ${flaw}`}
+                        >
+                          x
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-xs text-off-white/50">No flaws selected.</div>
+                )}
               </div>
             </div>
           )}

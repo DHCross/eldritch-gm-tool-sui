@@ -213,15 +213,24 @@ export function getAvailableFocusSwapTargets(race: RaceName, klass: ClassName): 
   const singleSpecialtyFocusSwap = classSpecialties.length === 1;
   const classGrantedFocuses = getClassGrantedFocusBonuses(klass);
   const classGrantedFocusNames = new Set(classGrantedFocuses.map(entry => entry.focus));
+  const minimaCharacter = createCharacterShell(race, klass, 1).baseCharacter;
+  const hasTrainedSpecialty = (specialty: Specialty) => {
+    const ability = findAbilityForSpecialty(specialty);
+    return Boolean(ability && minimaCharacter.specialties[ability][specialty] !== 'd0');
+  };
 
   if (singleSpecialtyFocusSwap) {
     return Object.keys(foci).flatMap(specialtyKey =>
       foci[specialtyKey as keyof typeof foci].reduce<CreationFocusBonus[]>((targets, focus) => {
+        const specialty = specialtyKey as Specialty;
+        if (!hasTrainedSpecialty(specialty)) {
+          return targets;
+        }
+
         if (classGrantedFocusNames.has(focus)) {
           return targets;
         }
 
-        const specialty = specialtyKey as Specialty;
         targets.push({
           ability: findAbilityForSpecialty(specialty)!,
           specialty,
@@ -236,10 +245,12 @@ export function getAvailableFocusSwapTargets(race: RaceName, klass: ClassName): 
   const raceFocusBonuses = getRacialFocusBonuses(race);
   if (!raceFocusBonuses.length) return [];
 
-  const minimaCharacter = createCharacterShell(race, klass, 1).baseCharacter;
-
   return classSpecialties.flatMap(({ ability, specialty }) =>
     foci[specialty].reduce<CreationFocusBonus[]>((targets, focus) => {
+      if (minimaCharacter.specialties[ability][specialty] === 'd0') {
+        return targets;
+      }
+
       if (fnum(minimaCharacter.focuses[ability][focus]) > 0) {
         return targets;
       }
@@ -394,6 +405,7 @@ export function spendCP(
     if (ps) {
       const pa2 = Object.keys(specs).find(a => (specs as Record<string, readonly string[]>)[a].includes(ps));
       if (pa2) {
+        if (ch.specialties[pa2][ps] === 'd0') return false;
         const val = fnum(ch.focuses[pa2][key]);
         if (val >= 5) return false;
         if (cpBudget.value < costToRankUpFocus) return false;

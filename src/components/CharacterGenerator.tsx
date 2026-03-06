@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   calculateCPSpent,
   createCharacterShell,
+  deepCloneCharacter,
   fnum,
   getCreationRuleSummary,
   getCrossDisciplineSpellcastingSummary,
@@ -23,6 +24,7 @@ import {
   foci,
   magicPathsByClass,
   raceNames,
+  races as raceDefinitions,
   specs,
   levels,
   type ClassName,
@@ -89,6 +91,7 @@ export default function CharacterGenerator() {
   const [iconicArcane, setIconicArcane] = useState(false);
   const [showWeakness, setShowWeakness] = useState(true);
   const [character, setCharacter] = useState<Character | null>(null);
+  const [customFlawInput, setCustomFlawInput] = useState('');
   const selectedRaceDetails = useMemo(() => parseRaceSelection(race), [race]);
   const selectedRaceName = selectedRaceDetails.race;
   const mythicCustomization = selectedRaceDetails.mythic;
@@ -401,6 +404,14 @@ export default function CharacterGenerator() {
   };
 
   const warnings = character && showWeakness ? weaknessReport(character) : [];
+  const selectableDefaultAdvantages = useMemo(() => {
+    if (!character) return [];
+    return createCharacterShell(character.race as RaceName, character.class as ClassName, 1).character.advantages;
+  }, [character]);
+  const selectableDefaultFlaws = useMemo(() => {
+    if (!character) return [];
+    return [...(raceDefinitions[character.race as RaceName]?.flaws ?? [])];
+  }, [character]);
   const multiclassFeatCost = useMemo(() => getMulticlassFeatCost(level), [level]);
   const crossDisciplineSpellcasting = useMemo(
     () => (character ? getCrossDisciplineSpellcastingSummary(character) : null),
@@ -415,6 +426,52 @@ export default function CharacterGenerator() {
     () => (character ? getMulticlassFeatCost(character.level) : multiclassFeatCost),
     [character, multiclassFeatCost]
   );
+
+  const applyCharacterMutation = (updater: (draft: Character) => void) => {
+    setCharacter(prev => {
+      if (!prev) return prev;
+      const next = deepCloneCharacter(prev);
+      updater(next);
+      updateDerivedCharacterData(next);
+      setLastCharacter(last => (last ? { ...last, ch: deepCloneCharacter(next) } : last));
+      return next;
+    });
+  };
+
+  const toggleAdvantage = (advantage: string, enabled: boolean) => {
+    applyCharacterMutation(draft => {
+      if (enabled) {
+        if (!draft.advantages.includes(advantage)) draft.advantages.push(advantage);
+        return;
+      }
+      draft.advantages = draft.advantages.filter(existing => existing !== advantage);
+    });
+  };
+
+  const toggleDefaultFlaw = (flaw: string, enabled: boolean) => {
+    applyCharacterMutation(draft => {
+      if (enabled) {
+        if (!draft.flaws.includes(flaw)) draft.flaws.push(flaw);
+        return;
+      }
+      draft.flaws = draft.flaws.filter(existing => existing !== flaw);
+    });
+  };
+
+  const addCustomFlaw = () => {
+    const value = customFlawInput.trim();
+    if (!value) return;
+    applyCharacterMutation(draft => {
+      if (!draft.flaws.includes(value)) draft.flaws.push(value);
+    });
+    setCustomFlawInput('');
+  };
+
+  const removeFlaw = (flaw: string) => {
+    applyCharacterMutation(draft => {
+      draft.flaws = draft.flaws.filter(existing => existing !== flaw);
+    });
+  };
 
   return (
     <div className="text-off-white min-h-screen">
@@ -582,7 +639,7 @@ export default function CharacterGenerator() {
                     onChange={(e) => setFocusSwapTarget(e.target.value)}
                     disabled={!focusSwapSource}
                   >
-                    <option value="">Choose class-linked focus</option>
+                    <option value="">Choose class-linked focus (trained specialty only)</option>
                     {creationRules.focusSwapTargets.map(entry => (
                       <option key={entry.focus} value={entry.focus}>
                         {entry.specialty} → {entry.focus}
@@ -593,6 +650,9 @@ export default function CharacterGenerator() {
                     {selectedFocusSwap
                       ? `Swapping ${selectedFocusSwap.focus} +${selectedFocusSwap.value} updates the starting minima before generation.`
                       : 'Choose the racial focus you want to reassign, then pick the class-linked target focus.'}
+                  </p>
+                  <p className="text-xs text-off-white/45">
+                    Focus targets only appear when their parent specialty starts trained (d4 or higher).
                   </p>
                 </>
               )}
@@ -740,14 +800,85 @@ export default function CharacterGenerator() {
               </div>
               <div>
                 <h3 className="font-semibold mb-2">Advantages & Flaws</h3>
-                <p className="text-sm font-medium">Advantages:</p>
-                <ul className="text-sm list-disc list-inside ml-4 mb-2">
-                  {character.advantages.map(a => <li key={a}>{a}</li>)}
-                </ul>
-                <p className="text-sm font-medium">Flaws:</p>
-                <ul className="text-sm list-disc list-inside ml-4">
-                  {character.flaws.length ? character.flaws.map(f => <li key={f}>{f}</li>) : <li>None</li>}
-                </ul>
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-xs uppercase tracking-wide text-off-white/50 mb-1">Default Advantages (Race/Class)</div>
+                    <div className="grid gap-2">
+                      {selectableDefaultAdvantages.map(advantage => (
+                        <label key={advantage} className="flex items-start gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-off-white/80">
+                          <input
+                            type="checkbox"
+                            className="mt-0.5"
+                            checked={character.advantages.includes(advantage)}
+                            onChange={(e) => toggleAdvantage(advantage, e.target.checked)}
+                          />
+                          <span>{advantage}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs uppercase tracking-wide text-off-white/50 mb-1">Default Flaws (Race)</div>
+                    {selectableDefaultFlaws.length > 0 ? (
+                      <div className="grid gap-2">
+                        {selectableDefaultFlaws.map(flaw => (
+                          <label key={flaw} className="flex items-start gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-off-white/80">
+                            <input
+                              type="checkbox"
+                              className="mt-0.5"
+                              checked={character.flaws.includes(flaw)}
+                              onChange={(e) => toggleDefaultFlaw(flaw, e.target.checked)}
+                            />
+                            <span>{flaw}</span>
+                          </label>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-off-white/50">No default race flaws for this character.</div>
+                    )}
+                  </div>
+
+                  <div>
+                    <div className="text-xs uppercase tracking-wide text-off-white/50 mb-1">Add Custom Flaw</div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        value={customFlawInput}
+                        onChange={(e) => setCustomFlawInput(e.target.value)}
+                        placeholder="Enter a flaw"
+                        className="min-w-[12rem] flex-1 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-off-white placeholder-off-white/30"
+                      />
+                      <button
+                        onClick={addCustomFlaw}
+                        className="rounded-full border border-white/20 px-3 py-1.5 text-xs text-off-white/80 hover:bg-white/10"
+                      >
+                        Add Flaw
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs uppercase tracking-wide text-off-white/50 mb-1">Selected Flaws</div>
+                    {character.flaws.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {character.flaws.map(flaw => (
+                          <span key={flaw} className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs text-off-white/80">
+                            <span>{flaw}</span>
+                            <button
+                              className="text-off-white/60 hover:text-off-white"
+                              onClick={() => removeFlaw(flaw)}
+                              aria-label={`Remove flaw ${flaw}`}
+                            >
+                              x
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-off-white/50">No flaws selected.</div>
+                    )}
+                  </div>
+                </div>
               </div>
               <div>
                 <h3 className="font-semibold mb-2">Class Feats</h3>
