@@ -130,6 +130,24 @@ export default function ManualCharacterBuilder() {
     () => (selectedRaceName && selectedClass ? getCreationRuleSummary(selectedRaceName as RaceName, selectedClass) : null),
     [selectedRaceName, selectedClass]
   );
+  const dupAbilitySet = useMemo(
+    () => new Set(creationRules?.duplicateMinima.filter(m => m.kind === 'ability').map(m => m.key) ?? []),
+    [creationRules]
+  );
+  const dupSpecialtyMap = useMemo(
+    () => new Map(creationRules?.duplicateMinima.filter(m => m.kind === 'specialty').map(m => [m.key, m.value]) ?? []),
+    [creationRules]
+  );
+  const dupFocusMap = useMemo(
+    () => new Map(creationRules?.duplicateMinima.filter(m => m.kind === 'focus').map(m => [m.key, m.value]) ?? []),
+    [creationRules]
+  );
+  const packageFocusMap = useMemo(() => {
+    const m = new Map<string, { kind: 'racial' | 'class'; value: number }>();
+    for (const b of creationRules?.racialFocusBonuses ?? []) m.set(b.focus, { kind: 'racial', value: b.value });
+    for (const b of creationRules?.classGrantedFocuses ?? []) m.set(b.focus, { kind: 'class', value: b.value });
+    return m;
+  }, [creationRules]);
   const activeFocusSwap = useMemo<FocusSwapSelection | undefined>(() => (
     focusSwapSource && focusSwapTarget
       ? {
@@ -1020,6 +1038,9 @@ export default function ManualCharacterBuilder() {
                         <div>
                           <div className="text-sm font-semibold text-muted-eldritch-green">{ability}</div>
                           <div className="text-xs text-off-white/40">Minimum: {baseCharacter?.abilities[ability]}</div>
+                          {dupAbilitySet.has(ability) && (
+                            <div className="text-xs text-amber-400/85 mt-0.5">★ Duplicate — apply your one-time benefit here</div>
+                          )}
                         </div>
                         <div className="flex items-center gap-2">
                           <button
@@ -1051,6 +1072,9 @@ export default function ManualCharacterBuilder() {
                                 <div>
                                   <div className="text-sm font-medium text-off-white/90">{spec}</div>
                                   <div className="text-xs text-off-white/40">Minimum: {baseCharacter?.specialties[ability][spec]}</div>
+                                  {dupSpecialtyMap.has(spec) && (
+                                    <div className="text-xs text-amber-400/85 mt-0.5">★ Duplicate ({dupSpecialtyMap.get(spec)}) — apply your one-time benefit here</div>
+                                  )}
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <button
@@ -1074,17 +1098,27 @@ export default function ManualCharacterBuilder() {
                                     <div>
                                       <div className="text-sm font-medium text-off-white/80">{focusKey}</div>
                                       <div className="text-xs text-off-white/40">Minimum: +{fnum(baseCharacter?.focuses[ability][focusKey] ?? '+0')}</div>
+                                      {dupFocusMap.has(focusKey) && (
+                                        <div className="text-xs text-amber-400/85 mt-0.5">★ Duplicate ({dupFocusMap.get(focusKey)}) — free advantage, tier-up, or equal-cost swap</div>
+                                      )}
+                                      {!dupFocusMap.has(focusKey) && packageFocusMap.has(focusKey) && (
+                                        <div className="text-xs text-muted-eldritch-green/70 mt-0.5">
+                                          {packageFocusMap.get(focusKey)!.kind === 'racial' ? 'Racial' : 'Class'} package: +{packageFocusMap.get(focusKey)!.value} included
+                                        </div>
+                                      )}
                                     </div>
                                     <div className="flex items-center gap-2">
                                       <button
-                                        className="w-6 h-6 rounded-full border border-white/20 bg-white/10 text-off-white"
+                                        className="w-6 h-6 rounded-full border border-white/20 bg-white/10 text-off-white disabled:opacity-30 disabled:cursor-not-allowed"
                                         onClick={() => adjustFocus(ability, spec, focusKey, -1)}
                                       >
                                         −
                                       </button>
                                       <span className="font-mono text-off-white">{character.focuses[ability][focusKey]}</span>
                                       <button
-                                        className="w-6 h-6 rounded-full border border-white/20 bg-white/10 text-off-white"
+                                        disabled={character.specialties[ability][spec] === 'd0'}
+                                        title={character.specialties[ability][spec] === 'd0' ? `Train ${spec} first` : undefined}
+                                        className="w-6 h-6 rounded-full border border-white/20 bg-white/10 text-off-white disabled:opacity-30 disabled:cursor-not-allowed"
                                         onClick={() => adjustFocus(ability, spec, focusKey, 1)}
                                       >
                                         +
@@ -1102,7 +1136,9 @@ export default function ManualCharacterBuilder() {
                                     </div>
                                   </div>
                                   <button
-                                    className="rounded-full border border-white/20 px-3 py-1 text-xs text-off-white/75 hover:bg-white/10"
+                                    disabled={character.specialties[ability][spec] === 'd0'}
+                                    title={character.specialties[ability][spec] === 'd0' ? `Train ${spec} first` : undefined}
+                                    className="rounded-full border border-white/20 px-3 py-1 text-xs text-off-white/75 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
                                     onClick={() => addCustomFocus(ability as keyof typeof specs, spec)}
                                   >
                                     Add Custom Focus
@@ -1129,7 +1165,9 @@ export default function ManualCharacterBuilder() {
                                             </button>
                                             <span className="font-mono text-sm text-off-white">{customFocus.value}</span>
                                             <button
-                                              className="w-6 h-6 rounded-full border border-white/20 bg-white/10 text-off-white"
+                                              disabled={character.specialties[customFocus.ability][customFocus.specialty] === 'd0'}
+                                              title={character.specialties[customFocus.ability][customFocus.specialty] === 'd0' ? `Train ${customFocus.specialty} first` : undefined}
+                                              className="w-6 h-6 rounded-full border border-white/20 bg-white/10 text-off-white disabled:opacity-30 disabled:cursor-not-allowed"
                                               onClick={() => adjustCustomFocus(customFocus.id, 1)}
                                             >
                                               +
