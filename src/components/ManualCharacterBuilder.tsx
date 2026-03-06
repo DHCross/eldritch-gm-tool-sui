@@ -495,12 +495,16 @@ export default function ManualCharacterBuilder() {
     recommended.level = selectedLevel;
     recommended.magicPath = selectedMagicPath;
 
+    // Spend all available CP to build the class baseline, then re-anchor the
+    // baseline to the result so the player's full CP budget remains for customization.
     const budget = { value: cpBudget - focusSwapCpCost };
     spendCP(recommended, budget, 'balanced', selectedLevel, false, true);
     updateDerivedCharacterData(recommended);
 
-    setCharacter(recommended);
-    setCpSpent(calculateCPSpent(recommended, baseCharacter, false, focusSwapCpCost));
+    const newBase = deepCloneCharacter(recommended);
+    setBaseCharacter(newBase);
+    setCharacter(deepCloneCharacter(recommended));
+    setCpSpent(calculateCPSpent(recommended, newBase, false, focusSwapCpCost));
     setInteractionWarning(`Applied recommended ${selectedClass} baseline. You can now fine-tune manually.`);
   };
 
