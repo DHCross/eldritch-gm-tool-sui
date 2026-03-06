@@ -228,6 +228,8 @@ export default function ManualCharacterBuilder() {
   const [selectedParty, setSelectedParty] = useState('');
   const [showPartyAssignment, setShowPartyAssignment] = useState(false);
   const [interactionWarning, setInteractionWarning] = useState<string | null>(null);
+  const [duplicateBenefitClaimed, setDuplicateBenefitClaimed] = useState(false);
+  const [activeDuplicateForModal, setActiveDuplicateForModal] = useState<{ type: 'ability' | 'specialty' | 'focus' | 'advantage', key: string, value?: string } | null>(null);
   const [expandedAbilities, setExpandedAbilities] = useState<Record<string, boolean>>(() => (
     abilities.reduce((acc, ability, index) => {
       acc[ability] = index === 0;
@@ -516,6 +518,45 @@ export default function ManualCharacterBuilder() {
     });
   };
 
+  const [duplicateAdvantageChoice, setDuplicateAdvantageChoice] = useState<string>('');
+  const [duplicateTierChoice, setDuplicateTierChoice] = useState<string>('');
+  const [duplicateSwapChoice, setDuplicateSwapChoice] = useState<string>('');
+
+  const claimDuplicateBenefit = (mode: 'extra' | 'tier' | 'swap') => {
+    if (!character) return;
+
+    applyCharacterUpdate(draft => {
+      if (mode === 'extra' && duplicateAdvantageChoice) {
+        draft.advantages.push(duplicateAdvantageChoice);
+      } else if (mode === 'tier' && duplicateTierChoice) {
+        // e.g. "Brutishness" -> "Brutishness (Tier 2)"
+        // Or if it's already "Brutishness (Tier 2)", change to "(Tier 3)"
+        const idx = draft.advantages.findIndex(a => a === duplicateTierChoice);
+        if (idx !== -1) {
+          const match = draft.advantages[idx].match(/(.*?)\s*\(Tier\s*(\d+)\)/i);
+          if (match) {
+            draft.advantages[idx] = `${match[1].trim()} (Tier ${parseInt(match[2]) + 1})`;
+          } else {
+            draft.advantages[idx] = `${draft.advantages[idx]} (Tier 2)`;
+          }
+        }
+      } else if (mode === 'swap' && duplicateSwapChoice && activeDuplicateForModal?.type === 'advantage') {
+        const idx = draft.advantages.findIndex(a => a === activeDuplicateForModal.key);
+        if (idx !== -1) {
+          draft.advantages[idx] = duplicateSwapChoice;
+        } else {
+          draft.advantages.push(duplicateSwapChoice);
+        }
+      }
+    });
+
+    setDuplicateBenefitClaimed(true);
+    setActiveDuplicateForModal(null);
+    setDuplicateAdvantageChoice('');
+    setDuplicateTierChoice('');
+    setDuplicateSwapChoice('');
+  };
+
   const toggleDefaultFlaw = (flaw: string, enabled: boolean) => {
     applyCharacterUpdate(draft => {
       if (enabled) {
@@ -584,6 +625,8 @@ export default function ManualCharacterBuilder() {
     setBaseCharacter(null);
     setCpSpent(null);
     setInteractionWarning(null);
+    setDuplicateBenefitClaimed(false);
+    setActiveDuplicateForModal(null);
     setCurrentStep(1);
   };
 
@@ -677,7 +720,7 @@ export default function ManualCharacterBuilder() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10">
+    <div className="max-w-4xl mx-auto px-4 py-10 relative">
 
       {/* ── Page header ── */}
       <div className="flex items-center justify-between mb-6">
@@ -871,6 +914,19 @@ export default function ManualCharacterBuilder() {
                   {creationRules.duplicateAdvantages.length > 0 && (
                     <div className="text-xs text-off-white/55">Duplicate advantages: {creationRules.duplicateAdvantages.join(', ')}.</div>
                   )}
+                  {!duplicateBenefitClaimed && (creationRules.duplicateMinima.length > 0 || creationRules.duplicateAdvantages.length > 0) && (
+                    <div className="mt-2">
+                      <button
+                        onClick={() => setActiveDuplicateForModal({
+                          type: creationRules.duplicateAdvantages.length > 0 ? 'advantage' : 'ability',
+                          key: creationRules.duplicateAdvantages[0] ?? creationRules.duplicateMinima[0]?.key ?? 'Duplicate'
+                        })}
+                        className="rounded-lg bg-amber-600/20 px-3 py-1.5 text-xs font-medium text-amber-300 border border-amber-500/40 hover:bg-amber-600/40 transition-colors"
+                      >
+                        Claim Duplicate Benefit
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-xs text-off-white/55">No duplicate minima or advantages for this race/class pairing.</div>
@@ -933,8 +989,13 @@ export default function ManualCharacterBuilder() {
                   <div>
                     <div className="text-sm font-semibold text-muted-eldritch-green">{ability}</div>
                     <div className="text-xs text-off-white/40">Minimum: {baseCharacter?.abilities[ability]}</div>
-                    {dupAbilitySet.has(ability) && (
-                      <div className="text-xs text-amber-400/85 mt-0.5">★ Duplicate — apply your one-time benefit here</div>
+                    {dupAbilitySet.has(ability) && !duplicateBenefitClaimed && (
+                      <button
+                        onClick={() => setActiveDuplicateForModal({ type: 'ability', key: ability })}
+                        className="text-xs text-amber-400/85 mt-0.5 hover:text-amber-300 hover:underline text-left"
+                      >
+                        ★ Duplicate — apply your one-time benefit here
+                      </button>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -954,8 +1015,13 @@ export default function ManualCharacterBuilder() {
                           <div>
                             <div className="text-sm font-medium text-off-white/90">{spec}</div>
                             <div className="text-xs text-off-white/40">Minimum: {baseCharacter?.specialties[ability][spec]}</div>
-                            {dupSpecialtyMap.has(spec) && (
-                              <div className="text-xs text-amber-400/85 mt-0.5">★ Duplicate ({dupSpecialtyMap.get(spec)}) — apply your one-time benefit here</div>
+                            {dupSpecialtyMap.has(spec) && !duplicateBenefitClaimed && (
+                              <button
+                                onClick={() => setActiveDuplicateForModal({ type: 'specialty', key: spec })}
+                                className="text-xs text-amber-400/85 mt-0.5 hover:text-amber-300 hover:underline text-left block"
+                              >
+                                ★ Duplicate ({dupSpecialtyMap.get(spec)}) — apply your one-time benefit here
+                              </button>
                             )}
                           </div>
                           <div className="flex items-center gap-2">
@@ -970,8 +1036,13 @@ export default function ManualCharacterBuilder() {
                               <div>
                                 <div className="text-sm font-medium text-off-white/80">{focusKey}</div>
                                 <div className="text-xs text-off-white/40">Minimum: +{fnum(baseCharacter?.focuses[ability][focusKey] ?? '+0')}</div>
-                                {dupFocusMap.has(focusKey) && (
-                                  <div className="text-xs text-amber-400/85 mt-0.5">★ Duplicate ({dupFocusMap.get(focusKey)}) — free advantage, tier-up, or equal-cost swap</div>
+                                {dupFocusMap.has(focusKey) && !duplicateBenefitClaimed && (
+                                  <button
+                                    onClick={() => setActiveDuplicateForModal({ type: 'focus', key: focusKey })}
+                                    className="text-xs text-amber-400/85 mt-0.5 hover:text-amber-300 hover:underline text-left block"
+                                  >
+                                    ★ Duplicate ({dupFocusMap.get(focusKey)}) — free advantage, tier-up, or equal-cost swap
+                                  </button>
                                 )}
                                 {!dupFocusMap.has(focusKey) && packageFocusMap.has(focusKey) && (
                                   <div className="text-xs text-muted-eldritch-green/70 mt-0.5">
@@ -1054,12 +1125,25 @@ export default function ManualCharacterBuilder() {
               <div className="text-xs uppercase tracking-wide text-off-white/50">Default Advantages (Race/Class)</div>
               {selectableDefaultAdvantages.length > 0 ? (
                 <div className="grid gap-2 sm:grid-cols-2">
-                  {selectableDefaultAdvantages.map(advantage => (
-                    <label key={advantage} className="flex items-start gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-off-white/80">
-                      <input type="checkbox" className="mt-0.5" checked={character.advantages.includes(advantage)} onChange={(e) => toggleAdvantage(advantage, e.target.checked)} />
-                      <span>{advantage}</span>
-                    </label>
-                  ))}
+                  {selectableDefaultAdvantages.map(advantage => {
+                    const isDuplicate = creationRules?.duplicateAdvantages.includes(advantage);
+                    return (
+                      <div key={advantage} className="flex flex-col gap-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-off-white/80">
+                        <label className="flex items-start gap-2 cursor-pointer">
+                          <input type="checkbox" className="mt-0.5" checked={character.advantages.includes(advantage)} onChange={(e) => toggleAdvantage(advantage, e.target.checked)} />
+                          <span>{advantage}</span>
+                        </label>
+                        {isDuplicate && !duplicateBenefitClaimed && (
+                          <button
+                            onClick={() => setActiveDuplicateForModal({ type: 'advantage', key: advantage })}
+                            className="text-xs text-amber-400/85 hover:text-amber-300 hover:underline text-left mt-1"
+                          >
+                            ★ Duplicate — claim benefit
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-xs text-off-white/50">No default advantages for this selection.</div>
@@ -1216,6 +1300,94 @@ export default function ManualCharacterBuilder() {
           >Continue →</button>
         ) : <div />}
       </div>
+
+      {/* ── Duplicate Benefit Modal ── */}
+      {activeDuplicateForModal && character && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className="bg-charcoal-violet rounded-xl shadow-lg border border-amber-500/30 p-6 w-full max-w-lg space-y-6 max-h-[90vh] overflow-y-auto">
+            <div>
+              <h3 className="text-xl font-bold text-amber-400">Claim Duplicate Benefit</h3>
+              <p className="text-sm text-off-white/70 mt-1">
+                You have a duplicate {activeDuplicateForModal.type} ({activeDuplicateForModal.key}). The rules allow you to claim one of the following benefits once during character creation. This does not cost CP from your budget.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-3">
+                <h4 className="font-semibold text-off-white">1. Take an Extra 2-Point Advantage</h4>
+                <p className="text-xs text-off-white/60">Choose a 1 or 2 CP advantage to add for free.</p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="e.g. Resilient, Streetwise..."
+                    className="flex-1 rounded-lg border border-white/15 bg-white/5 text-sm text-off-white p-2 placeholder-off-white/30"
+                    value={duplicateAdvantageChoice}
+                    onChange={(e) => setDuplicateAdvantageChoice(e.target.value)}
+                  />
+                  <button
+                    disabled={!duplicateAdvantageChoice.trim()}
+                    onClick={() => claimDuplicateBenefit('extra')}
+                    className="px-4 py-2 text-sm rounded-lg bg-amber-600/20 text-amber-300 font-medium border border-amber-500/40 hover:bg-amber-600/40 disabled:opacity-40"
+                  >Claim</button>
+                </div>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-3">
+                <h4 className="font-semibold text-off-white">2. Tier-Up an Existing Advantage</h4>
+                <p className="text-xs text-off-white/60">Increase an existing ranked advantage (e.g., Brutishness) by one tier.</p>
+                <div className="flex gap-2">
+                  <select
+                    className="flex-1 npc-native-select rounded-lg border border-white/15 bg-white/5 text-sm text-off-white p-2"
+                    value={duplicateTierChoice}
+                    onChange={(e) => setDuplicateTierChoice(e.target.value)}
+                  >
+                    <option value="">Select an existing advantage...</option>
+                    {character.advantages.map(adv => <option key={adv} value={adv}>{adv}</option>)}
+                  </select>
+                  <button
+                    disabled={!duplicateTierChoice}
+                    onClick={() => claimDuplicateBenefit('tier')}
+                    className="px-4 py-2 text-sm rounded-lg bg-amber-600/20 text-amber-300 font-medium border border-amber-500/40 hover:bg-amber-600/40 disabled:opacity-40"
+                  >Claim</button>
+                </div>
+              </div>
+
+              {activeDuplicateForModal.type === 'advantage' && (
+                <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-3">
+                  <h4 className="font-semibold text-off-white">3. Swap for an Equal or Lesser Trait</h4>
+                  <p className="text-xs text-off-white/60">Swap your duplicate advantage for another of equal or lesser CP cost. The current duplicate advantage will be removed.</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Enter new advantage..."
+                      className="flex-1 rounded-lg border border-white/15 bg-white/5 text-sm text-off-white p-2 placeholder-off-white/30"
+                      value={duplicateSwapChoice}
+                      onChange={(e) => setDuplicateSwapChoice(e.target.value)}
+                    />
+                    <button
+                      disabled={!duplicateSwapChoice.trim()}
+                      onClick={() => claimDuplicateBenefit('swap')}
+                      className="px-4 py-2 text-sm rounded-lg bg-amber-600/20 text-amber-300 font-medium border border-amber-500/40 hover:bg-amber-600/40 disabled:opacity-40"
+                    >Swap</button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                className="px-5 py-2 text-sm rounded-full border border-white/20 text-off-white/70 hover:bg-white/10"
+                onClick={() => {
+                  setActiveDuplicateForModal(null);
+                  setDuplicateAdvantageChoice('');
+                  setDuplicateTierChoice('');
+                  setDuplicateSwapChoice('');
+                }}
+              >Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Party assignment modal ── */}
       {showPartyAssignment && character && (
