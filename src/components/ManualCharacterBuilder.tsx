@@ -57,6 +57,26 @@ interface CPBreakdown {
 }
 
 const NAME_CULTURE_OPTIONS: NameCulture[] = ['English', 'Scottish', 'Welsh', 'Irish', 'Norse', 'French', 'Germanic', 'Fantasy'];
+const MYTHIC_RACE_SUFFIX = '__mythic';
+
+const parseRaceSelection = (value: string): { race: string; mythic: boolean } => {
+  if (!value) {
+    return { race: '', mythic: false };
+  }
+
+  if (value.endsWith(MYTHIC_RACE_SUFFIX)) {
+    return {
+      race: value.slice(0, -MYTHIC_RACE_SUFFIX.length),
+      mythic: true
+    };
+  }
+
+  return { race: value, mythic: false };
+};
+
+const buildRaceSelectionValue = (race: string, mythic: boolean) => (
+  mythic ? `${race}${MYTHIC_RACE_SUFFIX}` : race
+);
 
 const ADVANTAGE_DESCRIPTIONS: Record<string, string> = {
   Menacing: 'You are unsettling in close social pressure and intimidation scenes.',
@@ -87,7 +107,6 @@ export default function ManualCharacterBuilder() {
   const [selectedClass, setSelectedClass] = useState<ClassName | ''>('');
   const [selectedLevel, setSelectedLevel] = useState<number>(1);
   const [selectedMagicPath, setSelectedMagicPath] = useState('');
-  const [mythicCustomization, setMythicCustomization] = useState(false);
   const [focusSwapSource, setFocusSwapSource] = useState('');
   const [focusSwapTarget, setFocusSwapTarget] = useState('');
   const [focusSwapMode, setFocusSwapMode] = useState<'standard' | 'single_specialty_broad' | 'single_specialty_upgrade'>('standard');
@@ -103,9 +122,12 @@ export default function ManualCharacterBuilder() {
   const [suggestedNames, setSuggestedNames] = useState<Array<{ firstName: string; familyName?: string; culture: NameCulture; suggestion: string }>>([]);
 
   const selectedClassMagicPaths = selectedClass ? magicPathsByClass[selectedClass] : undefined;
+  const selectedRaceDetails = useMemo(() => parseRaceSelection(selectedRace), [selectedRace]);
+  const selectedRaceName = selectedRaceDetails.race;
+  const mythicCustomization = selectedRaceDetails.mythic;
   const creationRules = useMemo(
-    () => (selectedRace && selectedClass ? getCreationRuleSummary(selectedRace as RaceName, selectedClass) : null),
-    [selectedRace, selectedClass]
+    () => (selectedRaceName && selectedClass ? getCreationRuleSummary(selectedRaceName as RaceName, selectedClass) : null),
+    [selectedRaceName, selectedClass]
   );
   const activeFocusSwap = useMemo<FocusSwapSelection | undefined>(() => (
     focusSwapSource && focusSwapTarget
@@ -196,9 +218,9 @@ export default function ManualCharacterBuilder() {
   const focusSwapCpCost = useMemo(() => getFocusSwapCPCost(activeFocusSwap), [activeFocusSwap]);
 
   useEffect(() => {
-    if (selectedRace && selectedClass) {
+    if (selectedRaceName && selectedClass) {
       const { character: workingCharacter, baseCharacter: minimaCharacter } = createCharacterShell(
-        selectedRace as RaceName,
+        selectedRaceName as RaceName,
         selectedClass,
         selectedLevel,
         { focusSwap: activeFocusSwap }
@@ -212,7 +234,7 @@ export default function ManualCharacterBuilder() {
       setBaseCharacter(null);
       setCpSpent(null);
     }
-  }, [selectedRace, selectedClass, selectedLevel, activeFocusSwap, focusSwapCpCost]);
+  }, [selectedRaceName, selectedClass, selectedLevel, activeFocusSwap, focusSwapCpCost]);
 
   useEffect(() => {
     setCharacter(prev => {
@@ -403,7 +425,6 @@ export default function ManualCharacterBuilder() {
     setSelectedRace('');
     setSelectedClass('');
     setSelectedMagicPath('');
-    setMythicCustomization(false);
     setFocusSwapSource('');
     setFocusSwapTarget('');
     setFocusSwapMode('standard');
@@ -553,7 +574,18 @@ export default function ManualCharacterBuilder() {
               onChange={(e) => setSelectedRace(e.target.value)}
             >
               <option value="">Select Race</option>
-              {races.map(race => <option key={race} value={race}>{race}</option>)}
+              <optgroup label="Standard races">
+                {races.map(race => (
+                  <option key={race} value={race}>{race}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Mythic/custom campaign (+10 CP)">
+                {races.map(race => (
+                  <option key={`${race}-mythic`} value={buildRaceSelectionValue(race, true)}>
+                    {race} (Mythic/custom)
+                  </option>
+                ))}
+              </optgroup>
             </select>
           </div>
           <div>
@@ -601,21 +633,12 @@ export default function ManualCharacterBuilder() {
             <div>
               <div className="text-sm font-medium text-off-white/80">Character Creation Rules</div>
               <p className="mt-1 text-xs text-off-white/50">
-                These Eldritch edge rules can apply to normal race/class builds too. The mythic/custom campaign toggle is only one option here.
+                These Eldritch edge rules can apply to normal race/class builds too. Choose a Mythic/custom race option above to activate the +10 CP campaign bonus.
               </p>
             </div>
-            <label className="flex items-start gap-2 text-sm text-off-white/75">
-              <input
-                type="checkbox"
-                className="mt-0.5"
-                checked={mythicCustomization}
-                onChange={(e) => setMythicCustomization(e.target.checked)}
-              />
-              <span>
-                Mythic/custom campaign bonus
-                <span className="block text-xs text-off-white/45">Adds +10 customization CP when Mythic Physiology or full custom play is allowed.</span>
-              </span>
-            </label>
+            <div className="text-xs text-off-white/45">
+              Race dropdown options ending in <span className="font-semibold text-off-white/70">(Mythic/custom)</span> include the campaign bonus.
+            </div>
 
             {creationRules?.duplicateBenefitAvailable && (
               <div className="rounded-lg border border-amber-400/20 bg-amber-500/10 p-3 text-xs text-amber-100">
@@ -775,11 +798,11 @@ export default function ManualCharacterBuilder() {
               {creationRules.duplicateBenefitAvailable ? (
                 <div className="space-y-1">
                   <div className="text-off-white">
-                    This race/class pair qualifies for a one-time duplicate-trait creation benefit.
+                    This race/class pair grants one duplicate-trait benefit. Apply it once during character creation by choosing one option: free 2-point advantage, tier-up an existing advantage, or swap for an equal-cost trait.
                   </div>
                   {creationRules.duplicateMinima.length > 0 && (
                     <div className="text-xs text-off-white/55">
-                      Duplicate minima: {creationRules.duplicateMinima.map(match => `${match.key} ${match.value}`).join(', ')}.
+                      Duplicate minima you can resolve with that one benefit: {creationRules.duplicateMinima.map(match => `${match.key} ${match.value}`).join(', ')}.
                     </div>
                   )}
                   {creationRules.duplicateAdvantages.length > 0 && (

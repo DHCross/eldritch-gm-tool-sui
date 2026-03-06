@@ -50,6 +50,27 @@ function showAlert(message: string) {
   alert(message);
 }
 
+const MYTHIC_RACE_SUFFIX = '__mythic';
+
+const parseRaceSelection = (value: string): { race: string; mythic: boolean } => {
+  if (!value) {
+    return { race: '', mythic: false };
+  }
+
+  if (value.endsWith(MYTHIC_RACE_SUFFIX)) {
+    return {
+      race: value.slice(0, -MYTHIC_RACE_SUFFIX.length),
+      mythic: true
+    };
+  }
+
+  return { race: value, mythic: false };
+};
+
+const buildRaceSelectionValue = (race: string, mythic: boolean) => (
+  mythic ? `${race}${MYTHIC_RACE_SUFFIX}` : race
+);
+
 const isCasterClass = (
   klass: Character['class']
 ): klass is (typeof casterClasses)[number] =>
@@ -60,7 +81,6 @@ export default function CharacterGenerator() {
   const [characterClass, setCharacterClass] = useState('');
   const [level, setLevel] = useState<number>(1);
   const [magicPath, setMagicPath] = useState('');
-  const [mythicCustomization, setMythicCustomization] = useState(false);
   const [focusSwapSource, setFocusSwapSource] = useState('');
   const [focusSwapTarget, setFocusSwapTarget] = useState('');
   const [buildStyle, setBuildStyle] = useState('balanced');
@@ -69,9 +89,12 @@ export default function CharacterGenerator() {
   const [iconicArcane, setIconicArcane] = useState(false);
   const [showWeakness, setShowWeakness] = useState(true);
   const [character, setCharacter] = useState<Character | null>(null);
+  const selectedRaceDetails = useMemo(() => parseRaceSelection(race), [race]);
+  const selectedRaceName = selectedRaceDetails.race;
+  const mythicCustomization = selectedRaceDetails.mythic;
   const creationRules = useMemo(
-    () => (race && characterClass ? getCreationRuleSummary(race as RaceName, characterClass as ClassName) : null),
-    [race, characterClass]
+    () => (selectedRaceName && characterClass ? getCreationRuleSummary(selectedRaceName as RaceName, characterClass as ClassName) : null),
+    [selectedRaceName, characterClass]
   );
   const activeFocusSwap = useMemo<FocusSwapSelection | undefined>(() => (
     focusSwapSource && focusSwapTarget ? { sourceFocus: focusSwapSource, targetFocus: focusSwapTarget } : undefined
@@ -151,13 +174,13 @@ export default function CharacterGenerator() {
 
   // ======= MAIN GENERATE FUNCTION =======
   function generate() {
-    if (!race || !characterClass || !level) {
+    if (!selectedRaceName || !characterClass || !level) {
       showAlert('Please select a valid race, class, and level.');
       return;
     }
 
     const { character: ch, baseCharacter } = createCharacterShell(
-      race as RaceName,
+      selectedRaceName as RaceName,
       characterClass as ClassName,
       level,
       { focusSwap: activeFocusSwap }
@@ -231,7 +254,7 @@ export default function CharacterGenerator() {
     if (markdownCreationRules) {
       md += `\n### Creation Rule Notes\n`;
       md += markdownCreationRules.duplicateBenefitAvailable
-        ? `- One duplicate race/class overlap can be converted into a free 2-point advantage, a tier-up, or a same-cost swap.\n`
+        ? `- Duplicate race/class overlap detected: apply one duplicate-trait benefit during creation by choosing exactly one option: free 2-point advantage, tier-up an existing advantage, or same-cost swap.\n`
         : `- No duplicate minima or advantages were detected for this pairing.\n`;
       if (markdownMulticlassCost) {
         md += `- Out-of-class feat purchase cost at level ${ch.level}: ${markdownMulticlassCost} CP.\n`;
@@ -413,7 +436,16 @@ export default function CharacterGenerator() {
                 onChange={(e) => setRace(e.target.value)}
               >
                 <option value="">Select Race</option>
-                {raceNames.map(r => <option key={r} value={r}>{r}</option>)}
+                <optgroup label="Standard races">
+                  {raceNames.map(r => <option key={r} value={r}>{r}</option>)}
+                </optgroup>
+                <optgroup label="Mythic/custom campaign (+10 CP)">
+                  {raceNames.map(r => (
+                    <option key={`${r}-mythic`} value={buildRaceSelectionValue(r, true)}>
+                      {r} (Mythic/custom)
+                    </option>
+                  ))}
+                </optgroup>
               </select>
             </div>
             <div>
@@ -514,21 +546,11 @@ export default function CharacterGenerator() {
             <div className="bg-white/5 rounded-xl p-4 space-y-3">
               <h3 className="font-semibold">Creation Rules</h3>
               <p className="text-xs text-off-white/50">
-                These edge rules can apply to standard race/class builds too. Mythic/custom is only one toggle here.
+                These edge rules can apply to standard race/class builds too. Choose a Mythic/custom race option above to activate the +10 CP campaign bonus.
               </p>
-              <label className="flex items-start gap-2 text-sm">
-                <input
-                  id="mythic-customization"
-                  type="checkbox"
-                  className="mt-0.5 h-4 w-4 rounded"
-                  checked={mythicCustomization}
-                  onChange={(e) => setMythicCustomization(e.target.checked)}
-                />
-                <span>
-                  Mythic/custom campaign
-                  <span className="block text-xs text-off-white/50">Adds +10 customization CP for Mythic Physiology or custom-character tables.</span>
-                </span>
-              </label>
+              <div className="text-xs text-off-white/50">
+                Race dropdown options ending in <span className="font-semibold text-off-white/80">(Mythic/custom)</span> include the campaign bonus.
+              </div>
               {creationRules?.duplicateBenefitAvailable && (
                 <div className="rounded-lg border border-amber-400/20 bg-amber-500/10 p-3 text-xs text-amber-100">
                   Duplicate race/class overlap detected. One duplicate can become a free 2-point advantage, a tier-up, or a same-cost swap.
@@ -755,10 +777,12 @@ export default function CharacterGenerator() {
                     <h3 className="font-semibold text-off-white">Creation Rule Notes</h3>
                     {resultCreationRules.duplicateBenefitAvailable ? (
                       <>
-                        <div>This pairing has a one-time duplicate-trait benefit available during character creation.</div>
+                        <div>
+                          This pairing grants one duplicate-trait benefit. Apply it once during character creation by choosing one option: free 2-point advantage, tier-up an existing advantage, or swap for an equal-cost trait.
+                        </div>
                         {resultCreationRules.duplicateMinima.length > 0 && (
                           <div className="text-xs text-off-white/50">
-                            Duplicate minima: {resultCreationRules.duplicateMinima.map(match => `${match.key} ${match.value}`).join(', ')}.
+                            Duplicate minima you can resolve with that one benefit: {resultCreationRules.duplicateMinima.map(match => `${match.key} ${match.value}`).join(', ')}.
                           </div>
                         )}
                         {resultCreationRules.duplicateAdvantages.length > 0 && (
