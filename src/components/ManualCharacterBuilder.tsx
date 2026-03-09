@@ -217,10 +217,10 @@ export default function ManualCharacterBuilder() {
   const activeFocusSwap = useMemo<FocusSwapSelection | undefined>(() => (
     focusSwapSource && focusSwapTarget
       ? {
-          sourceFocus: focusSwapSource,
-          targetFocus: focusSwapTarget,
-          mode: creationRules?.singleSpecialtyFocusSwap ? focusSwapMode : 'standard'
-        }
+        sourceFocus: focusSwapSource,
+        targetFocus: focusSwapTarget,
+        mode: creationRules?.singleSpecialtyFocusSwap ? focusSwapMode : 'standard'
+      }
       : undefined
   ), [creationRules?.singleSpecialtyFocusSwap, focusSwapMode, focusSwapSource, focusSwapTarget]);
 
@@ -332,9 +332,10 @@ export default function ManualCharacterBuilder() {
       spendCP(recommended, budget, 'balanced', selectedLevel, false, true);
       updateDerivedCharacterData(recommended);
 
-      setBaseCharacter(minimaCharacter);
+      const newBase = deepCloneCharacter(recommended);
+      setBaseCharacter(newBase);
       setCharacter(deepCloneCharacter(recommended));
-      setCpSpent(calculateCPSpent(recommended, minimaCharacter, false, focusSwapCpCost));
+      setCpSpent(calculateCPSpent(recommended, newBase, false, focusSwapCpCost));
     } else {
       setCharacter(null);
       setBaseCharacter(null);
@@ -355,11 +356,11 @@ export default function ManualCharacterBuilder() {
     if (!character || !baseCharacter) return;
     const next = deepCloneCharacter(character);
     updater(next);
-      const preservedAdvantages = [...next.advantages];
-      const preservedFlaws = [...next.flaws];
+    const preservedAdvantages = [...next.advantages];
+    const preservedFlaws = [...next.flaws];
     updateDerivedCharacterData(next);
-      next.advantages = preservedAdvantages;
-      next.flaws = preservedFlaws;
+    next.advantages = preservedAdvantages;
+    next.flaws = preservedFlaws;
     setCharacter(next);
     setCpSpent(calculateCPSpent(next, baseCharacter, false, focusSwapCpCost));
     setInteractionWarning(null);
