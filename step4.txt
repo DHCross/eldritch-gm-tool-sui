@@ -1,0 +1,180 @@
+←
+Manual Character Builder
+
+Step 4 of 5 — Advantages
+
+Reset
+✓
+Identity
+✓
+Package
+✓
+Abilities
+4
+Advantages
+5
+Finalize
+Budget: 10
+Spent: 8
+Remaining: 2
+A 8 | S 0 | F 0 | Adv 0
+Advantages & Flaws
+DEFAULT ADVANTAGES (RACE/CLASS)
+No default advantages for this selection.
+DEFAULT FLAWS (RACE)
+No default race flaws for this selection.
+ADD EXTRA FLAW (grants CP)
+0/4 extra flaw CPs used
+
+Racial flaws are already factored into your package. Each extra flaw you add here grants bonus CPs (capped at 4 total).
+
+1 CP
+2 CP
+3 CP
+Add Flaw
+SELECTED FLAWS
+No flaws selected.
+Purchase Advantages
+
+Spend CP from your budget on additional advantages not in your race/class package.
+
+Animal Affinity
++2 to Expertise rolls for fauna lore or animal handling.
+2 CP
+Purchase
+Arcane Inheritance
+Enhance an iconic item with inherent magic from an ancestor.
+4 CP
+Purchase
+Attractiveness
+Others react well; ranked d4–d12 at 2 CPs per level.
+2 CP
+Purchase
+Brutishness
++1 per 2 CPs (up to +4) to unarmed combat harm and opposed rolls.
+2 CP
+Purchase
+Commanding
++2 to Competence when directing troops or planning.
+2 CP
+Purchase
+Eidetic Memory
++2 to learning spells or recalling facts.
+2 CP
+Purchase
+Empathic
++2 to Competence→Perception for reading emotions.
+2 CP
+Purchase
+Expeditious
++2 to all Prowess→Agility→Speed rolls.
+2 CP
+Purchase
+Fortunate
+Re-roll every result of 1 on any test or threat die (once per day).
+4 CP
+Purchase
+Gift of Magic
+Ability to cast spells (Tier 1). Requires GM approval.
+8 CP
+Purchase
+Heightened Senses
++1 on ability tests using one chosen heightened sense.
+2 CP
+Purchase
+Inconspicuous Caster
+Halves silent/still casting penalties. Requires Gift of Magic.
+2 CP
+Purchase
+Intimidation
++2 to Fortitude ability rolls invoking powerful presence.
+2 CP
+Purchase
+Intuitive
++2 on all Perception branch checks.
+2 CP
+Purchase
+Linguist
++2 to spoken language understanding.
+2 CP
+Purchase
+Literacy
+Read/write one language (2 CPs for all known languages).
+1 CP
+Purchase
+Lorekeeper
++2 to Competence→Expertise for research/recall. Once per session: ask GM for a hint.
+2 CP
+Purchase
+Low-Light Vision
+See in dim lighting without ability test penalties.
+2 CP
+Purchase
+Magic Resistance (+1)
++1 to saving throws against magical afflictions.
+2 CP
+Purchase
+Menacing
++2 on Perception or Fortitude→Strength rolls for coercion.
+2 CP
+Purchase
+Natural Talent
++2 to all Competence→Expertise checks.
+2 CP
+Purchase
+Night Vision
+See perfectly in darkness up to 60 feet.
+4 CP
+Purchase
+Observant
++2 on Competence→Perception→Perspicacity.
+2 CP
+Purchase
+Read Emotions
+Insight into a target's motivations and emotional state.
+2 CP
+Purchase
+Religion
+Knowledge of deities, customs, rituals, and priestly hierarchies.
+2 CP
+Purchase
+Resilient
+Heals passive defense points at twice normal rate.
+2 CP
+Purchase
+Scholar
++2 on Competence→Expertise checks for class-based knowledge.
+2 CP
+Purchase
+Sense of Direction
+Always find true north; innate sense in any terrain.
+1 CP
+Purchase
+Streetwise
++2 on Competence→Adroitness rolls in urban social situations.
+2 CP
+Purchase
+Strong-willed
++2 on Fortitude→Willpower→Courage rolls.
+2 CP
+Purchase
+Survival
++1 to +5 (2 CPs/level) to wilderness survival checks.
+2 CP
+Purchase
+Tactician
+Swap Prowess for Competence in maneuver rolls; +2 to test.
+2 CP
+Purchase
+Underworld Contacts
+Knows shady contacts in any new location.
+1 CP
+Purchase
+Build Profile
+Spirit Points lean lower: mental/arcane pressure may be challenging, freeing CP for other areas.
+Active DP leans lower: dodging/parrying may be difficult. This build likely relies on passive defense or positioning.
+Passive DP leans lower: sustained physical punishment may overwhelm. Relies more on avoiding hits entirely.
+Perception is lightly invested: relies on caution or allies to spot traps/ambushes.
+Ranged capability is lightly invested: prefers close-quarters or magic engagements.
+← Back
+Continue →
