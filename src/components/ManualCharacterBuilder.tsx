@@ -339,7 +339,7 @@ export default function ManualCharacterBuilder() {
       spendCP(recommended, budget, 'balanced', selectedLevel, false, true);
       updateDerivedCharacterData(recommended);
 
-      const newBase = deepCloneCharacter(recommended);
+      const newBase = deepCloneCharacter(minimaCharacter);
       setBaseCharacter(newBase);
       setCharacter(deepCloneCharacter(recommended));
       setCpSpent(calculateCPSpent(recommended, newBase, false, focusSwapCpCost));
