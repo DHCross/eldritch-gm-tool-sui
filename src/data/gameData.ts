@@ -287,6 +287,70 @@ export const costToRankUpDie: Record<DieRank, number> = {
 
 export const costToRankUpFocus = 4;
 
+/** CP value awarded for each standard flaw (extra flaws beyond racial defaults, capped at 4 total). */
+export const flawCosts: Record<string, number> = {
+  Addiction: 1,
+  Clumsy: 1,
+  Compulsion: 1,
+  Debility: 2,
+  'Dim-witted': 1,
+  Frail: 1,
+  'Impaired Hearing': 1,
+  'Impaired Smell and Taste': 1,
+  'Impaired Vision': 1,
+  'Missing Arm': 2,
+  'Missing Leg': 3,
+  Mundane: 1,
+  Mute: 2,
+  Old: 1,
+  'Restriction: small weapons only': 1,
+  Ugliness: 1,
+  Unsettling: 1,
+  Weak: 1,
+};
+
+export interface PurchasableAdvantage {
+  name: string;
+  cost: number;
+  description: string;
+}
+
+export const purchasableAdvantages: PurchasableAdvantage[] = [
+  { name: 'Animal Affinity', cost: 2, description: '+2 to Expertise rolls for fauna lore or animal handling.' },
+  { name: 'Arcane Inheritance', cost: 4, description: 'Enhance an iconic item with inherent magic from an ancestor.' },
+  { name: 'Attractiveness', cost: 2, description: 'Others react well; ranked d4–d12 at 2 CPs per level.' },
+  { name: 'Brutishness', cost: 2, description: '+1 per 2 CPs (up to +4) to unarmed combat harm and opposed rolls.' },
+  { name: 'Commanding', cost: 2, description: '+2 to Competence when directing troops or planning.' },
+  { name: 'Eidetic Memory', cost: 2, description: '+2 to learning spells or recalling facts.' },
+  { name: 'Empathic', cost: 2, description: '+2 to Competence→Perception for reading emotions.' },
+  { name: 'Expeditious', cost: 2, description: '+2 to all Prowess→Agility→Speed rolls.' },
+  { name: 'Fortunate', cost: 4, description: 'Re-roll every result of 1 on any test or threat die (once per day).' },
+  { name: 'Gift of Magic', cost: 8, description: 'Ability to cast spells (Tier 1). Requires GM approval.' },
+  { name: 'Heightened Senses', cost: 2, description: '+1 on ability tests using one chosen heightened sense.' },
+  { name: 'Inconspicuous Caster', cost: 2, description: 'Halves silent/still casting penalties. Requires Gift of Magic.' },
+  { name: 'Intimidation', cost: 2, description: '+2 to Fortitude ability rolls invoking powerful presence.' },
+  { name: 'Intuitive', cost: 2, description: '+2 on all Perception branch checks.' },
+  { name: 'Linguist', cost: 2, description: '+2 to spoken language understanding.' },
+  { name: 'Literacy', cost: 1, description: 'Read/write one language (2 CPs for all known languages).' },
+  { name: 'Lorekeeper', cost: 2, description: '+2 to Competence→Expertise for research/recall. Once per session: ask GM for a hint.' },
+  { name: 'Low-Light Vision', cost: 2, description: 'See in dim lighting without ability test penalties.' },
+  { name: 'Magic Resistance (+1)', cost: 2, description: '+1 to saving throws against magical afflictions.' },
+  { name: 'Menacing', cost: 2, description: '+2 on Perception or Fortitude→Strength rolls for coercion.' },
+  { name: 'Natural Talent', cost: 2, description: '+2 to all Competence→Expertise checks.' },
+  { name: 'Night Vision', cost: 4, description: 'See perfectly in darkness up to 60 feet.' },
+  { name: 'Observant', cost: 2, description: '+2 on Competence→Perception→Perspicacity.' },
+  { name: 'Read Emotions', cost: 2, description: 'Insight into a target\'s motivations and emotional state.' },
+  { name: 'Religion', cost: 2, description: 'Knowledge of deities, customs, rituals, and priestly hierarchies.' },
+  { name: 'Resilient', cost: 2, description: 'Heals passive defense points at twice normal rate.' },
+  { name: 'Scholar', cost: 2, description: '+2 on Competence→Expertise checks for class-based knowledge.' },
+  { name: 'Sense of Direction', cost: 1, description: 'Always find true north; innate sense in any terrain.' },
+  { name: 'Streetwise', cost: 2, description: '+2 on Competence→Adroitness rolls in urban social situations.' },
+  { name: 'Strong-willed', cost: 2, description: '+2 on Fortitude→Willpower→Courage rolls.' },
+  { name: 'Survival', cost: 2, description: '+1 to +5 (2 CPs/level) to wilderness survival checks.' },
+  { name: 'Tactician', cost: 2, description: 'Swap Prowess for Competence in maneuver rolls; +2 to test.' },
+  { name: 'Underworld Contacts', cost: 1, description: 'Knows shady contacts in any new location.' },
+];
+
 export const buildPhilosophies = {
   Balanced: {
     description: 'Well-rounded character development',

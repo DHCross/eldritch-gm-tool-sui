@@ -7,8 +7,10 @@ import {
   costToRankUpFocus,
   dieRanks,
   foci,
+  flawCosts,
   levelInfo,
   magicPathsByClass,
+  purchasableAdvantages,
   raceNames,
   races as raceDefinitions,
   specs,
@@ -17,12 +19,13 @@ import {
   type ClassName,
   type DieRank,
   type Focus,
+  type PurchasableAdvantage,
   type RaceName,
   type Specialty
 } from '../data/gameData';
 
-export { abilities, dieRanks, specs, foci, casterClasses, magicPathsByClass, levelInfo, levels };
-export type { Ability, DieRank, Specialty, Focus };
+export { abilities, dieRanks, specs, foci, casterClasses, magicPathsByClass, levelInfo, levels, purchasableAdvantages, flawCosts };
+export type { Ability, DieRank, Specialty, Focus, PurchasableAdvantage };
 
 export const races = raceNames;
 export const classes = classNames;
@@ -528,6 +531,7 @@ export function createCharacterShell(
   level: number,
   options?: {
     focusSwap?: FocusSwapSelection;
+    assassinFocusChoice?: 'Finesse' | 'Ranged Finesse';
   }
 ) {
   const ch: Character = {
@@ -565,6 +569,12 @@ export function createCharacterShell(
   applyMinima(baseCharacter, classDefinitions[klass as ClassName]?.minima || {});
   applyFocusSwap(baseCharacter, race, klass, options?.focusSwap);
 
+  // Assassin: player may choose Ranged Finesse +1 instead of Finesse +1
+  if (klass === 'Assassin' && options?.assassinFocusChoice === 'Ranged Finesse') {
+    baseCharacter.focuses.Prowess.Finesse = '+0';
+    baseCharacter.focuses.Prowess['Ranged Finesse'] = '+1';
+  }
+
   const workingCharacter = deepCloneCharacter(baseCharacter);
   workingCharacter.masteryDie = levelInfo[level - 1]?.masteryDie || 'd4';
   workingCharacter.pools = computePools(workingCharacter);
@@ -591,9 +601,8 @@ export function updateActionSummaries(ch: Character) {
       `${ch.abilities.Competence} + ${ch.specialties.Competence.Perception}` +
       (fnum(ch.focuses.Competence.Perspicacity) ? ` + Perspicacity +${fnum(ch.focuses.Competence.Perspicacity)}` : ''),
     magicAttack: casterClasses.includes(ch.class as (typeof casterClasses)[number])
-      ? `${ch.abilities.Competence} + ${ch.specialties.Competence.Expertise} + ${
-          wizardry ? `Wizardry +${wizardry}` : theurgy ? `Theurgy +${theurgy}` : '(path focus 0)'
-        }`
+      ? `${ch.abilities.Competence} + ${ch.specialties.Competence.Expertise} + ${wizardry ? `Wizardry +${wizardry}` : theurgy ? `Theurgy +${theurgy}` : '(path focus 0)'
+      }`
       : '—'
   };
   ch.pools = computePools(ch);

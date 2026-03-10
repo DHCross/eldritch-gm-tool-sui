@@ -9,6 +9,7 @@ import {
   createCharacterShell,
   deepCloneCharacter,
   dieRanks,
+  flawCosts,
   fnum,
   foci,
   focusStepCost,
@@ -18,6 +19,7 @@ import {
   getFocusSwapCPCost,
   getMulticlassFeatCost,
   magicPathsByClass,
+  purchasableAdvantages,
   races,
   specs,
   spendCP,
@@ -28,7 +30,8 @@ import {
   mv,
   type Character,
   type DieRank,
-  type FocusSwapSelection
+  type FocusSwapSelection,
+  type PurchasableAdvantage
 } from '../utils/characterBuild';
 import { type ClassName, type RaceName, races as raceDefinitions } from '../data/gameData';
 import {
@@ -176,6 +179,10 @@ export default function ManualCharacterBuilder() {
   const [focusSwapTarget, setFocusSwapTarget] = useState('');
   const [focusSwapMode, setFocusSwapMode] = useState<'standard' | 'single_specialty_broad' | 'single_specialty_upgrade'>('standard');
   const [customFlawInput, setCustomFlawInput] = useState('');
+  const [customFlawCp, setCustomFlawCp] = useState(1);
+  const [extraFlawItems, setExtraFlawItems] = useState<Array<{ name: string; cp: number }>>([]);
+  const [purchasedAdvantagesList, setPurchasedAdvantagesList] = useState<Array<{ name: string; cost: number }>>([]);
+  const [assassinFocusChoice, setAssassinFocusChoice] = useState<'Finesse' | 'Ranged Finesse'>('Finesse');
   const [currentStep, setCurrentStep] = useState(1);
 
   const [character, setCharacter] = useState<Character | null>(null);
@@ -302,9 +309,24 @@ export default function ManualCharacterBuilder() {
     }
   }, [creationRules, focusSwapMode, focusSwapSource, focusSwapTarget]);
 
-  const cpBudget = useMemo(
+  // baseCPBudget drives the auto-spend in createCharacterShell (does NOT include flaw CPs
+  // so adding flaws doesn't trigger a full rebuild of the recommended character).
+  const baseCPBudget = useMemo(
     () => getCustomizationBudget(selectedLevel, mythicCustomization),
     [selectedLevel, mythicCustomization]
+  );
+  const extraFlawCPs = useMemo(
+    () => Math.min(4, extraFlawItems.reduce((sum, item) => sum + item.cp, 0)),
+    [extraFlawItems]
+  );
+  const purchasedAdvantageCPs = useMemo(
+    () => purchasedAdvantagesList.reduce((sum, a) => sum + a.cost, 0),
+    [purchasedAdvantagesList]
+  );
+  // Total budget shown to the player = base + flaw bonus CPs
+  const cpBudget = useMemo(
+    () => baseCPBudget + extraFlawCPs,
+    [baseCPBudget, extraFlawCPs]
   );
   const selectableDefaultAdvantages = useMemo(() => (baseCharacter?.advantages ?? []), [baseCharacter]);
   const selectableDefaultFlaws = useMemo(
@@ -319,16 +341,18 @@ export default function ManualCharacterBuilder() {
         selectedRaceName as RaceName,
         selectedClass,
         selectedLevel,
-        { focusSwap: activeFocusSwap }
+        {
+          focusSwap: activeFocusSwap,
+          assassinFocusChoice: selectedClass === 'Assassin' ? assassinFocusChoice : undefined
+        }
       );
 
       const recommended = deepCloneCharacter(minimaCharacter);
       recommended.level = selectedLevel;
       recommended.magicPath = selectedMagicPath;
 
-      // Spend all available CP to build the class baseline, then use the raw
-      // race/class minima as the baseCharacter so calculateCPSpent correctly measures it.
-      const budget = { value: cpBudget - focusSwapCpCost };
+      // Use baseCPBudget (not cpBudget) so flaw-CP changes don't trigger a full rebuild.
+      const budget = { value: baseCPBudget - focusSwapCpCost };
       spendCP(recommended, budget, 'balanced', selectedLevel, false, true);
       updateDerivedCharacterData(recommended);
 
@@ -341,7 +365,7 @@ export default function ManualCharacterBuilder() {
       setBaseCharacter(null);
       setCpSpent(null);
     }
-  }, [selectedRaceName, selectedClass, selectedLevel, activeFocusSwap, focusSwapCpCost, cpBudget, selectedMagicPath]);
+  }, [selectedRaceName, selectedClass, selectedLevel, activeFocusSwap, focusSwapCpCost, baseCPBudget, selectedMagicPath, assassinFocusChoice]);
 
   useEffect(() => {
     setCharacter(prev => {
@@ -430,9 +454,11 @@ export default function ManualCharacterBuilder() {
     });
   };
 
-  // calculateCPSpent already measures only the delta above the race/class baseline,
-  // so cpSpent.total IS the correct number of customization CPs spent.
-  const cpSpentFromBudget = useMemo(() => (cpSpent ? cpSpent.total : 0), [cpSpent]);
+  // calculateCPSpent measures delta above race/class baseline; purchased advantages are on top.
+  const cpSpentFromBudget = useMemo(
+    () => (cpSpent ? cpSpent.total : 0) + purchasedAdvantageCPs,
+    [cpSpent, purchasedAdvantageCPs]
+  );
   const cpRemaining = useMemo(() => cpBudget - cpSpentFromBudget, [cpBudget, cpSpentFromBudget]);
 
   const cpWarning = cpRemaining < 0 ? `You have overspent by ${Math.abs(cpRemaining)} CP.` : null;
@@ -575,12 +601,19 @@ export default function ManualCharacterBuilder() {
     const nextFlaw = customFlawInput.trim();
     if (!nextFlaw) return;
 
+    const currentFlawCPTotal = extraFlawItems.reduce((sum, item) => sum + item.cp, 0);
+    if (currentFlawCPTotal + customFlawCp > 4) {
+      setInteractionWarning('Adding this flaw would exceed the 4-CP flaw limit (rules p. 551). Remove another flaw first.');
+      return;
+    }
+
     applyCharacterUpdate(draft => {
       if (!draft.flaws.includes(nextFlaw)) {
         draft.flaws.push(nextFlaw);
       }
     });
 
+    setExtraFlawItems(prev => prev.filter(item => item.name !== nextFlaw).concat({ name: nextFlaw, cp: customFlawCp }));
     setCustomFlawInput('');
   };
 
@@ -588,6 +621,27 @@ export default function ManualCharacterBuilder() {
     applyCharacterUpdate(draft => {
       draft.flaws = draft.flaws.filter(existing => existing !== flaw);
     });
+    setExtraFlawItems(prev => prev.filter(item => item.name !== flaw));
+  };
+
+  const purchaseAdvantage = (adv: PurchasableAdvantage) => {
+    if (adv.cost > cpRemaining) {
+      setInteractionWarning(`Not enough CP remaining to purchase ${adv.name} (costs ${adv.cost} CP).`);
+      return;
+    }
+    if (purchasedAdvantagesList.some(a => a.name === adv.name)) return;
+    applyCharacterUpdate(draft => {
+      if (!draft.advantages.includes(adv.name)) draft.advantages.push(adv.name);
+    });
+    setPurchasedAdvantagesList(prev => [...prev, { name: adv.name, cost: adv.cost }]);
+  };
+
+  const removePurchasedAdvantage = (name: string) => {
+    applyCharacterUpdate(draft => {
+      const isDefault = baseCharacter?.advantages.includes(name);
+      if (!isDefault) draft.advantages = draft.advantages.filter(a => a !== name);
+    });
+    setPurchasedAdvantagesList(prev => prev.filter(a => a.name !== name));
   };
 
   useEffect(() => {
@@ -622,6 +676,10 @@ export default function ManualCharacterBuilder() {
     setFocusSwapSource('');
     setFocusSwapTarget('');
     setFocusSwapMode('standard');
+    setAssassinFocusChoice('Finesse');
+    setExtraFlawItems([]);
+    setPurchasedAdvantagesList([]);
+    setCustomFlawCp(1);
     setCharacter(null);
     setBaseCharacter(null);
     setCpSpent(null);
@@ -770,10 +828,10 @@ export default function ManualCharacterBuilder() {
       {character && currentStep >= 2 && (
         <div className="sticky top-2 z-40 mb-6 rounded-xl border border-white/15 bg-charcoal-violet/85 backdrop-blur px-4 py-3 shadow-lg">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-            <span className="text-off-white/70">Budget: <span className="font-semibold text-off-white">{cpBudget}</span></span>
+            <span className="text-off-white/70">Budget: <span className="font-semibold text-off-white">{cpBudget}</span>{extraFlawCPs > 0 && <span className="text-muted-eldritch-green text-xs ml-1">(+{extraFlawCPs} flaw)</span>}</span>
             <span className="text-off-white/70">Spent: <span className="font-semibold text-off-white">{cpSpentFromBudget}</span></span>
             <span className="text-off-white/70">Remaining: <span className={`font-semibold ${getCpRemainingClassName(cpRemaining)}`}>{cpRemaining}</span></span>
-            <span className="text-off-white/50">A {cpSpent?.abilities ?? 0} | S {cpSpent?.specialties ?? 0} | F {cpSpent?.focuses ?? 0} | Adv {cpSpent?.advantages ?? 0}</span>
+            <span className="text-off-white/50">A {cpSpent?.abilities ?? 0} | S {cpSpent?.specialties ?? 0} | F {cpSpent?.focuses ?? 0} | Adv {(cpSpent?.advantages ?? 0) + purchasedAdvantageCPs}</span>
             {cpDelta !== null && (
               <span className={`rounded-full px-2 py-0.5 text-xs font-semibold animate-pulse ${cpDelta > 0 ? 'bg-red-900/40 text-red-300 border border-red-500/40' : 'bg-green-900/40 text-green-300 border border-green-500/40'}`}>
                 {cpDelta > 0 ? `Spent +${cpDelta} CP` : `Refund ${Math.abs(cpDelta)} CP`}
@@ -827,6 +885,28 @@ export default function ManualCharacterBuilder() {
                 </select>
               </div>
             ) : null}
+            {/* Assassin starting focus choice — rules say Finesse +1 OR Ranged Finesse +1 */}
+            {selectedClass === 'Assassin' && (
+              <div>
+                <div className="block text-sm font-medium mb-2 text-off-white/80">Starting Melee Focus</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['Finesse', 'Ranged Finesse'] as const).map(choice => (
+                    <label key={choice} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition-colors ${assassinFocusChoice === choice ? 'border-soft-amethyst/50 bg-soft-amethyst/10 text-off-white' : 'border-white/10 bg-white/5 text-off-white/70'
+                      }`}>
+                      <input type="radio" name="assassin-focus" value={choice} checked={assassinFocusChoice === choice} onChange={() => setAssassinFocusChoice(choice)} className="sr-only" />
+                      <span className="w-3 h-3 rounded-full border-2 flex-shrink-0 flex items-center justify-center" style={{ borderColor: assassinFocusChoice === choice ? 'rgb(138 92 246)' : 'rgba(255,255,255,0.3)' }}>
+                        {assassinFocusChoice === choice && <span className="w-1.5 h-1.5 rounded-full bg-soft-amethyst" />}
+                      </span>
+                      <div>
+                        <div className="font-medium">{choice} +1</div>
+                        <div className="text-xs text-off-white/45">{choice === 'Finesse' ? 'Melee finesse attacks' : 'Ranged precision strikes'}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-off-white/40 mt-1">Rules allow either Finesse or Ranged Finesse as your Melee starting focus.</p>
+              </div>
+            )}
           </div>
 
           {/* Focus swap — only shown when applicable */}
@@ -955,7 +1035,7 @@ export default function ManualCharacterBuilder() {
                 <div>Abilities: <span className="font-semibold text-off-white">{cpSpent.abilities}</span></div>
                 <div>Specialties: <span className="font-semibold text-off-white">{cpSpent.specialties}</span></div>
                 <div>Focuses: <span className="font-semibold text-off-white">{cpSpent.focuses}</span></div>
-                <div>Advantages: <span className="font-semibold text-off-white">{cpSpent.advantages}</span></div>
+                <div>Advantages: <span className="font-semibold text-off-white">{(cpSpent.advantages) + purchasedAdvantageCPs}</span></div>
               </div>
               <p className="text-xs text-off-white/40 mt-2 italic">Standard and custom focus bonuses both spend CP unless they are part of the starting race/class package.</p>
             </div>
@@ -1166,26 +1246,98 @@ export default function ManualCharacterBuilder() {
               )}
             </div>
             <div className="space-y-2">
-              <div className="text-xs uppercase tracking-wide text-off-white/50">Add Custom Flaw</div>
+              <div className="flex items-center justify-between">
+                <div className="text-xs uppercase tracking-wide text-off-white/50">Add Extra Flaw <span className="normal-case">(grants CP)</span></div>
+                <div className={`text-xs font-medium ${extraFlawCPs >= 4 ? 'text-red-400' : 'text-muted-eldritch-green'}`}>
+                  {extraFlawCPs}/4 extra flaw CPs used
+                </div>
+              </div>
+              <p className="text-xs text-off-white/40">Racial flaws are already factored into your package. Each extra flaw you add here grants bonus CPs (capped at 4 total).</p>
               <div className="flex flex-wrap items-center gap-2">
-                <input value={customFlawInput} onChange={(e) => setCustomFlawInput(e.target.value)} placeholder="Enter a flaw" className="min-w-[14rem] flex-1 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-off-white placeholder-off-white/30" />
-                <button className="rounded-full border border-white/20 px-3 py-1.5 text-xs text-off-white/75 hover:bg-white/10" onClick={addCustomFlaw}>Add Flaw</button>
+                <input value={customFlawInput} onChange={(e) => setCustomFlawInput(e.target.value)} placeholder="e.g. Clumsy, Old, Mundane…" className="min-w-[12rem] flex-1 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-off-white placeholder-off-white/30" />
+                <select
+                  value={customFlawCp}
+                  onChange={e => setCustomFlawCp(Number(e.target.value))}
+                  className="npc-native-select rounded-lg border border-white/15 bg-white/5 text-off-white px-2 py-2 text-sm"
+                  aria-label="Flaw CP value"
+                >
+                  <option value={1}>1 CP</option>
+                  <option value={2}>2 CP</option>
+                  <option value={3}>3 CP</option>
+                </select>
+                <button
+                  disabled={!customFlawInput.trim() || extraFlawCPs >= 4}
+                  className="rounded-full border border-white/20 px-3 py-1.5 text-xs text-off-white/75 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
+                  onClick={addCustomFlaw}
+                >Add Flaw</button>
               </div>
             </div>
             <div className="space-y-2">
               <div className="text-xs uppercase tracking-wide text-off-white/50">Selected Flaws</div>
               {character.flaws.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
-                  {character.flaws.map(flaw => (
-                    <span key={flaw} className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs text-off-white/80">
-                      <span>{flaw}</span>
-                      <button className="text-off-white/60 hover:text-off-white" onClick={() => removeFlaw(flaw)} aria-label={`Remove flaw ${flaw}`}>×</button>
-                    </span>
-                  ))}
+                  {character.flaws.map(flaw => {
+                    const extraItem = extraFlawItems.find(item => item.name === flaw);
+                    return (
+                      <span key={flaw} className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${extraItem ? 'border-muted-eldritch-green/40 bg-muted-eldritch-green/10 text-off-white/90' : 'border-white/20 bg-white/5 text-off-white/80'
+                        }`}>
+                        <span>{flaw}{extraItem ? ` (+${extraItem.cp} CP)` : ''}</span>
+                        <button className="text-off-white/60 hover:text-off-white" onClick={() => removeFlaw(flaw)} aria-label={`Remove flaw ${flaw}`}>×</button>
+                      </span>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-xs text-off-white/50">No flaws selected.</div>
               )}
+            </div>
+          </div>
+
+          {/* Purchasable advantages */}
+          <div className="bg-white/5 border border-white/10 rounded-xl p-5 space-y-4">
+            <div>
+              <h3 className="font-semibold text-base text-off-white">Purchase Advantages</h3>
+              <p className="text-xs text-off-white/55 mt-1">Spend CP from your budget on additional advantages not in your race/class package.</p>
+              {purchasedAdvantagesList.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {purchasedAdvantagesList.map(a => (
+                    <span key={a.name} className="inline-flex items-center gap-1.5 rounded-full border border-muted-eldritch-green/40 bg-muted-eldritch-green/10 px-2.5 py-0.5 text-xs text-off-white/90">
+                      {a.name} <span className="text-muted-eldritch-green/70">−{a.cost} CP</span>
+                      <button onClick={() => removePurchasedAdvantage(a.name)} className="text-off-white/50 hover:text-off-white">×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2 max-h-72 overflow-y-auto pr-1">
+              {purchasableAdvantages
+                .filter(adv => !selectableDefaultAdvantages.some(d => d.toLowerCase() === adv.name.toLowerCase()))
+                .map(adv => {
+                  const alreadyPurchased = purchasedAdvantagesList.some(a => a.name === adv.name);
+                  const canAfford = adv.cost <= cpRemaining || alreadyPurchased;
+                  return (
+                    <div key={adv.name} className={`rounded-lg border p-2.5 text-sm transition-colors ${alreadyPurchased ? 'border-muted-eldritch-green/40 bg-muted-eldritch-green/10' :
+                      canAfford ? 'border-white/10 bg-white/5 hover:border-white/20' :
+                        'border-white/5 bg-transparent opacity-40'
+                      }`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-off-white/90 truncate">{adv.name}</div>
+                          <div className="text-xs text-off-white/45 mt-0.5 leading-relaxed">{adv.description}</div>
+                        </div>
+                        <div className="flex-shrink-0 flex flex-col items-end gap-1">
+                          <span className="text-xs font-mono text-off-white/60 whitespace-nowrap">{adv.cost} CP</span>
+                          {alreadyPurchased ? (
+                            <button onClick={() => removePurchasedAdvantage(adv.name)} className="text-xs text-red-400/80 hover:text-red-300 whitespace-nowrap">Remove</button>
+                          ) : (
+                            <button disabled={!canAfford} onClick={() => purchaseAdvantage(adv)} className="text-xs text-muted-eldritch-green disabled:opacity-40 whitespace-nowrap">Purchase</button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              }
             </div>
           </div>
           {combinedWarnings.length > 0 && (
