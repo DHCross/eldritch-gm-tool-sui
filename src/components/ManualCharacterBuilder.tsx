@@ -9,7 +9,6 @@ import {
   createCharacterShell,
   deepCloneCharacter,
   dieRanks,
-  flawCosts,
   fnum,
   foci,
   focusStepCost,
@@ -25,7 +24,7 @@ import {
   spendCP,
   stepCost,
   updateDerivedCharacterData,
-  weaknessReport,
+  buildProfileReport,
   levels,
   mv,
   type Character,
@@ -90,22 +89,6 @@ const ADVANTAGE_DESCRIPTIONS: Record<string, string> = {
 };
 
 const WIZARD_STEPS = ['Identity', 'Package', 'Abilities', 'Advantages', 'Finalize'] as const;
-
-const toGuidanceWarning = (warning: string) => {
-  if (warning.includes('Low Spirit Points')) {
-    return 'Low Spirit Points - magical pressure will be dangerous. Consider improving Willpower or related focuses.';
-  }
-  if (warning.includes('Low Active DP')) {
-    return 'Low Active DP - dodging and parrying will be difficult. Consider raising Agility, Reaction, or defensive specialties.';
-  }
-  if (warning.includes('Low Passive DP')) {
-    return 'Low Passive DP - sustained punishment may overwhelm this build. Fortitude and Endurance can stabilize survivability.';
-  }
-  if (warning.toLowerCase().includes('ranged')) {
-    return 'Weak ranged capability - consider improving Precision or ranged-aligned focuses.';
-  }
-  return warning;
-};
 
 const isDefinedWarning = (warning: string | null): warning is string => Boolean(warning);
 
@@ -462,10 +445,8 @@ export default function ManualCharacterBuilder() {
   const cpRemaining = useMemo(() => cpBudget - cpSpentFromBudget, [cpBudget, cpSpentFromBudget]);
 
   const cpWarning = cpRemaining < 0 ? `You have overspent by ${Math.abs(cpRemaining)} CP.` : null;
-  const weaknessWarnings = character ? weaknessReport(character) : [];
-  const combinedWarnings = [interactionWarning, cpWarning, ...weaknessWarnings]
-    .filter(isDefinedWarning)
-    .map(warning => toGuidanceWarning(warning));
+  const buildNotes = character ? buildProfileReport(character) : [];
+  const actionableWarnings = [interactionWarning, cpWarning].filter(isDefinedWarning);
   const canFinalize = Boolean(character && baseCharacter && cpRemaining >= 0);
   const multiclassFeatCost = useMemo(() => getMulticlassFeatCost(selectedLevel), [selectedLevel]);
   const crossDisciplineSpellcasting = useMemo(
@@ -1041,9 +1022,17 @@ export default function ManualCharacterBuilder() {
             </div>
           )}
 
-          {combinedWarnings.length > 0 && (
+          {actionableWarnings.length > 0 && (
             <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-4 text-sm text-yellow-300 space-y-1">
-              {combinedWarnings.map((w, i) => <div key={`${w}-${i}`}>{w}</div>)}
+              {actionableWarnings.map((w, i) => <div key={`${w}-${i}`}>{w}</div>)}
+            </div>
+          )}
+          {buildNotes.length > 0 && (
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-off-white/70 space-y-1">
+              <div className="font-semibold text-off-white mb-2">Build Profile</div>
+              <ul className="list-disc pl-5 space-y-1">
+                {buildNotes.map((note, i) => <li key={`note-${i}`}>{note}</li>)}
+              </ul>
             </div>
           )}
         </div>
@@ -1058,9 +1047,17 @@ export default function ManualCharacterBuilder() {
             <button className="rounded-full border border-white/20 px-3 py-1 text-xs text-off-white/70 hover:bg-white/10" onClick={() => setAllBranchesExpanded(true)}>Expand All Branches</button>
             <button className="rounded-full border border-white/20 px-3 py-1 text-xs text-off-white/70 hover:bg-white/10" onClick={() => setAllBranchesExpanded(false)}>Collapse All Branches</button>
           </div>
-          {combinedWarnings.length > 0 && (
+          {actionableWarnings.length > 0 && (
             <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-4 text-sm text-yellow-300 space-y-1">
-              {combinedWarnings.map((w, i) => <div key={`${w}-${i}`}>{w}</div>)}
+              {actionableWarnings.map((w, i) => <div key={`${w}-${i}`}>{w}</div>)}
+            </div>
+          )}
+          {buildNotes.length > 0 && (
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-off-white/70 space-y-1">
+              <div className="font-semibold text-off-white mb-2">Build Profile</div>
+              <ul className="list-disc pl-5 space-y-1">
+                {buildNotes.map((note, i) => <li key={`note-${i}`}>{note}</li>)}
+              </ul>
             </div>
           )}
           <div className="space-y-4">
@@ -1340,9 +1337,17 @@ export default function ManualCharacterBuilder() {
               }
             </div>
           </div>
-          {combinedWarnings.length > 0 && (
+          {actionableWarnings.length > 0 && (
             <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-4 text-sm text-yellow-300 space-y-1">
-              {combinedWarnings.map((w, i) => <div key={`${w}-${i}`}>{w}</div>)}
+              {actionableWarnings.map((w, i) => <div key={`${w}-${i}`}>{w}</div>)}
+            </div>
+          )}
+          {buildNotes.length > 0 && (
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-off-white/70 space-y-1">
+              <div className="font-semibold text-off-white mb-2">Build Profile</div>
+              <ul className="list-disc pl-5 space-y-1">
+                {buildNotes.map((note, i) => <li key={`note-${i}`}>{note}</li>)}
+              </ul>
             </div>
           )}
         </div>
@@ -1423,9 +1428,17 @@ export default function ManualCharacterBuilder() {
             )}
           </div>
 
-          {combinedWarnings.length > 0 && (
+          {actionableWarnings.length > 0 && (
             <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-4 text-sm text-yellow-300 space-y-1">
-              {combinedWarnings.map((w, i) => <div key={`${w}-${i}`}>{w}</div>)}
+              {actionableWarnings.map((w, i) => <div key={`${w}-${i}`}>{w}</div>)}
+            </div>
+          )}
+          {buildNotes.length > 0 && (
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-off-white/70 space-y-1">
+              <div className="font-semibold text-off-white mb-2">Build Profile</div>
+              <ul className="list-disc pl-5 space-y-1">
+                {buildNotes.map((note, i) => <li key={`note-${i}`}>{note}</li>)}
+              </ul>
             </div>
           )}
 

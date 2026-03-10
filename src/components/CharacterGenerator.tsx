@@ -12,7 +12,7 @@ import {
   getMulticlassFeatCost,
   spendCP,
   updateDerivedCharacterData,
-  weaknessReport,
+  buildProfileReport,
   mv,
   type Character,
   type FocusSwapSelection
@@ -403,7 +403,7 @@ export default function CharacterGenerator() {
     setPcName(`${suggestion.firstName}${suggestion.familyName ? ` ${suggestion.familyName}` : ''}`);
   };
 
-  const warnings = character && showWeakness ? weaknessReport(character) : [];
+  const warnings = character && showWeakness ? buildProfileReport(character) : [];
   const selectableDefaultAdvantages = useMemo(() => {
     if (!character) return [];
     return createCharacterShell(character.race as RaceName, character.class as ClassName, 1).character.advantages;
