@@ -149,7 +149,7 @@ function RosterContent() {
       </header>
 
       {allCharacters.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8 text-gray-900">
           <h2 className="text-2xl font-bold mb-4">No Characters Created Yet</h2>
           <p className="text-gray-600 mb-4">
             You haven&apos;t created any player characters yet. Use the Character Generator to create
@@ -170,7 +170,7 @@ function RosterContent() {
       ) : (
         <>
           {/* Character Selection Panel */}
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-6 text-gray-900">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">
                 Available Characters ({unassignedCharacters.length})
@@ -244,7 +244,7 @@ function RosterContent() {
 
           {/* New Party Form */}
           {showNewPartyForm && (
-            <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div className="bg-white rounded-lg shadow-lg p-6 mb-6 text-gray-900">
               <h3 className="text-lg font-bold mb-4">Create New Party</h3>
               <div className="flex gap-4">
                 <input
@@ -280,7 +280,7 @@ function RosterContent() {
               const isExpanded = expandedParties.has(party.id);
 
               return (
-                <div key={party.id} className="bg-white rounded-lg shadow-lg">
+                <div key={party.id} className="bg-white rounded-lg shadow-lg text-gray-900">
                   <div
                     className="p-6 cursor-pointer hover:bg-gray-50"
                     onClick={() => togglePartyExpansion(party.id)}
@@ -335,7 +335,7 @@ function RosterContent() {
                           ))}
 
                           {defenseProfile && (
-                            <div className="mt-4 p-4 bg-blue-50 rounded border border-blue-200">
+                            <div className="mt-4 p-4 bg-blue-50 rounded border border-blue-200 text-blue-950">
                               <h4 className="font-bold text-blue-900 mb-2">
                                 Party Defense Summary
                               </h4>
