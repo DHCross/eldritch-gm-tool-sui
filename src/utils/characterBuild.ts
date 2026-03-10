@@ -442,17 +442,17 @@ export function computePools(ch: Character) {
   return { active: AD, passive: PD, spirit: SP };
 }
 
-export function weaknessReport(ch: Character) {
+export function buildProfileReport(ch: Character) {
   const { active, passive, spirit } = computePools(ch);
-  const flags: string[] = [];
-  if (spirit <= 12) flags.push('Low Spirit Points (mental/arcane pressure will hurt).');
-  if (active < 24) flags.push('Low Active DP (poor agility/parry).');
-  if (passive < 24) flags.push('Low Passive DP (fragile to heavy blows).');
-  if (idx(ch.abilities.Competence) <= 1) flags.push('Low Competence (poor perception/social/planning).');
-  if (idx(ch.specialties.Competence.Perception) <= 1) flags.push('Low Perception branch (traps/ambush risk).');
-  if (idx(ch.specialties.Fortitude.Willpower) <= 1) flags.push('Low Willpower (charms/fear/illusions).');
-  if (idx(ch.specialties.Prowess.Precision) <= 1) flags.push('Weak ranged capability.');
-  return flags;
+  const notes: string[] = [];
+  if (spirit <= 12) notes.push('Spirit Points lean lower: mental/arcane pressure may be challenging, freeing CP for other areas.');
+  if (active < 24) notes.push('Active DP leans lower: dodging/parrying may be difficult. This build likely relies on passive defense or positioning.');
+  if (passive < 24) notes.push('Passive DP leans lower: sustained physical punishment may overwhelm. Relies more on avoiding hits entirely.');
+  if (idx(ch.abilities.Competence) <= 1) notes.push('Competence branch is lightly invested: relies on others for perception and social tasks.');
+  if (idx(ch.specialties.Competence.Perception) <= 1) notes.push('Perception is lightly invested: relies on caution or allies to spot traps/ambushes.');
+  if (idx(ch.specialties.Fortitude.Willpower) <= 1) notes.push('Willpower is lightly invested: vulnerable to charms and illusions, but CP is focused elsewhere.');
+  if (idx(ch.specialties.Prowess.Precision) <= 1) notes.push('Ranged capability is lightly invested: prefers close-quarters or magic engagements.');
+  return notes;
 }
 
 export function calculateCPSpent(finalChar: Character, baseChar: Character, iconic: boolean, focusSwapCpCost = 0) {
