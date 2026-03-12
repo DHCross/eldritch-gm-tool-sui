@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   abilities,
   calculateCPSpent,
@@ -154,6 +155,7 @@ const getFocusSwapDescription = (
 };
 
 export default function ManualCharacterBuilder() {
+  const router = useRouter();
   const [selectedRace, setSelectedRace] = useState('');
   const [selectedClass, setSelectedClass] = useState<ClassName | ''>('');
   const [selectedLevel, setSelectedLevel] = useState<number>(1);
@@ -751,6 +753,7 @@ export default function ManualCharacterBuilder() {
 
     setShowPartyAssignment(false);
     setSelectedParty('');
+    router.push('/roster');
   };
 
   const handleRandomName = () => {

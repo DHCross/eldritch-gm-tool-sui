@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   calculateCPSpent,
   createCharacterShell,
@@ -79,6 +80,7 @@ const isCasterClass = (
   (casterClasses as readonly string[]).includes(klass);
 
 export default function CharacterGenerator() {
+  const router = useRouter();
   const [race, setRace] = useState('');
   const [characterClass, setCharacterClass] = useState('');
   const [level, setLevel] = useState<number>(1);
@@ -388,6 +390,7 @@ export default function CharacterGenerator() {
 
     setShowPartyAssignment(false);
     setSelectedParty('');
+    router.push('/roster');
   }
 
   // Generate random name
