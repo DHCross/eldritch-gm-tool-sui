@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   DetailedNPC,
   npcRaces,
@@ -18,6 +19,7 @@ import { SavedCharacter, PartyFolder } from '../types/party';
 import exporter from '../utils/exporters/htmlExporter';
 
 export default function AdvancedNPCGenerator() {
+  const router = useRouter();
   const [npcs, setNpcs] = useState<DetailedNPC[]>([]);
 
   // Generation options
@@ -134,6 +136,7 @@ export default function AdvancedNPCGenerator() {
     alert(`NPC "${npcToSave.name}" saved successfully!`);
     setShowSaveDialog(false);
     setNpcToSave(null);
+    router.push('/npc-roster');
   };
 
   const handleRemoveNPC = (id: number) => {

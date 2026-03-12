@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   CreatureCategory,
   CreatureNature,
@@ -77,6 +78,7 @@ interface EnhancedMonsterForm {
 }
 
 export default function EnhancedMonsterGenerator() {
+  const router = useRouter();
   const [monsterForm, setMonsterForm] = useState<EnhancedMonsterForm>({
     name: '',
     category: 'Minor',
@@ -314,6 +316,7 @@ export default function EnhancedMonsterGenerator() {
     saveCharacter(character);
     alert(`Enhanced Monster "${monsterForm.name}" saved successfully!`);
     setShowSaveDialog(false);
+    router.push('/monster-roster');
   };
 
   return (
