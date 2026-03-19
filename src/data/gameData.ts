@@ -7,11 +7,11 @@ export type DieRank = typeof dieRanks[number];
 export const abilities = ['Competence', 'Prowess', 'Fortitude'] as const;
 export type Ability = typeof abilities[number];
 
-export const specs = {
+export const specs: Record<Ability, readonly string[]> = {
   Competence: ['Adroitness', 'Expertise', 'Perception'],
   Prowess: ['Agility', 'Melee', 'Precision'],
   Fortitude: ['Endurance', 'Strength', 'Willpower']
-} as const satisfies Record<Ability, readonly string[]>;
+};
 export type Specialty = (typeof specs)[Ability][number];
 
 export const foci = {
